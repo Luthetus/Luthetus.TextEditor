@@ -1,6 +1,6 @@
 # Blazor.Text.Editor
 
-![Example GIF](/Images/Gifs/root-readme-gif.gif)
+![Example GIF](./Images/Rewrite/introductoryGifBlazorTextEditor.gif)
 
 ***Blazor.Text.Editor*** is a Text Editor component library using
 the [Blazor UI Framework](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
