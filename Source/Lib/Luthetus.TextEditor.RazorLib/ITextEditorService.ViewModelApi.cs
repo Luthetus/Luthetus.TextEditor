@@ -68,7 +68,7 @@ public partial interface ITextEditorService
             double? scrollTopInPixels)
         {
             await _jsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.setScrollPosition",
+                "luthetusTextEditor.setScrollPosition",
                 bodyElementId,
                 gutterElementId,
                 scrollLeftInPixels,
@@ -80,7 +80,7 @@ public partial interface ITextEditorService
             double scrollTopInPixels)
         {
             await _jsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.setGutterScrollTop",
+                "luthetusTextEditor.setGutterScrollTop",
                 gutterElementId,
                 scrollTopInPixels);
         }
@@ -102,7 +102,7 @@ public partial interface ITextEditorService
             double pixels)
         {
             await _jsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.mutateScrollVerticalPositionByPixels",
+                "luthetusTextEditor.mutateScrollVerticalPositionByPixels",
                 bodyElementId,
                 gutterElementId,
                 pixels);
@@ -114,7 +114,7 @@ public partial interface ITextEditorService
             double pixels)
         {
             await _jsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.mutateScrollHorizontalPositionByPixels",
+                "luthetusTextEditor.mutateScrollHorizontalPositionByPixels",
                 bodyElementId,
                 gutterElementId,
                 pixels);
@@ -149,7 +149,7 @@ public partial interface ITextEditorService
         public async Task FocusPrimaryCursorAsync(string primaryCursorContentId)
         {
             await _jsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.focusHtmlElementById",
+                "luthetusTextEditor.focusHtmlElementById",
                 primaryCursorContentId);
         }
 
@@ -165,7 +165,7 @@ public partial interface ITextEditorService
             string elementId)
         {
             return await _jsRuntime.InvokeAsync<ElementMeasurementsInPixels>(
-                "luthetus.textEditor.getElementMeasurementsInPixelsById",
+                "luthetusTextEditor.getElementMeasurementsInPixelsById",
                 elementId);
         }
 
@@ -174,7 +174,7 @@ public partial interface ITextEditorService
             int countOfTestCharacters)
         {
             return await _jsRuntime.InvokeAsync<CharacterWidthAndRowHeight>(
-                    "luthetus.textEditor.measureCharacterWidthAndRowHeight",
+                    "luthetusTextEditor.measureCharacterWidthAndRowHeight",
                     measureCharacterWidthAndRowHeightElementId,
                     countOfTestCharacters);
         }

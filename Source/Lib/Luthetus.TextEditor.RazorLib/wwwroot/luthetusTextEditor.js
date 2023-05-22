@@ -1,4 +1,4 @@
-window.luthetus.textEditor = {
+window.luthetusTextEditor = {
     focusHtmlElementById: function (elementId) {
         let element = document.getElementById(elementId);
 

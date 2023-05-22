@@ -84,7 +84,7 @@ public partial class ScrollbarVertical : ComponentBase, IDisposable
 
         _relativeCoordinatesOnMouseDown = await JsRuntime
             .InvokeAsync<RelativeCoordinates>(
-                "luthetus.textEditor.getRelativePosition",
+                "luthetusTextEditor.getRelativePosition",
                 ScrollbarSliderElementId,
                 mouseEventArgs.ClientX,
                 mouseEventArgs.ClientY);
@@ -148,7 +148,7 @@ public partial class ScrollbarVertical : ComponentBase, IDisposable
         {
             var relativeCoordinatesOfDragEvent = await JsRuntime
                 .InvokeAsync<RelativeCoordinates>(
-                    "luthetus.textEditor.getRelativePosition",
+                    "luthetusTextEditor.getRelativePosition",
                     ScrollbarElementId,
                     mouseEventArgsTuple.secondMouseEventArgs.ClientX,
                     mouseEventArgsTuple.secondMouseEventArgs.ClientY);

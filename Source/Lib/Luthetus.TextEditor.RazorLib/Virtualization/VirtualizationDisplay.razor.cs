@@ -75,7 +75,7 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
             }
 
             await JsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.initializeVirtualizationIntersectionObserver",
+                "luthetusTextEditor.initializeVirtualizationIntersectionObserver",
                 _virtualizationDisplayGuid.ToString(),
                 DotNetObjectReference.Create(this),
                 _scrollableParentFinder,
@@ -112,7 +112,7 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
             try
             {
                 await JsRuntime.InvokeVoidAsync(
-                    "luthetus.textEditor.disposeVirtualizationIntersectionObserver",
+                    "luthetusTextEditor.disposeVirtualizationIntersectionObserver",
                     CancellationToken.None,
                     _virtualizationDisplayGuid.ToString());
             }

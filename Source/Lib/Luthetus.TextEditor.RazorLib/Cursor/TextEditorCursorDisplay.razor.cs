@@ -80,7 +80,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
             var guid = Guid.NewGuid();
 
             var nextLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
-                "luthetus.textEditor.calculateProportionalLeftOffset",
+                "luthetusTextEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
                 $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
                 $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
@@ -100,7 +100,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
             if (IsFocusTarget)
             {
                 await JsRuntime.InvokeVoidAsync(
-                    "luthetus.textEditor.initializeTextEditorCursorIntersectionObserver",
+                    "luthetusTextEditor.initializeTextEditorCursorIntersectionObserver",
                     _intersectionObserverMapKey.ToString(),
                     DotNetObjectReference.Create(this),
                     ScrollableContainerId,
@@ -136,7 +136,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
             if (!TextEditorCursor.IsIntersecting)
             {
                 await JsRuntime.InvokeVoidAsync(
-                    "luthetus.textEditor.scrollElementIntoView",
+                    "luthetusTextEditor.scrollElementIntoView",
                     TextEditorCursorDisplayId);
             }
         }
@@ -399,7 +399,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
                 try
                 {
                     await JsRuntime.InvokeVoidAsync(
-                        "luthetus.textEditor.disposeTextEditorCursorIntersectionObserver",
+                        "luthetusTextEditor.disposeTextEditorCursorIntersectionObserver",
                         CancellationToken.None,
                         _intersectionObserverMapKey.ToString());
                 }

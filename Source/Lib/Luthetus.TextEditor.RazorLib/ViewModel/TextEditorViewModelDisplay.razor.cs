@@ -167,7 +167,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
-                "luthetus.textEditor.preventDefaultOnWheelEvents",
+                "luthetusTextEditor.preventDefaultOnWheelEvents",
                 ContentElementId);
         }
 
@@ -685,7 +685,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         var relativeCoordinatesOnClick = await JsRuntime
             .InvokeAsync<RelativeCoordinates>(
-                "luthetus.textEditor.getRelativePosition",
+                "luthetusTextEditor.getRelativePosition",
                 safeRefViewModel.BodyElementId,
                 mouseEventArgs.ClientX,
                 mouseEventArgs.ClientY);
@@ -713,7 +713,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             var guid = Guid.NewGuid();
 
             columnIndexInt = await JsRuntime.InvokeAsync<int>(
-                "luthetus.textEditor.calculateProportionalColumnIndex",
+                "luthetusTextEditor.calculateProportionalColumnIndex",
                 ProportionalFontMeasurementsContainerElementId,
                 $"luth_te_proportional-font-measurement-parent_{_textEditorHtmlElementId}_{guid}",
                 $"luth_te_proportional-font-measurement-cursor_{_textEditorHtmlElementId}_{guid}",

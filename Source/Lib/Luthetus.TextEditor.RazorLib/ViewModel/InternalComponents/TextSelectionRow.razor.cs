@@ -109,7 +109,7 @@ public partial class TextSelectionRow : ComponentBase
             var guid = Guid.NewGuid();
 
             var nextSelectionStartingLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
-                "luthetus.textEditor.calculateProportionalLeftOffset",
+                "luthetusTextEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
                 $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
                 $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
@@ -145,7 +145,7 @@ public partial class TextSelectionRow : ComponentBase
             var guid = Guid.NewGuid();
 
             var selectionEndingLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
-                "luthetus.textEditor.calculateProportionalLeftOffset",
+                "luthetusTextEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
                 $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
                 $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
