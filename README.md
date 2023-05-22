@@ -1,5 +1,6 @@
 # Blazor.Text.Editor
 
+### One can gauge their interest in the repository with this one minute GIF:
 ![Example GIF](./Images/Rewrite/introductoryGifBlazorTextEditor.gif)
 
 ***Blazor.Text.Editor*** is a Text Editor component library using
