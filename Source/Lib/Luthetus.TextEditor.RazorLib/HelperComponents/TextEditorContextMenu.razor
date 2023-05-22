@@ -1,0 +1,13 @@
+﻿@using Luthetus.Common.RazorLib.Menu
+
+<div @ref="_textEditorContextMenuElementReference"
+     tab-index="-1"
+     class="bstudio_text-editor-context-menu"
+     @onkeydown="HandleOnKeyDownAsync">
+
+    <CascadingValue Name="ReturnFocusToParentFuncAsync"
+                    Value="ReturnFocusToThisAsync">
+        
+        <MenuDisplay MenuRecord="GetMenuRecord()"/>
+    </CascadingValue>
+</div>

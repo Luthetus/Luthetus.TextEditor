@@ -1,0 +1,122 @@
+﻿@using System.Text
+@using Luthetus.TextEditor.RazorLib.Row
+@using Luthetus.TextEditor.RazorLib.Virtualization
+@using Luthetus.TextEditor.RazorLib.HelperComponents
+@using Luthetus.TextEditor.RazorLib.Cursor
+
+<div class="bte_row-section"
+     id="@TextEditorViewModel.BodyElementId">
+    
+    @{ var localViewModel = TextEditorViewModel; }
+
+    @* VirtualizationDisplay must be rendered first as it will modify the scrollHeight / scrollWidth of the scrollable parent *@
+    <VirtualizationDisplay VirtualizationResultWithoutTypeMask="TextEditorViewModel.VirtualizationResult"
+                           ItemsProviderFunc="VirtualizationDisplayItemsProviderFunc"/>
+
+    <PresentationLayerGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"
+                            CssClassString="bte_first-presentation-layer-group"
+                            TextEditorPresentations="localViewModel.FirstPresentationLayer"/>
+
+    <TextSelectionGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"/>
+
+    <PresentationLayerGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"
+                            CssClassString="bte_last-presentation-layer-group"
+                            TextEditorPresentations="localViewModel.LastPresentationLayer"/>
+
+    @foreach (var virtualizedRow in TextEditorViewModel.VirtualizationResult.Entries)
+    {
+        <div class="bte_row"
+             style="@GetRowStyleCss(virtualizedRow.Index, virtualizedRow.LeftInPixels)">
+            @if (virtualizedRow.Item.Any())
+            {
+                var spanBuilder = new StringBuilder();
+                var currentDecorationByte = virtualizedRow.Item.First().DecorationByte;
+
+                foreach (var richCharacter in virtualizedRow.Item)
+                {
+                    if (currentDecorationByte == richCharacter.DecorationByte)
+                    {
+                        AppendTextEscaped(
+                            spanBuilder,
+                            richCharacter,
+                            TabKeyOutput,
+                            SpaceKeyOutput);
+                    }
+                    else
+                    {
+                        <span class="@GetCssClass(currentDecorationByte)">
+                            @((MarkupString)spanBuilder.ToString())
+                        </span>
+
+                        spanBuilder.Clear();
+
+                        AppendTextEscaped(
+                            spanBuilder,
+                            richCharacter,
+                            TabKeyOutput,
+                            SpaceKeyOutput);
+
+                        currentDecorationByte = richCharacter.DecorationByte;
+                    }
+                }
+
+                /* Final grouping of contiguous characters */
+                <span class="@GetCssClass(currentDecorationByte)">
+                    @((MarkupString)spanBuilder.ToString())
+                </span>
+            }
+
+            @if (GlobalShowNewlines &&
+                 virtualizedRow.Index < TextEditorModel.RowCount - 1)
+            {
+                var amountOfLeftInCharacterWidthUnits =
+                    virtualizedRow.LeftInPixels /
+                    TextEditorViewModel.VirtualizationResult.CharacterWidthAndRowHeight.CharacterWidthInPixels;
+
+                var lengthOfRow = TextEditorModel
+                    .GetLengthOfRow(
+                        virtualizedRow.Index,
+                        true);
+
+                if (amountOfLeftInCharacterWidthUnits < lengthOfRow)
+                {
+                    var rowEndingTuple = TextEditorModel
+                        .RowEndingPositions[virtualizedRow.Index];
+
+                    <span class="bte_newline">
+                        @rowEndingTuple.rowEndingKind.AsCharactersHtmlEscaped()
+                    </span>
+                }
+            }
+        </div>
+    }
+
+    <TextEditorCursorDisplay @ref="TextEditorCursorDisplayComponent"
+                             TextEditorCursor="TextEditorViewModel.PrimaryCursor"
+                             ScrollableContainerId="@TextEditorViewModel.BodyElementId"
+                             IsFocusTarget="true"
+                             TabIndex="TabIndex"
+                             IncludeContextMenuHelperComponent="IncludeContextMenuHelperComponent">
+
+        <OnContextMenuRenderFragment>
+            @if (ContextMenuRenderFragmentOverride is not null)
+            {
+                @ContextMenuRenderFragmentOverride
+            }
+            else
+            {
+                <TextEditorContextMenu/>
+            }
+        </OnContextMenuRenderFragment>
+        <AutoCompleteMenuRenderFragment>
+            @if (AutoCompleteMenuRenderFragmentOverride is not null)
+            {
+                @AutoCompleteMenuRenderFragmentOverride
+            }
+            else
+            {
+                <TextEditorAutocompleteMenu/>
+            }
+        </AutoCompleteMenuRenderFragment>
+    </TextEditorCursorDisplay>
+</div>

@@ -1,0 +1,53 @@
+@using Luthetus.TextEditor.RazorLib.HelperComponents
+@using Luthetus.Common.RazorLib.Dimensions
+
+@{ var leftRelativeToParentInPixelsCssStyle = string.Empty; }
+
+@if (!GlobalTextEditorOptions.UseMonospaceOptimizations)
+{
+    var leftRelativeToParentInPixelsCssValue = _leftRelativeToParentInPixels
+        .ToCssValue();
+    
+    leftRelativeToParentInPixelsCssStyle =
+        $"left: {leftRelativeToParentInPixelsCssValue}px !important;";
+}
+
+<textarea @ref="_textEditorCursorDisplayElementReference"
+          @onkeydown="HandleOnKeyDown"
+          id="@TextEditorCursorDisplayId"
+          tabindex="@GetTabIndex()"
+          class="bte_text-editor-cursor @BlinkAnimationCssClass @GlobalTextEditorOptions.KeymapDefinition!.Keymap.GetCursorCssClassString()"
+          style="@CursorStyleCss @leftRelativeToParentInPixelsCssStyle">
+</textarea>
+
+<div class="bte_text-editor-caret-row"
+     style="@CaretRowStyleCss">
+</div>
+
+@if (_textEditorMenuKind != TextEditorMenuKind.None &&
+     IncludeContextMenuHelperComponent)
+{
+    <div @onkeydown:stopPropagation="true"
+         @onmousedown:stopPropagation="true"
+         @onmousemove:stopPropagation="true"
+         class="bte_text-editor-context-menu"
+         style="@MenuStyleCss">
+
+        <CascadingValue Name="SetShouldDisplayMenuAsync"
+                        Value="new Func<TextEditorMenuKind, bool, Task>(SetShouldDisplayMenuAsync)">
+            <CascadingValue Name="TextEditorMenuShouldTakeFocusFunc"
+                            Value="TextEditorMenuShouldTakeFocus">
+
+                @switch (_textEditorMenuKind)
+                {
+                    case TextEditorMenuKind.ContextMenu:
+                            @OnContextMenuRenderFragment
+                        break;
+                    case TextEditorMenuKind.AutoCompleteMenu:
+                            @AutoCompleteMenuRenderFragment
+                        break;
+                }
+            </CascadingValue>
+        </CascadingValue>
+    </div>
+}

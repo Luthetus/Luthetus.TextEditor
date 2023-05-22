@@ -1,0 +1,16 @@
+﻿@using Luthetus.Common.RazorLib.Dimensions
+
+<div class="bte_scrollbar bte_scrollbar-vertical"
+     id="@ScrollbarElementId"
+     @onmousedown:stopPropagation="true"
+     @onmousedown="HandleOnMouseDownAsync"
+     @onmousemove:stopPropagation="true"
+     @ondblclick:stopPropagation="true"
+     @onclick:stopPropagation="true"
+     @oncontextmenu:stopPropagation="true">
+         
+    <div class="bte_scrollbar-slider"
+         id="@ScrollbarSliderElementId"
+         style="left: 0; width: @(ScrollbarFacts.SCROLLBAR_SIZE_IN_PIXELS.ToCssValue())px; @GetSliderVerticalStyleCss()">
+    </div>
+</div>

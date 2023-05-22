@@ -1,0 +1,149 @@
+﻿@using System.Collections.Immutable
+@using Luthetus.Common.RazorLib.Dimensions
+@using Luthetus.TextEditor.RazorLib.Cursor
+@using Luthetus.TextEditor.RazorLib.HelperComponents
+@using Luthetus.TextEditor.RazorLib.Keymap
+@using Luthetus.TextEditor.RazorLib.Commands
+@using Luthetus.TextEditor.RazorLib.Html
+@using Luthetus.TextEditor.RazorLib.Model
+@using Luthetus.TextEditor.RazorLib.ViewModel
+@using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents
+
+@{
+    var renderBatch = new TextEditorRenderBatch(
+            GetModel(),
+            GetViewModel(),
+            GetOptions());
+
+    string fontFamily;
+
+    if (string.IsNullOrWhiteSpace(renderBatch.Options?.CommonOptions?.FontFamily))
+    {
+        fontFamily = "monospace";
+    }
+    else
+    {
+        fontFamily = renderBatch.Options!.CommonOptions!.FontFamily;
+    }
+
+    var fontFamilyCssStyleString =
+        $"font-family: {fontFamily};";
+
+    var fontSizeInPixelsCssStyleString = string.Empty;
+
+    if (renderBatch.Options!.CommonOptions?.FontSizeInPixels is not null)
+    {
+        fontSizeInPixelsCssStyleString =
+            $"font-size: {renderBatch.Options!.CommonOptions!.FontSizeInPixels.Value.ToCssValue()}px;";
+    }
+}
+
+<div style="@fontSizeInPixelsCssStyleString @fontFamilyCssStyleString @GetGlobalHeightInPixelsStyling() @WrapperStyleCssString"
+     class="bte_text-editor-css-wrapper @TextEditorService.ThemeCssClassString @WrapperClassCssString">
+
+    @if (renderBatch.Model is not null &&
+    renderBatch.ViewModel is not null &&
+    !renderBatch.Options.UseMonospaceOptimizations)
+    {
+        <div style="display: flex; position: absolute; visibility: hidden;"
+             id="@ProportionalFontMeasurementsContainerElementId">
+        </div>
+    }
+
+
+    <CascadingValue Value="renderBatch.Options">
+        <CascadingValue Name="ProportionalFontMeasurementsContainerElementId" Value="ProportionalFontMeasurementsContainerElementId">
+
+            @if (IncludeHeaderHelperComponent &&
+            renderBatch.Model is not null &&
+            renderBatch.ViewModel is not null)
+            {
+                @*
+            The CascadingValue for textEditorModel and textEditorViewModel need to be here.
+            If outside the if not null checks they can cascade a null value to a component which expects a non null.
+            *@
+                <CascadingValue Value="renderBatch.Model">
+                    <CascadingValue Value="renderBatch.ViewModel">
+                        <TextEditorHeader TextEditorViewModelKey="TextEditorViewModelKey"
+                                      HeaderButtonKinds="HeaderButtonKinds" />
+                    </CascadingValue>
+                </CascadingValue>
+            }
+
+            <div @onclick="FocusTextEditorAsync"
+                 @onkeydown="HandleOnKeyDownAsync"
+                 @onkeydown:preventDefault="true"
+                 @oncontextmenu="HandleOnContextMenuAsync"
+                 @oncontextmenu:preventDefault="true"
+                 @onmousedown="HandleContentOnMouseDownAsync"
+                 @onmousemove="HandleContentOnMouseMoveAsync"
+                 @ondblclick="HandleContentOnDoubleClickAsync"
+                 @onwheel="HandleOnWheelAsync"
+                 @ontouchstart="HandleOnTouchStartAsync"
+                 @ontouchmove="HandleOnTouchMoveAsync"
+                 @ontouchend="ClearTouchAsync"
+                 @ontouchcancel="ClearTouchAsync"
+                 @ontouchleave="ClearTouchAsync"
+                 id="@ContentElementId"
+                 style="@TextEditorStyleCssString"
+                 class="bte_text-editor bcrl_unselectable @TextEditorClassCssString"
+                 tabindex="-1">
+
+                <MeasureCharacterWidthAndRowHeight @ref="_measureCharacterWidthAndRowHeightComponent"
+                                                   HtmlElementId="@MeasureCharacterWidthAndRowHeightElementId" />
+
+                @if (renderBatch.Model is not null &&
+                renderBatch.ViewModel is not null)
+                {
+                    @*
+                The CascadingValue for textEditorModel and textEditorViewModel need to be here.
+                If outside the if not null checks they can cascade a null value to a component which expects a non null.
+                *@
+                    <CascadingValue Value="renderBatch.Model">
+                        <CascadingValue Value="renderBatch.ViewModel">
+                            <GutterSection />
+
+                            <BodySection @ref="_bodySectionComponent"
+                                     TabIndex="TabIndex"
+                                     ContextMenuRenderFragmentOverride="ContextMenuRenderFragmentOverride"
+                                     IncludeContextMenuHelperComponent="IncludeContextMenuHelperComponent"
+                                     AutoCompleteMenuRenderFragmentOverride="AutoCompleteMenuRenderFragmentOverride" />
+
+                            @if (renderBatch.ViewModel.DisplayCommandBar)
+                            {
+                                <CommandBarDisplay RestoreFocusToTextEditor="FocusTextEditorAsync" />
+                            }
+                        </CascadingValue>
+                    </CascadingValue>
+                }
+                else
+                {
+                    if (renderBatch.Model is null)
+                    {
+                        <div>The @nameof(TextEditorModel) was null</div>
+                    }
+                    else if (renderBatch.ViewModel is null)
+                    {
+                        <div>The @nameof(TextEditorViewModel) was null</div>
+                    }
+                }
+            </div>
+
+            @if (IncludeFooterHelperComponent &&
+            renderBatch.Model is not null &&
+            renderBatch.ViewModel is not null)
+            {
+                @*
+            The CascadingValue for textEditorModel and textEditorViewModel need to be here.
+            If outside the if not null checks they can cascade a null value to a component which expects a non null.
+            *@
+                <CascadingValue Value="renderBatch.Model">
+                    <CascadingValue Value="renderBatch.ViewModel">
+                        <TextEditorFooter TextEditorViewModelKey="TextEditorViewModelKey" />
+                    </CascadingValue>
+                </CascadingValue>
+            }
+
+        </CascadingValue>
+    </CascadingValue>
+</div>

@@ -1,0 +1,108 @@
+﻿@using Luthetus.TextEditor.RazorLib.Row
+@using Luthetus.TextEditor.RazorLib.Model
+@using System.Collections.Immutable
+
+@inherits TextEditorView
+
+<div class="bte_text-editor-header @TextEditorService.ThemeCssClassString">
+    @{
+        var textEditor = TextEditorModelsCollectionWrap.Value;
+        
+        if (textEditor is not null)
+        {
+            var localHeaderButtonKinds = HeaderButtonKinds;
+
+            if (localHeaderButtonKinds is null)
+            {
+                localHeaderButtonKinds = Enum
+                    .GetValues(typeof(TextEditorHeaderButtonKind))
+                    .Cast<TextEditorHeaderButtonKind>()
+                    //.Where(x => 
+                    //    x != TextEditorHeaderButtonKind.PeekWindowDisplay)
+                    .ToImmutableArray();
+            }
+            
+            foreach (var headerButtonKind in localHeaderButtonKinds)
+            {
+                <div class="bte_text-editor-header-entry">
+                    @switch (headerButtonKind)
+                    {
+                        case TextEditorHeaderButtonKind.Cut:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="DoCutOnClick">
+                                <IconNote/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.Copy:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="DoCopyOnClick">
+                                <IconCopy/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.Paste:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="DoPasteOnClick">
+                                <IconClippy/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.Undo:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    disabled=@GetUndoDisabledAttribute()
+                                    @onclick="DoUndoOnClick">
+                                <IconArrowLeft/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.Redo:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    disabled=@GetRedoDisabledAttribute()
+                                    @onclick="DoRedoOnClick">
+                                <IconArrowRight/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.Save:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="DoSaveOnClick">
+                                <IconSave/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.SelectAll:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="DoSelectAllOnClick">
+                                <IconListSelection/>
+                            </button>
+                            break;
+                        case TextEditorHeaderButtonKind.PeekWindowDisplay:
+                            <button title="@headerButtonKind.ToString()"
+                                    class="bte_button"
+                                    @onclick="ShowWatchWindowDisplayDialogOnClick">
+                                <IconProjectDependencies />
+                            </button>
+                            break;
+                    }
+                </div>
+            }
+            
+            <div class="bte_text-editor-header-entry">
+                <button title="Measure editor size"
+                        class="bte_button"
+                        @onclick="DoRemeasureOnClick">
+                    
+                    <IconSymbolRuler/>
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="bte_text-editor-header-entry bte_text-editor-header-file-sizing">
+                <div>The @nameof(TextEditorModel) was null</div>
+            </div>
+        }
+    }
+</div>

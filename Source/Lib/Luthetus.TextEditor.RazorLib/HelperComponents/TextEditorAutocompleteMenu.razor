@@ -1,0 +1,16 @@
+﻿@using Luthetus.Common.RazorLib.Menu
+
+<div @ref="_textEditorAutocompleteMenuElementReference"
+     tab-index="-1"
+     class="bstudio_text-editor-autocomplete-menu"
+     @onkeydown="HandleOnKeyDownAsync">
+    
+    <CascadingValue Name="ReturnFocusToParentFuncAsync"
+                    Value="ReturnFocusToThisAsync">
+        
+        <MenuDisplay @ref="_autocompleteMenuDisplay" 
+                     MenuRecord="GetMenuRecord()"
+                     FocusOnAfterRenderAsync="false"/>
+    </CascadingValue>
+
+</div>
