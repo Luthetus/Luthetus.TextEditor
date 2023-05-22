@@ -9,7 +9,6 @@ using Luthetus.Common.RazorLib.Misc;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.Common.RazorLib.RenderTracker;
 using Luthetus.Common.RazorLib.Store.RenderTrackerCase;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
@@ -98,12 +97,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
     private RenderStateKey _currentViewModelRenderStateKey = RenderStateKey.Empty;
-    private bool _internalStateHasChangedFlag;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
-    private string MeasureCharacterWidthAndRowHeightElementId => $"bte_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
-    private string ContentElementId => $"bte_text-editor-content_{_textEditorHtmlElementId}";
-    private string ProportionalFontMeasurementsContainerElementId => $"bte_text-editor-proportional-font-measurement-container_{_textEditorHtmlElementId}";
+    private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
+    private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
+    private string ProportionalFontMeasurementsContainerElementId => $"luth_te_text-editor-proportional-font-measurement-container_{_textEditorHtmlElementId}";
     private string RenderTrackerDisplayName => $"{nameof(TextEditorViewModelDisplay)}_{_textEditorHtmlElementId}";
 
     protected override async Task OnParametersSetAsync()
@@ -717,8 +715,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             columnIndexInt = await JsRuntime.InvokeAsync<int>(
                 "luthetus.textEditor.calculateProportionalColumnIndex",
                 ProportionalFontMeasurementsContainerElementId,
-                $"bte_proportional-font-measurement-parent_{_textEditorHtmlElementId}_{guid}",
-                $"bte_proportional-font-measurement-cursor_{_textEditorHtmlElementId}_{guid}",
+                $"luth_te_proportional-font-measurement-parent_{_textEditorHtmlElementId}_{guid}",
+                $"luth_te_proportional-font-measurement-cursor_{_textEditorHtmlElementId}_{guid}",
                 positionX,
                 safeRefViewModel.VirtualizationResult.CharacterWidthAndRowHeight.CharacterWidthInPixels,
                 safeRefModel.GetTextOnRow(rowIndex));

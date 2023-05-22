@@ -11,14 +11,14 @@ public class GenericDecorationMapper : IDecorationMapper
         return decoration switch
         {
             GenericDecorationKind.None => string.Empty,
-            GenericDecorationKind.Keyword => "bte_keyword",
-            GenericDecorationKind.KeywordControl => "bte_keyword-control",
-            GenericDecorationKind.StringLiteral => "bte_string-literal",
-            GenericDecorationKind.CommentSingleLine => "bte_comment",
-            GenericDecorationKind.CommentMultiLine => "bte_comment",
-            GenericDecorationKind.Function => "bte_method",
-            GenericDecorationKind.PreprocessorDirective => "bte_keyword",
-            GenericDecorationKind.DeliminationExtended => "bte_string-literal",
+            GenericDecorationKind.Keyword => "luth_te_keyword",
+            GenericDecorationKind.KeywordControl => "luth_te_keyword-control",
+            GenericDecorationKind.StringLiteral => "luth_te_string-literal",
+            GenericDecorationKind.CommentSingleLine => "luth_te_comment",
+            GenericDecorationKind.CommentMultiLine => "luth_te_comment",
+            GenericDecorationKind.Function => "luth_te_method",
+            GenericDecorationKind.PreprocessorDirective => "luth_te_keyword",
+            GenericDecorationKind.DeliminationExtended => "luth_te_string-literal",
             _ => string.Empty,
         };
     }

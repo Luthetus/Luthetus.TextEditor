@@ -2,7 +2,6 @@
 using Luthetus.Common.RazorLib.Clipboard;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.Common.RazorLib.Menu;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Commands.Default;
@@ -40,7 +39,7 @@ public partial class TextEditorContextMenu : ComponentBase
                     await _textEditorContextMenuElementReference.Value
                         .FocusAsync();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // 2023-04-18: The app has had a bug where it "freezes" and must be restarted.
                     //             This bug is seemingly happening randomly. I have a suspicion

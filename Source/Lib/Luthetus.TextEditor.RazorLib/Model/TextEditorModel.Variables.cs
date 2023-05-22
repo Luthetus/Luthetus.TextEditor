@@ -6,7 +6,6 @@ using Luthetus.TextEditor.RazorLib.Editing;
 using Luthetus.TextEditor.RazorLib.HelperComponents;
 using Luthetus.TextEditor.RazorLib.Keymap;
 using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Options;
 using Luthetus.TextEditor.RazorLib.Row;
 using Luthetus.TextEditor.RazorLib.Semantics;

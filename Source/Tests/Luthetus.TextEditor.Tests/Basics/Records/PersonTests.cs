@@ -1,6 +1,4 @@
-﻿using Luthetus.TextEditor.Tests.Basics.Records;
-
-namespace Luthetus.TextEditor.Tests.Basics.Records
+﻿namespace Luthetus.TextEditor.Tests.Basics.Records
 {
     public class PersonTests
     {

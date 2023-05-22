@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.Common.RazorLib;
 using Luthetus.Common.RazorLib.Theme;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Autocomplete;
 using Luthetus.TextEditor.RazorLib.Find;
 using Luthetus.TextEditor.RazorLib.Options;

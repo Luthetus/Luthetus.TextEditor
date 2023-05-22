@@ -1,5 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-using Luthetus.TextEditor.RazorLib.Store.Model;
+﻿using Luthetus.TextEditor.RazorLib.Store.Model;
 using Luthetus.TextEditor.RazorLib.Store.ViewModel;
 using Fluxor;
 using Luthetus.TextEditor.RazorLib.ViewModel;
@@ -23,7 +22,7 @@ public partial class TextEditorGroupTabDisplay : ComponentBase
     public TextEditorGroup TextEditorGroup { get; set; } = null!;
 
     private string IsActiveCssClass => TextEditorGroup.ActiveViewModelKey == TextEditorViewModelKey
-        ? "bcrl_active"
+        ? "luth_active"
         : string.Empty;
 
     private void OnClickSetActiveTextEditorViewModel()

@@ -4,8 +4,8 @@
 
 @{ var findProviderState = FindProviderState.Value; }
 
-<div class="bte_find">
-    <div class="bte_find-tabs">
+<div class="luth_te_find">
+    <div class="luth_te_find-tabs">
         @foreach (var findProvider in findProviderState.FindProvidersList)
         {
             <FindProviderTabDisplay FindProvider="findProvider"
@@ -13,14 +13,14 @@
         }
     </div>
     
-    <div class="bte_find-body">
+    <div class="luth_te_find-body">
 
         SearchQuery:&nbsp;
-        <input class="bcrl_input"
+        <input class="luth_input"
                @bind="SearchQuery"
                @bind:event="oninput"/>
 
-        <button class="bcrl_button"
+        <button class="luth_button"
                 @onclick="() => DoSearchOnClickAsync(findProviderState)">
             Do Search
         </button>

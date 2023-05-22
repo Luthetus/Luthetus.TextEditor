@@ -1,5 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-using Luthetus.TextEditor.RazorLib.Model;
+﻿using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
 using Luthetus.TextEditor.RazorLib.Store.Options;
 using Luthetus.TextEditor.RazorLib.Store.ViewModel;

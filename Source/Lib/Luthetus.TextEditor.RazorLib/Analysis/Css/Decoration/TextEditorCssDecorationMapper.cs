@@ -11,10 +11,10 @@ public class TextEditorCssDecorationMapper : IDecorationMapper
         return decoration switch
         {
             CssDecorationKind.None => string.Empty,
-            CssDecorationKind.Identifier => "bte_css-identifier",
-            CssDecorationKind.PropertyName => "bte_css-property-name",
-            CssDecorationKind.PropertyValue => "bte_css-property-value",
-            CssDecorationKind.Comment => "bte_comment",
+            CssDecorationKind.Identifier => "luth_te_css-identifier",
+            CssDecorationKind.PropertyName => "luth_te_css-property-name",
+            CssDecorationKind.PropertyValue => "luth_te_css-property-value",
+            CssDecorationKind.Comment => "luth_te_comment",
             _ => string.Empty,
         };
     }

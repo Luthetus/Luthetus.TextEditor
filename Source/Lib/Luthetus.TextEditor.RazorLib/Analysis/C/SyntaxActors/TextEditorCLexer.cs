@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.Common.RazorLib.Misc;
 using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer;
-using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Analysis.C.Facts;
 using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.Decoration;
 using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.SyntaxActors;

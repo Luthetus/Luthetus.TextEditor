@@ -1,7 +1,6 @@
 ﻿using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Row;
 using Luthetus.TextEditor.RazorLib.Store.Model;
-using Luthetus.TextEditor.Tests;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Luthetus.TextEditor.Tests.Basics.TextEditor;

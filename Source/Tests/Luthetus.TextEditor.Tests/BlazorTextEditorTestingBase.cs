@@ -41,15 +41,15 @@ public class LuthetusTextEditorTestingBase
 
         var shouldInitializeFluxor = false;
 
-        services.AddBlazorTextEditor(inTextEditorOptions =>
+        services.AddLuthetusTextEditor(inTextEditorOptions =>
         {
             var blazorCommonOptions =
-                (inTextEditorOptions.BlazorCommonOptions ?? new()) with
+                (inTextEditorOptions.LuthetusCommonOptions ?? new()) with
                 {
                     InitializeFluxor = shouldInitializeFluxor
                 };
 
-            var blazorCommonFactories = blazorCommonOptions.BlazorCommonFactories with
+            var luthetusCommonFactories = blazorCommonOptions.LuthetusCommonFactories with
             {
                 ClipboardServiceFactory = _ => new InMemoryClipboardService(true),
                 StorageServiceFactory = _ => new DoNothingStorageService(true)
@@ -57,22 +57,22 @@ public class LuthetusTextEditorTestingBase
 
             blazorCommonOptions = blazorCommonOptions with
             {
-                BlazorCommonFactories = blazorCommonFactories
+                LuthetusCommonFactories = luthetusCommonFactories
             };
 
             return inTextEditorOptions with
             {
                 InitializeFluxor = shouldInitializeFluxor,
-                CustomThemeRecords = BlazorTextEditorCustomThemeFacts.AllCustomThemes,
-                InitialThemeKey = BlazorTextEditorCustomThemeFacts.DarkTheme.ThemeKey,
-                BlazorCommonOptions = blazorCommonOptions
+                CustomThemeRecords = LuthetusTextEditorCustomThemeFacts.AllCustomThemes,
+                InitialThemeKey = LuthetusTextEditorCustomThemeFacts.DarkTheme.ThemeKey,
+                LuthetusCommonOptions = blazorCommonOptions
             };
         });
 
         services.AddFluxor(options => options
             .ScanAssemblies(
-                typeof(BlazorCommon.RazorLib.ServiceCollectionExtensions).Assembly,
-                typeof(BlazorTextEditor.RazorLib.ServiceCollectionExtensions).Assembly));
+                typeof(Luthetus.Common.RazorLib.ServiceCollectionExtensions).Assembly,
+                typeof(Luthetus.TextEditor.RazorLib.ServiceCollectionExtensions).Assembly));
 
         ServiceProvider = services.BuildServiceProvider();
 

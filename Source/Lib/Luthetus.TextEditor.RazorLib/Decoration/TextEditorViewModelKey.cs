@@ -1,6 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-
-namespace Luthetus.TextEditor.RazorLib.Decoration;
+﻿namespace Luthetus.TextEditor.RazorLib.Decoration;
 
 /// <summary>
 /// <see cref="TextEditorPresentationKey"/> is used to uniquely 

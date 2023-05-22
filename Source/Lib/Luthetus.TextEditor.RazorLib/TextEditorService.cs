@@ -2,7 +2,6 @@
 using Luthetus.Common.RazorLib.Storage;
 using Luthetus.Common.RazorLib.Store.ThemeCase;
 using Luthetus.Common.RazorLib.Theme;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Store.Diff;
 using Luthetus.TextEditor.RazorLib.Store.Find;
 using Luthetus.TextEditor.RazorLib.Store.Group;
@@ -94,7 +93,7 @@ public class TextEditorService : ITextEditorService
     public IState<TextEditorOptionsState> OptionsWrap { get; }
     public IState<TextEditorFindProviderState> FindProviderState { get; }
 
-    public string StorageKey => "bte_text-editor-options";
+    public string StorageKey => "luth_te_text-editor-options";
 
     public string ThemeCssClassString => ThemeRecordsCollectionWrap.Value.ThemeRecordsList
             .FirstOrDefault(x =>

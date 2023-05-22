@@ -11,11 +11,11 @@ public class TextEditorSemanticDecorationMapper : IDecorationMapper
         return decoration switch
         {
             TextEditorSemanticDecorationKind.None => string.Empty,
-            TextEditorSemanticDecorationKind.DiagnosticError => "bte_semantic-diagnostic-error",
-            TextEditorSemanticDecorationKind.DiagnosticHint => "bte_semantic-diagnostic-hint",
-            TextEditorSemanticDecorationKind.DiagnosticSuggestion => "bte_semantic-diagnostic-suggestion",
-            TextEditorSemanticDecorationKind.DiagnosticWarning => "bte_semantic-diagnostic-warning",
-            TextEditorSemanticDecorationKind.DiagnosticOther => "bte_semantic-diagnostic-other",
+            TextEditorSemanticDecorationKind.DiagnosticError => "luth_te_semantic-diagnostic-error",
+            TextEditorSemanticDecorationKind.DiagnosticHint => "luth_te_semantic-diagnostic-hint",
+            TextEditorSemanticDecorationKind.DiagnosticSuggestion => "luth_te_semantic-diagnostic-suggestion",
+            TextEditorSemanticDecorationKind.DiagnosticWarning => "luth_te_semantic-diagnostic-warning",
+            TextEditorSemanticDecorationKind.DiagnosticOther => "luth_te_semantic-diagnostic-other",
             _ => string.Empty,
         };
     }

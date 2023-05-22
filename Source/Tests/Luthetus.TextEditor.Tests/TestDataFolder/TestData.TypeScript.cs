@@ -1,4 +1,4 @@
-﻿namespace BlazorTextEditor.Tests.TestDataFolder;
+﻿namespace Luthetus.TextEditor.Tests.TestDataFolder;
 
 public static partial class TestData
 {

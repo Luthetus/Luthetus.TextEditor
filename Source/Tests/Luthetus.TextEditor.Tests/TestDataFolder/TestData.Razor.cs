@@ -1,4 +1,4 @@
-﻿namespace BlazorTextEditor.Tests.TestDataFolder;
+﻿namespace Luthetus.TextEditor.Tests.TestDataFolder;
 
 public static partial class TestData
 {
@@ -33,14 +33,14 @@ public static partial class TestData
 
 @for (int i = 0; i < 10; i++)
 {
-	<div class=""bte_fruit"">
+	<div class=""luth_te_fruit"">
 		@fruits[i]
 	</div>
 }
 
 @foreach (var fruit in fruits)
 {
-	<div class=""bte_fruit"">
+	<div class=""luth_te_fruit"">
 		@fruit
 	</div>
 }

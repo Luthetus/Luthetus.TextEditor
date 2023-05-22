@@ -1,9 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
-using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Row;
-using Luthetus.TextEditor.RazorLib.Store;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Luthetus.TextEditor.RazorLib.Store.Model;

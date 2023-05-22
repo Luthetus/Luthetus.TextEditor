@@ -1,4 +1,4 @@
-﻿namespace BlazorTextEditor.Tests.Basics.Diff._2023_03_15;
+﻿namespace Luthetus.TextEditor.Tests.Basics.Diff._2023_03_15;
 
 public class DiffContiguousRepetitionOfCharactersTests
 {

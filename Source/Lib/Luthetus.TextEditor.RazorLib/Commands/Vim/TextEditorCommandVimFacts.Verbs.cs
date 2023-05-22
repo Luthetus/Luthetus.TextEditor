@@ -1,8 +1,6 @@
 ﻿using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Store.Model;
-using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Commands.Default;
-using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Keymap;
 using Luthetus.TextEditor.RazorLib.Keymap.Vim;
 

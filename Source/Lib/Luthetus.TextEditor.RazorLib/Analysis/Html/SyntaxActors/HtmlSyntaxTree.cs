@@ -1,8 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Analysis;
-using Luthetus.TextEditor.RazorLib.Analysis.Html;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.Decoration;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.ExtensionMethods;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.Facts;

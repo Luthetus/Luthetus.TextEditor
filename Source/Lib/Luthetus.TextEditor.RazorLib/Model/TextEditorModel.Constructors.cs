@@ -1,11 +1,8 @@
 ﻿using Luthetus.TextEditor.RazorLib.Keymap.Default;
 using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Character;
 using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Keymap;
-using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Semantics;
 
 namespace Luthetus.TextEditor.RazorLib.Model;

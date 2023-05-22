@@ -1,6 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-
-namespace Luthetus.TextEditor.RazorLib.Group;
+﻿namespace Luthetus.TextEditor.RazorLib.Group;
 
 /// <summary>
 /// <see cref="TextEditorGroupKey"/> is used to uniquely 

@@ -1,4 +1,3 @@
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Store.Options;
 using Fluxor;
 using Fluxor.Blazor.Web.Components;
@@ -43,7 +42,7 @@ public partial class InputTextEditorHeight : FluxorComponent
     public string GetIsDisabledCssClassString(bool globalHeightInPixelsValueIsNull)
     {
         return globalHeightInPixelsValueIsNull
-            ? "bte_disabled"
+            ? "luth_te_disabled"
             : "";
     }
 

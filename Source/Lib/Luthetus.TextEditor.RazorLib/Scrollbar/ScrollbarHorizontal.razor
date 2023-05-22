@@ -1,6 +1,6 @@
 ﻿@using Luthetus.Common.RazorLib.Dimensions
 
-<div class="bte_scrollbar bte_scrollbar-horizontal"
+<div class="luth_te_scrollbar luth_te_scrollbar-horizontal"
      id="@ScrollbarElementId"
      style="@GetScrollbarHorizontalStyleCss()"
      @onmousedown:stopPropagation="true"
@@ -10,7 +10,7 @@
      @onclick:stopPropagation="true"
      @oncontextmenu:stopPropagation="true">
     
-    <div class="bte_scrollbar-slider"
+    <div class="luth_te_scrollbar-slider"
          id="@ScrollbarSliderElementId"
          style="bottom: 0; height: @(ScrollbarFacts.SCROLLBAR_SIZE_IN_PIXELS.ToCssValue())px; @GetSliderHorizontalStyleCss()">
         

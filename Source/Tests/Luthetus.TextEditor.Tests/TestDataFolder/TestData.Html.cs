@@ -1,4 +1,4 @@
-﻿namespace BlazorTextEditor.Tests.TestDataFolder;
+﻿namespace Luthetus.TextEditor.Tests.TestDataFolder;
 
 public static partial class TestData
 {
@@ -70,9 +70,9 @@ public static partial class TestData
 			</div>
 
 			<!-- TEST: Self closing tag has an attribute name with the equals however the attribute value is not wrapped in double quotes -->
-			<div class=bte_test/>
+			<div class=luth_te_test/>
 			<!-- TEST: Element with child content has an attribute name with the equals however the attribute value is not wrapped in double quotes -->
-			<div class=bte_test>
+			<div class=luth_te_test>
 				<span>Child</span>
 			</div>
 
@@ -91,9 +91,9 @@ public static partial class TestData
 			</div>
 
 			<!-- TEST: Self closing tag name has an attribute name with an attribute value which contains spaces -->
-			<div class=""bte_test bte_placeholder""/>
+			<div class=""luth_te_test luth_te_placeholder""/>
 			<!-- TEST: Element with child content has an attribute name with an empty string for its value -->
-			<div class=""bte_test bte_placeholder"">
+			<div class=""luth_te_test luth_te_placeholder"">
 				<span>Child</span>
 			</div>
 		<div>

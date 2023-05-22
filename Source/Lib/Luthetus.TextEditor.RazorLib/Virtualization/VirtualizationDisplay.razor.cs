@@ -21,16 +21,16 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     private readonly Guid _virtualizationDisplayGuid = Guid.NewGuid();
 
     private string LeftBoundaryElementId =>
-        $"bte_left-virtualization-boundary-display-{_virtualizationDisplayGuid}";
+        $"luth_te_left-virtualization-boundary-display-{_virtualizationDisplayGuid}";
 
     private string RightBoundaryElementId =>
-        $"bte_right-virtualization-boundary-display-{_virtualizationDisplayGuid}";
+        $"luth_te_right-virtualization-boundary-display-{_virtualizationDisplayGuid}";
 
     private string TopBoundaryElementId =>
-        $"bte_top-virtualization-boundary-display-{_virtualizationDisplayGuid}";
+        $"luth_te_top-virtualization-boundary-display-{_virtualizationDisplayGuid}";
 
     private string BottomBoundaryElementId =>
-        $"bte_bottom-virtualization-boundary-display-{_virtualizationDisplayGuid}";
+        $"luth_te_bottom-virtualization-boundary-display-{_virtualizationDisplayGuid}";
 
     private VirtualizationRequest _request = null!;
 

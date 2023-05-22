@@ -13,7 +13,6 @@ using Luthetus.TextEditor.RazorLib.Analysis.Razor.SyntaxActors;
 using Luthetus.TextEditor.RazorLib.Analysis.TypeScript.SyntaxActors;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Row;

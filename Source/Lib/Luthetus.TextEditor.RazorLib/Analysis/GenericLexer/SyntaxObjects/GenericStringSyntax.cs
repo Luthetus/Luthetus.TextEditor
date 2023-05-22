@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer;
 using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.SyntaxEnums;
 using Luthetus.TextEditor.RazorLib.Lexing;
 

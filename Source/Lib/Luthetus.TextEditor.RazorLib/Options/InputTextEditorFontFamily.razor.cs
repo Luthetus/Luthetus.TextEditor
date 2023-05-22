@@ -1,5 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace Luthetus.TextEditor.RazorLib.Options;
 

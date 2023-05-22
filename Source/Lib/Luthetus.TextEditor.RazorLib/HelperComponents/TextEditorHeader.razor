@@ -4,7 +4,7 @@
 
 @inherits TextEditorView
 
-<div class="bte_text-editor-header @TextEditorService.ThemeCssClassString">
+<div class="luth_te_text-editor-header @TextEditorService.ThemeCssClassString">
     @{
         var textEditor = TextEditorModelsCollectionWrap.Value;
         
@@ -24,33 +24,33 @@
             
             foreach (var headerButtonKind in localHeaderButtonKinds)
             {
-                <div class="bte_text-editor-header-entry">
+                <div class="luth_te_text-editor-header-entry">
                     @switch (headerButtonKind)
                     {
                         case TextEditorHeaderButtonKind.Cut:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="DoCutOnClick">
                                 <IconNote/>
                             </button>
                             break;
                         case TextEditorHeaderButtonKind.Copy:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="DoCopyOnClick">
                                 <IconCopy/>
                             </button>
                             break;
                         case TextEditorHeaderButtonKind.Paste:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="DoPasteOnClick">
                                 <IconClippy/>
                             </button>
                             break;
                         case TextEditorHeaderButtonKind.Undo:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     disabled=@GetUndoDisabledAttribute()
                                     @onclick="DoUndoOnClick">
                                 <IconArrowLeft/>
@@ -58,7 +58,7 @@
                             break;
                         case TextEditorHeaderButtonKind.Redo:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     disabled=@GetRedoDisabledAttribute()
                                     @onclick="DoRedoOnClick">
                                 <IconArrowRight/>
@@ -66,21 +66,21 @@
                             break;
                         case TextEditorHeaderButtonKind.Save:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="DoSaveOnClick">
                                 <IconSave/>
                             </button>
                             break;
                         case TextEditorHeaderButtonKind.SelectAll:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="DoSelectAllOnClick">
                                 <IconListSelection/>
                             </button>
                             break;
                         case TextEditorHeaderButtonKind.PeekWindowDisplay:
                             <button title="@headerButtonKind.ToString()"
-                                    class="bte_button"
+                                    class="luth_te_button"
                                     @onclick="ShowWatchWindowDisplayDialogOnClick">
                                 <IconProjectDependencies />
                             </button>
@@ -89,9 +89,9 @@
                 </div>
             }
             
-            <div class="bte_text-editor-header-entry">
+            <div class="luth_te_text-editor-header-entry">
                 <button title="Measure editor size"
-                        class="bte_button"
+                        class="luth_te_button"
                         @onclick="DoRemeasureOnClick">
                     
                     <IconSymbolRuler/>
@@ -100,7 +100,7 @@
         }
         else
         {
-            <div class="bte_text-editor-header-entry bte_text-editor-header-file-sizing">
+            <div class="luth_te_text-editor-header-entry luth_te_text-editor-header-file-sizing">
                 <div>The @nameof(TextEditorModel) was null</div>
             </div>
         }

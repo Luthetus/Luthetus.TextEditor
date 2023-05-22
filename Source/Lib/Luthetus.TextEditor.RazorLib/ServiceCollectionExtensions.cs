@@ -1,7 +1,6 @@
 using Fluxor;
 using Luthetus.Common.RazorLib;
 using Luthetus.Common.RazorLib.Theme;
-using Luthetus.TextEditor.RazorLib;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Luthetus.TextEditor.RazorLib;

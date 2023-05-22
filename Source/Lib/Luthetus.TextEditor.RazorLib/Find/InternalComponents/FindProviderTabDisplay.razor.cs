@@ -15,7 +15,7 @@ public partial class FindProviderTabDisplay : ComponentBase
     public bool IsActive { get; set; }
 
     private string IsActiveCssClassString => IsActive
-        ? "bcrl_active"
+        ? "luth_active"
         : "";
 
     private void DispatchSetActiveFindProviderActionOnClick()

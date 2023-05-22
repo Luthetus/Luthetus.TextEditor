@@ -3,7 +3,6 @@ using System.Text;
 using Luthetus.Common.RazorLib.Misc;
 using Luthetus.TextEditor.RazorLib.Analysis.CSharp.SyntaxActors;
 using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Analysis;
 using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.Decoration;
 using Luthetus.TextEditor.RazorLib.Analysis.Html;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.Decoration;

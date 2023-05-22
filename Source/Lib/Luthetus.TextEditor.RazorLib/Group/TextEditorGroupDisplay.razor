@@ -1,6 +1,6 @@
 ﻿@using Luthetus.TextEditor.RazorLib.ViewModel
 
-<div class="bte_text-editor-group @CssClassString"
+<div class="luth_te_text-editor-group @CssClassString"
      style="@CssStyleString">
     @{
         var textEditorGroup = TextEditorGroupsCollectionWrap.Value.GroupsList
@@ -9,14 +9,14 @@
     
     @if (textEditorGroup is not null)
     {
-        <div class="bte_text-editor-group-tabs-list">
+        <div class="luth_te_text-editor-group-tabs-list">
             @foreach (var viewModelKey in textEditorGroup.ViewModelKeys)
             {
                 <TextEditorGroupTabDisplay TextEditorGroup="textEditorGroup"
                                            TextEditorViewModelKey="viewModelKey"/>
             }
         </div>
-        <div class="bte_text-editor-group-active-view-model">
+        <div class="luth_te_text-editor-group-active-view-model">
             @{
                 var textEditorModel = TextEditorService.ViewModel.FindBackingModelOrDefault(
                     textEditorGroup.ActiveViewModelKey);
@@ -28,7 +28,7 @@
                 else
                 {
                     <TextEditorViewModelDisplay TextEditorViewModelKey="textEditorGroup.ActiveViewModelKey"
-                                                WrapperClassCssString="bte_demo-text-editor"
+                                                WrapperClassCssString="luth_te_demo-text-editor"
                                                 TabIndex="TabIndex"
                                                 HeaderButtonKinds="HeaderButtonKinds"/>
                 }

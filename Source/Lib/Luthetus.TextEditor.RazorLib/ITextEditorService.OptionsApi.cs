@@ -6,7 +6,6 @@ using Luthetus.Common.RazorLib.Store.StorageCase;
 using Luthetus.Common.RazorLib.Theme;
 using Luthetus.TextEditor.RazorLib.Store.Options;
 using Fluxor;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Keymap;
 using Luthetus.TextEditor.RazorLib.Options;
 

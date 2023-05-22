@@ -1,6 +1,6 @@
 @inherits Fluxor.Blazor.Web.Components.FluxorComponent
 
-<div class="bte_text-editor-input-height @TextEditorService.ThemeCssClassString @TopLevelDivElementCssClassString">
+<div class="luth_te_text-editor-input-height @TextEditorService.ThemeCssClassString @TopLevelDivElementCssClassString">
 
     @{
         var globalHeightInPixelsValueIsNull = TextEditorService.OptionsWrap.Value.Options.CommonOptions.FontSizeInPixels
@@ -16,7 +16,7 @@
            checked="@(!globalHeightInPixelsValueIsNull)"
            @onclick="() => ToggleUseGlobalHeightInPixels(globalHeightInPixelsValueIsNull)"/>
 
-    <div class="bte_child-input">
+    <div class="luth_te_child-input">
         <div class="@GetIsDisabledCssClassString(globalHeightInPixelsValueIsNull)"
              style="margin-left: 15px;">
 

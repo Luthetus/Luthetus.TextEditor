@@ -4,7 +4,6 @@ using Luthetus.Common.RazorLib.Dialog;
 using Luthetus.Common.RazorLib.Misc;
 using Luthetus.Common.RazorLib.WatchWindow;
 using Luthetus.TextEditor.RazorLib.Model;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Commands.Default;
 using Luthetus.TextEditor.RazorLib.Cursor;

@@ -1,7 +1,5 @@
-﻿using Luthetus.TextEditor.RazorLib;
-using Luthetus.TextEditor.RazorLib.Keymap;
+﻿using Luthetus.TextEditor.RazorLib.Keymap;
 using Luthetus.TextEditor.RazorLib.Store.Options;
-using Luthetus.TextEditor.RazorLib.Keymap;
 using Fluxor;
 using Fluxor.Blazor.Web.Components;
 using Microsoft.AspNetCore.Components;

@@ -4,7 +4,7 @@
 @using Luthetus.TextEditor.RazorLib.HelperComponents
 @using Luthetus.TextEditor.RazorLib.Cursor
 
-<div class="bte_row-section"
+<div class="luth_te_row-section"
      id="@TextEditorViewModel.BodyElementId">
     
     @{ var localViewModel = TextEditorViewModel; }
@@ -14,18 +14,18 @@
                            ItemsProviderFunc="VirtualizationDisplayItemsProviderFunc"/>
 
     <PresentationLayerGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"
-                            CssClassString="bte_first-presentation-layer-group"
+                            CssClassString="luth_te_first-presentation-layer-group"
                             TextEditorPresentations="localViewModel.FirstPresentationLayer"/>
 
     <TextSelectionGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"/>
 
     <PresentationLayerGroup PrimaryCursorSnapshot="PrimaryCursorSnapshot"
-                            CssClassString="bte_last-presentation-layer-group"
+                            CssClassString="luth_te_last-presentation-layer-group"
                             TextEditorPresentations="localViewModel.LastPresentationLayer"/>
 
     @foreach (var virtualizedRow in TextEditorViewModel.VirtualizationResult.Entries)
     {
-        <div class="bte_row"
+        <div class="luth_te_row"
              style="@GetRowStyleCss(virtualizedRow.Index, virtualizedRow.LeftInPixels)">
             @if (virtualizedRow.Item.Any())
             {
@@ -83,7 +83,7 @@
                     var rowEndingTuple = TextEditorModel
                         .RowEndingPositions[virtualizedRow.Index];
 
-                    <span class="bte_newline">
+                    <span class="luth_te_newline">
                         @rowEndingTuple.rowEndingKind.AsCharactersHtmlEscaped()
                     </span>
                 }

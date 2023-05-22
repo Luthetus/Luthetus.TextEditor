@@ -39,7 +39,7 @@
 }
 
 <div style="@fontSizeInPixelsCssStyleString @fontFamilyCssStyleString @GetGlobalHeightInPixelsStyling() @WrapperStyleCssString"
-     class="bte_text-editor-css-wrapper @TextEditorService.ThemeCssClassString @WrapperClassCssString">
+     class="luth_te_text-editor-css-wrapper @TextEditorService.ThemeCssClassString @WrapperClassCssString">
 
     @if (renderBatch.Model is not null &&
     renderBatch.ViewModel is not null &&
@@ -86,7 +86,7 @@
                  @ontouchleave="ClearTouchAsync"
                  id="@ContentElementId"
                  style="@TextEditorStyleCssString"
-                 class="bte_text-editor bcrl_unselectable @TextEditorClassCssString"
+                 class="luth_te_text-editor luth_unselectable @TextEditorClassCssString"
                  tabindex="-1">
 
                 <MeasureCharacterWidthAndRowHeight @ref="_measureCharacterWidthAndRowHeightComponent"

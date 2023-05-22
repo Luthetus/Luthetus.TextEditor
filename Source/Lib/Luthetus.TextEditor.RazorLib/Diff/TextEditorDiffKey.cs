@@ -1,6 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-
-namespace Luthetus.TextEditor.RazorLib.Diff;
+﻿namespace Luthetus.TextEditor.RazorLib.Diff;
 
 /// <summary>
 /// <see cref="TextEditorDiffKey"/> is used to uniquely 

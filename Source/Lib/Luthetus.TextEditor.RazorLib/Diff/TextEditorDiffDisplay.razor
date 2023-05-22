@@ -1,6 +1,6 @@
 ﻿@using Luthetus.TextEditor.RazorLib.ViewModel
 
-<div class="bte_text-editor-diff @TextEditorService.ThemeCssClassString @CssClassString"
+<div class="luth_te_text-editor-diff @TextEditorService.ThemeCssClassString @CssClassString"
      style="@CssStyleString">
      
      @{
@@ -8,10 +8,10 @@
                .FirstOrDefault(x => x.DiffKey == TextEditorDiffKey);
      }
      
-     <div class="bte_text-editor-diff-title">
+     <div class="luth_te_text-editor-diff-title">
           Longest Common Subsequence:
           
-          <span class="bte_diff-longest-common-subsequence">
+          <span class="luth_te_diff-longest-common-subsequence">
                @if (_mostRecentDiffResult is not null)
                {
                     @_mostRecentDiffResult.LongestCommonSubsequence
@@ -29,14 +29,14 @@
      }
      else
      {
-          <div class="bte_text-editor-diff-body">
-               <div class="bte_text-editor-diff-comparison-item">
+          <div class="luth_te_text-editor-diff-body">
+               <div class="luth_te_text-editor-diff-comparison-item">
                     <TextEditorViewModelDisplay TextEditorViewModelKey="textEditorDiff.BeforeViewModelKey"/>
                </div>
 
-               <div class="bte_text-editor-diff-body-separator"></div>
+               <div class="luth_te_text-editor-diff-body-separator"></div>
 
-               <div class="bte_text-editor-diff-comparison-item">
+               <div class="luth_te_text-editor-diff-comparison-item">
                     <TextEditorViewModelDisplay TextEditorViewModelKey="textEditorDiff.AfterViewModelKey"/>
                </div>
           </div>

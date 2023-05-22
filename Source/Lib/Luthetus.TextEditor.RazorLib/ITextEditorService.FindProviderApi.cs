@@ -1,6 +1,5 @@
 ﻿using Fluxor;
 using Luthetus.TextEditor.RazorLib.Store.Find;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Find;
 
 namespace Luthetus.TextEditor.RazorLib;

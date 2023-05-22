@@ -1,5 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib.Analysis.Json;
-using Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxEnums;
+﻿using Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxEnums;
 using Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxObjects;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;

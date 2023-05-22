@@ -11,10 +11,10 @@ public class TextEditorDiffDecorationMapper : IDecorationMapper
         return decoration switch
         {
             TextEditorDiffDecorationKind.None => string.Empty,
-            TextEditorDiffDecorationKind.LongestCommonSubsequence => "bte_diff-longest-common-subsequence",
-            TextEditorDiffDecorationKind.Insertion => "bte_diff-insertion",
-            TextEditorDiffDecorationKind.Deletion => "bte_diff-deletion",
-            TextEditorDiffDecorationKind.Modification => "bte_diff-modification",
+            TextEditorDiffDecorationKind.LongestCommonSubsequence => "luth_te_diff-longest-common-subsequence",
+            TextEditorDiffDecorationKind.Insertion => "luth_te_diff-insertion",
+            TextEditorDiffDecorationKind.Deletion => "luth_te_diff-deletion",
+            TextEditorDiffDecorationKind.Modification => "luth_te_diff-modification",
             _ => string.Empty,
         };
     }

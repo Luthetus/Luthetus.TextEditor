@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.Common.RazorLib.Misc;
-using Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;
 using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;

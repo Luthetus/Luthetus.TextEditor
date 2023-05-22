@@ -1,5 +1,4 @@
 ﻿using Luthetus.Common.RazorLib.Dimensions;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Microsoft.AspNetCore.Components;

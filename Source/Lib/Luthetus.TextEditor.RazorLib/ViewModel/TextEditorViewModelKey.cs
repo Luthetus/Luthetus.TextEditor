@@ -1,6 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib;
-
-namespace Luthetus.TextEditor.RazorLib.ViewModel;
+﻿namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
 /// <summary>
 /// <see cref="TextEditorViewModelKey"/> is used to uniquely 

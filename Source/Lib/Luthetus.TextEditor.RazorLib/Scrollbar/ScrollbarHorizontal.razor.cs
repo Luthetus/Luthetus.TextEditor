@@ -38,8 +38,8 @@ public partial class ScrollbarHorizontal : ComponentBase, IDisposable
     private Func<(MouseEventArgs firstMouseEventArgs, MouseEventArgs secondMouseEventArgs), Task>? _dragEventHandler;
     private MouseEventArgs? _previousDragMouseEventArgs;
 
-    private string ScrollbarElementId => $"bte_{_scrollbarGuid}";
-    private string ScrollbarSliderElementId => $"bte_{_scrollbarGuid}-slider";
+    private string ScrollbarElementId => $"luth_te_{_scrollbarGuid}";
+    private string ScrollbarSliderElementId => $"luth_te_{_scrollbarGuid}-slider";
 
     protected override void OnInitialized()
     {

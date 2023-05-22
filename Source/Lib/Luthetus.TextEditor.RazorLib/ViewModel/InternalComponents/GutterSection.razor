@@ -2,7 +2,7 @@
 @using Luthetus.TextEditor.RazorLib.Scrollbar
 @using Luthetus.Common.RazorLib.Dimensions
 
-<div class="bte_gutter-section"
+<div class="luth_te_gutter-section"
      style="@GetGutterSectionStyleCss()"
      id="@TextEditorViewModel.GutterElementId">
     
@@ -24,7 +24,7 @@
     
     @foreach (var virtualizedRow in localTextEditorViewModel.VirtualizationResult.Entries)
     {
-        <div class="bte_gutter"
+        <div class="luth_te_gutter"
              style="@GetGutterStyleCss(virtualizedRow.Index)">
             @(virtualizedRow.Index + 1)
         </div>
@@ -49,7 +49,7 @@
                     .LastOrDefault()?.Index ?? -1) + 
                 1;
             
-            <div class="bte_gutter"
+            <div class="luth_te_gutter"
                  style="@GetGutterStyleCss(imaginaryNextIndex) height: @(remainingHeightToFillInvariantCulture)px;">
             </div>
         }

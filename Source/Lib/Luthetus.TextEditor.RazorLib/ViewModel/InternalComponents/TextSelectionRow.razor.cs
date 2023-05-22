@@ -1,7 +1,6 @@
 ﻿using Luthetus.Common.RazorLib.Dimensions;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Model;
-using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Html;
 using Luthetus.TextEditor.RazorLib.Options;
 using Microsoft.AspNetCore.Components;
@@ -112,8 +111,8 @@ public partial class TextSelectionRow : ComponentBase
             var nextSelectionStartingLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
                 "luthetus.textEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
-                $"bte_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
-                $"bte_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
+                $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
+                $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
                 textOffsettingCursor,
                 true);
 
@@ -148,8 +147,8 @@ public partial class TextSelectionRow : ComponentBase
             var selectionEndingLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
                 "luthetus.textEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
-                $"bte_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
-                $"bte_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
+                $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_selection_{guid}",
+                $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_selection_{guid}",
                 textOffsettingCursor,
                 true);
 

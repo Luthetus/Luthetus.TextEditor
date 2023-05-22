@@ -1,5 +1,4 @@
-﻿using Luthetus.TextEditor.RazorLib.Analysis.Html;
-using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxEnums;
+﻿using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxEnums;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxObjects;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;

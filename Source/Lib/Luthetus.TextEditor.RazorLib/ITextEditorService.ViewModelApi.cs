@@ -2,7 +2,6 @@
 using Luthetus.Common.RazorLib.JavaScriptObjects;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.ViewModel;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.JSInterop;

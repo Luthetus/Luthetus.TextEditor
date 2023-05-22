@@ -16,11 +16,11 @@
           @onkeydown="HandleOnKeyDown"
           id="@TextEditorCursorDisplayId"
           tabindex="@GetTabIndex()"
-          class="bte_text-editor-cursor @BlinkAnimationCssClass @GlobalTextEditorOptions.KeymapDefinition!.Keymap.GetCursorCssClassString()"
+          class="luth_te_text-editor-cursor @BlinkAnimationCssClass @GlobalTextEditorOptions.KeymapDefinition!.Keymap.GetCursorCssClassString()"
           style="@CursorStyleCss @leftRelativeToParentInPixelsCssStyle">
 </textarea>
 
-<div class="bte_text-editor-caret-row"
+<div class="luth_te_text-editor-caret-row"
      style="@CaretRowStyleCss">
 </div>
 
@@ -30,7 +30,7 @@
     <div @onkeydown:stopPropagation="true"
          @onmousedown:stopPropagation="true"
          @onmousemove:stopPropagation="true"
-         class="bte_text-editor-context-menu"
+         class="luth_te_text-editor-context-menu"
          style="@MenuStyleCss">
 
         <CascadingValue Name="SetShouldDisplayMenuAsync"

@@ -61,7 +61,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
     public string CaretRowStyleCss => GetCaretRowStyleCss();
     public string MenuStyleCss => GetMenuStyleCss();
     public string BlinkAnimationCssClass => _hasBlinkAnimation
-        ? "bte_blink"
+        ? "luth_te_blink"
         : string.Empty;
 
     public TextEditorMenuKind TextEditorMenuKind => _textEditorMenuKind;
@@ -82,8 +82,8 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
             var nextLeftRelativeToParentInPixels = await JsRuntime.InvokeAsync<double>(
                 "luthetus.textEditor.calculateProportionalLeftOffset",
                 ProportionalFontMeasurementsContainerElementId,
-                $"bte_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
-                $"bte_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
+                $"luth_te_proportional-font-measurement-parent_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
+                $"luth_te_proportional-font-measurement-cursor_{viewModel.ViewModelKey.Guid}_cursor_{guid}",
                 textOffsettingCursor,
                 true);
 
@@ -291,7 +291,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
             if (_textEditorCursorDisplayElementReference is not null)
                 await _textEditorCursorDisplayElementReference.Value.FocusAsync();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // 2023-04-18: The app has had a bug where it "freezes" and must be restarted.
             //             This bug is seemingly happening randomly. I have a suspicion
@@ -320,7 +320,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
                     await InvokeAsync(StateHasChanged);
                 }
             }
-            catch (TaskCanceledException e)
+            catch (TaskCanceledException)
             {
                 // This exception will constantly be raised so ignore it
             }

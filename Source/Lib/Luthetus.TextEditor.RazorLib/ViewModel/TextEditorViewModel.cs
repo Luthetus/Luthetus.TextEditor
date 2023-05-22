@@ -7,7 +7,6 @@ using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Options;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Measurement;
-using Luthetus.TextEditor.RazorLib;
 using Luthetus.TextEditor.RazorLib.Virtualization;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
@@ -61,9 +60,9 @@ public record TextEditorViewModel
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
-    public string BodyElementId => $"bte_text-editor-content_{ViewModelKey.Guid}";
-    public string PrimaryCursorContentId => $"bte_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
-    public string GutterElementId => $"bte_text-editor-gutter_{ViewModelKey.Guid}";
+    public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
+    public string PrimaryCursorContentId => $"luth_te_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
+    public string GutterElementId => $"luth_te_text-editor-gutter_{ViewModelKey.Guid}";
 
     public void CursorMovePageTop()
     {

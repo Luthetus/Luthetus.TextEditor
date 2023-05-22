@@ -1,15 +1,12 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Semantics;
 using Luthetus.TextEditor.RazorLib.Store.Model;
 using Luthetus.TextEditor.RazorLib.Analysis;
 using Luthetus.TextEditor.RazorLib.Character;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Editing;
-using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Row;
 using Luthetus.TextEditor.RazorLib.Store;
 using Microsoft.AspNetCore.Components.Web;

@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.TextEditor.RazorLib.Character;
-using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Store.Model;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Cursor;
