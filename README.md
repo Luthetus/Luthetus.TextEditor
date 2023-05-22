@@ -1,7 +1,7 @@
 # Blazor.Text.Editor
 
 ### One can gauge their interest in the repository with this one minute GIF:
-![Example GIF](./Images/Rewrite/introductoryGifBlazorTextEditor.gif)
+![Example GIF](./Images/Rewrite/introductoryGifLuthetusTextEditor.gif)
 
 ***Blazor.Text.Editor*** is a Text Editor component library using
 the [Blazor UI Framework](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
