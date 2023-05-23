@@ -67,10 +67,10 @@ public partial class TextEditorFindDisplay : FluxorComponent
 
         if (disposing)
         {
+            _disposed = true;
+        
             _doSearchCancellationTokenSource.Cancel();
         }
-
-        _disposed = true;
 
         base.Dispose(disposing);
     }
