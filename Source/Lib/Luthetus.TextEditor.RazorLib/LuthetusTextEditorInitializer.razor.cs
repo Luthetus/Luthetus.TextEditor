@@ -4,6 +4,7 @@ using Luthetus.TextEditor.RazorLib.Store.Find;
 using Luthetus.TextEditor.RazorLib.Store.Options;
 using Fluxor;
 using Microsoft.AspNetCore.Components;
+using Luthetus.Common.RazorLib.Options;
 
 namespace Luthetus.TextEditor.RazorLib;
 
@@ -15,8 +16,10 @@ public partial class LuthetusTextEditorInitializer : ComponentBase
     private IDispatcher Dispatcher { get; set; } = null!;
     [Inject]
     private IThemeRecordsCollectionService ThemeRecordsCollectionService { get; set; } = null!;
+    [Inject]
+    private ITextEditorService TextEditorService { get; set; } = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (LuthetusTextEditorOptions.CustomThemeRecords is not null)
         {
@@ -45,6 +48,8 @@ public partial class LuthetusTextEditorInitializer : ComponentBase
                     findProvider));
         }
 
-        base.OnInitialized();
+        await TextEditorService.Options.SetFromLocalStorageAsync();
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 }
