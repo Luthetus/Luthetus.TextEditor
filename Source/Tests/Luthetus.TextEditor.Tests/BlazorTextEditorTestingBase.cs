@@ -43,19 +43,19 @@ public class LuthetusTextEditorTestingBase
 
         services.AddLuthetusTextEditor(inTextEditorOptions =>
         {
-            var blazorCommonOptions =
+            var luthetusCommonOptions =
                 (inTextEditorOptions.LuthetusCommonOptions ?? new()) with
                 {
                     InitializeFluxor = shouldInitializeFluxor
                 };
 
-            var luthetusCommonFactories = blazorCommonOptions.LuthetusCommonFactories with
+            var luthetusCommonFactories = luthetusCommonOptions.LuthetusCommonFactories with
             {
                 ClipboardServiceFactory = _ => new InMemoryClipboardService(true),
                 StorageServiceFactory = _ => new DoNothingStorageService(true)
             };
 
-            blazorCommonOptions = blazorCommonOptions with
+            luthetusCommonOptions = luthetusCommonOptions with
             {
                 LuthetusCommonFactories = luthetusCommonFactories
             };
@@ -65,7 +65,7 @@ public class LuthetusTextEditorTestingBase
                 InitializeFluxor = shouldInitializeFluxor,
                 CustomThemeRecords = LuthetusTextEditorCustomThemeFacts.AllCustomThemes,
                 InitialThemeKey = LuthetusTextEditorCustomThemeFacts.DarkTheme.ThemeKey,
-                LuthetusCommonOptions = blazorCommonOptions
+                LuthetusCommonOptions = luthetusCommonOptions
             };
         });
 
