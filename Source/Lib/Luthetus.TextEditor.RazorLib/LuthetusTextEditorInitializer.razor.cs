@@ -4,7 +4,6 @@ using Luthetus.TextEditor.RazorLib.Store.Find;
 using Luthetus.TextEditor.RazorLib.Store.Options;
 using Fluxor;
 using Microsoft.AspNetCore.Components;
-using Luthetus.Common.RazorLib.Options;
 
 namespace Luthetus.TextEditor.RazorLib;
 
