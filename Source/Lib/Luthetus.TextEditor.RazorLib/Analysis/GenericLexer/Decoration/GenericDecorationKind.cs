@@ -11,5 +11,6 @@ public enum GenericDecorationKind
     StringLiteral,
     Function,
     PreprocessorDirective,
-    DeliminationExtended
+    DeliminationExtended,
+    Type,
 }
