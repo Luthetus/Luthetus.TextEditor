@@ -9,14 +9,16 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Css.SyntaxActors;
 
 public class CssSyntaxTree
 {
-    public static CssSyntaxUnit ParseText(string content, string resourceUri)
+    public static CssSyntaxUnit ParseText(
+        ResourceUri resourceUri,
+        string sourceText)
     {
         // Items to return wrapped in a CssSyntaxUnit
         var cssDocumentChildren = new List<ICssSyntax>();
         var textEditorCssDiagnosticBag = new TextEditorCssDiagnosticBag();
 
         // Step through the string 'character by character'
-        var stringWalker = new StringWalker(content, resourceUri);
+        var stringWalker = new StringWalker(resourceUri, sourceText);
 
         // Order matters with the methods of pattern, 'Consume{Something}'
         // Example: 'ConsumeComment'
@@ -39,7 +41,7 @@ public class CssSyntaxTree
                 0,
                 stringWalker.PositionIndex,
                 (byte)CssDecorationKind.None,
-                new ResourceUri(stringWalker.ResourceUri),
+                stringWalker.ResourceUri,
                 stringWalker.SourceText),
             cssDocumentChildren.ToImmutableArray());
 
@@ -78,8 +80,8 @@ public class CssSyntaxTree
                     commentStartingPositionIndex,
                     stringWalker.PositionIndex + 1,
                     (byte)CssDecorationKind.Comment,
-                    new ResourceUri(stringWalker.ResourceUri),
-                    stringWalker.ResourceUri);
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText);
 
                 var commentToken = new CssCommentSyntax(
                     commentTextSpan,
@@ -167,8 +169,8 @@ public class CssSyntaxTree
                     pendingChildStartingPositionIndex,
                     stringWalker.PositionIndex,
                     (byte)childDecorationKind,
-                    new ResourceUri(stringWalker.ResourceUri),
-                    stringWalker.ResourceUri);
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText);
 
                 ICssSyntax childSyntax;
 
@@ -222,8 +224,8 @@ public class CssSyntaxTree
                     pendingChildStartingPositionIndex,
                     stringWalker.PositionIndex,
                     (byte)CssDecorationKind.UnexpectedToken,
-                    new ResourceUri(stringWalker.ResourceUri),
-                    stringWalker.ResourceUri);
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText);
 
                 textEditorCssDiagnosticBag.ReportUnexpectedToken(
                     unexpectedTokenTextSpan,
@@ -261,8 +263,8 @@ public class CssSyntaxTree
             startingPositionIndex,
             stringWalker.PositionIndex,
             (byte)CssDecorationKind.Identifier,
-            new ResourceUri(stringWalker.ResourceUri),
-            stringWalker.ResourceUri);
+            stringWalker.ResourceUri,
+            stringWalker.SourceText);
 
         var identifierSyntax = new CssIdentifierSyntax(
             identifierTextSpan,

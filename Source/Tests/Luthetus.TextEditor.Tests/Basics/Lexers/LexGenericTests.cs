@@ -12,21 +12,23 @@ public class LexGenericTests
     [Fact]
     public async Task LexFunction()
     {
-        var text = TestData.CSharp.EXAMPLE_TEXT_8_LINES
+        var sourceText = TestData.CSharp.EXAMPLE_TEXT_8_LINES
             .ReplaceLineEndings("\n");
+
+        var resourceUri = new ResourceUri(string.Empty);
 
         var expectedTextEditorTextSpans = new[]
         {
-            new TextEditorTextSpan(0, 107, (byte)GenericDecorationKind.Function),
-            new TextEditorTextSpan(225, 268, (byte)GenericDecorationKind.Function),
-            new TextEditorTextSpan(338, 407, (byte)GenericDecorationKind.Function),
-            new TextEditorTextSpan(436, 498, (byte)GenericDecorationKind.Function),
+            new TextEditorTextSpan(0, 107, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
+            new TextEditorTextSpan(225, 268, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
+            new TextEditorTextSpan(338, 407, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
+            new TextEditorTextSpan(436, 498, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
         };
 
-        var cSharpLexer = new TextEditorCSharpLexer();
+        var cSharpLexer = new TextEditorCSharpLexer(resourceUri);
 
         var textEditorTextSpans = await cSharpLexer.Lex(
-            text,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans

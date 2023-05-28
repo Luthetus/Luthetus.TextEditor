@@ -494,7 +494,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 wordColumnIndexStartInclusive + rowInformation.rowStartPositionIndex,
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
         else if (currentCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -510,7 +513,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 columnIndex + rowInformation.rowStartPositionIndex,
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
         else if (previousCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -526,7 +532,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 wordColumnIndexStartInclusive + rowInformation.rowStartPositionIndex,
                 columnIndex + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
 
         return null;
@@ -621,13 +630,13 @@ public partial class TextEditorModel
 
     public void SetLexer(ITextEditorLexer? lexer)
     {
-        Lexer = lexer ?? new TextEditorLexerDefault();
+        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
 
         // TODO: Invoke an event to reapply the CSS classes?
     }
     
     public TextEditorModel SetResourceData(
-        string resourceUri,
+        ResourceUri resourceUri,
         DateTime resourceLastWriteTime)
     {
         var nextTextEditor = new TextEditorModel(this);

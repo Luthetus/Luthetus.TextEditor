@@ -28,7 +28,7 @@
             {
                 <text>
                     @(viewModel.GetTabDisplayNameFunc?
-                        .Invoke(textEditorModel) ?? textEditorModel.ResourceUri)
+                        .Invoke(textEditorModel) ?? textEditorModel.ResourceUri.Value)
                 </text>
             }
         }

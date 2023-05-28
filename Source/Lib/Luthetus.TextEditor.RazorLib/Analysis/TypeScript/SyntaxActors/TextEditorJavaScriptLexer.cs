@@ -32,7 +32,7 @@ public class TextEditorTypeScriptLexer : ITextEditorLexer
 
     private readonly GenericSyntaxTree _typeScriptSyntaxTree;
 
-    public TextEditorTypeScriptLexer(string resourceUri)
+    public TextEditorTypeScriptLexer(ResourceUri resourceUri)
     {
         _typeScriptSyntaxTree = new GenericSyntaxTree(TypeScriptLanguageDefinition);
         ResourceUri = resourceUri;
@@ -40,14 +40,15 @@ public class TextEditorTypeScriptLexer : ITextEditorLexer
 
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
     
-    public string ResourceUri { get; }
+    public ResourceUri ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
-        string text,
+        string sourceText,
         RenderStateKey modelRenderStateKey)
     {
-        var typeScriptSyntaxUnit = _typeScriptSyntaxTree
-            .ParseText(text);
+        var typeScriptSyntaxUnit = _typeScriptSyntaxTree.ParseText(
+            ResourceUri,
+            sourceText);
 
         var typeScriptSyntaxWalker = new GenericSyntaxWalker();
 

@@ -1,3 +1,3 @@
 ﻿namespace Luthetus.TextEditor.RazorLib.Lexing;
 
-public record ResourceUri(string Uri);
+public record ResourceUri(string Value);

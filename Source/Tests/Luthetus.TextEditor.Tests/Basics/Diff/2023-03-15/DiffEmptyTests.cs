@@ -1,4 +1,5 @@
 ﻿using Luthetus.TextEditor.RazorLib.Diff;
+using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.Tests.Basics.Diff._2023_03_15;
 
@@ -8,7 +9,10 @@ public class DiffEmptyTests
     public void BeforeIsEmptyAfterIsEmpty()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = string.Empty;
+
+        var afterResourceUri = new ResourceUri("after");
         var afterText = string.Empty;
         
         // Expected
@@ -16,7 +20,9 @@ public class DiffEmptyTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert
@@ -29,7 +35,10 @@ public class DiffEmptyTests
     public void BeforeIsEmptyAfterIsNotEmpty()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = string.Empty;
+
+        var afterResourceUri = new ResourceUri("after");
         var afterText = "lorem ipsum";
         
         // Expected
@@ -37,7 +46,9 @@ public class DiffEmptyTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert
@@ -50,7 +61,10 @@ public class DiffEmptyTests
     public void BeforeIsNotEmptyAfterIsEmpty()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = "lorem ipsum";
+
+        var afterResourceUri = new ResourceUri("after");
         var afterText = string.Empty;
         
         // Expected
@@ -58,7 +72,9 @@ public class DiffEmptyTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert

@@ -12,7 +12,9 @@ public class LexPlainTests
         var text = TestData.Plain.EXAMPLE_TEXT_25_LINES
             .ReplaceLineEndings("\n");
 
-        var defaultLexer = new TextEditorLexerDefault();
+        var resourceUri = new ResourceUri(string.Empty);
+
+        var defaultLexer = new TextEditorLexerDefault(resourceUri);
 
         var textEditorTextSpans = await defaultLexer.Lex(
             text,

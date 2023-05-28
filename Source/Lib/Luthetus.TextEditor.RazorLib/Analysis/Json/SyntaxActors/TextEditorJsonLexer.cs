@@ -6,20 +6,20 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;
 
 public class TextEditorJsonLexer : ITextEditorLexer
 {
-    public TextEditorJsonLexer(string resourceUri)
+    public TextEditorJsonLexer(ResourceUri resourceUri)
     {
         ResourceUri = resourceUri;
     }
 
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
 
-    public string ResourceUri { get; }
+    public ResourceUri ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
-        string text,
+        string sourceText,
         RenderStateKey modelRenderStateKey)
     {
-        var jsonSyntaxUnit = JsonSyntaxTree.ParseText(text);
+        var jsonSyntaxUnit = JsonSyntaxTree.ParseText(ResourceUri, sourceText);
 
         var syntaxNodeRoot = jsonSyntaxUnit.JsonDocumentSyntax;
 

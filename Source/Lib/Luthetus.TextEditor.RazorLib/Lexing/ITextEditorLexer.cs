@@ -6,9 +6,9 @@ namespace Luthetus.TextEditor.RazorLib.Lexing;
 public interface ITextEditorLexer
 {
     public RenderStateKey ModelRenderStateKey { get; }
-    public string ResourceUri { get; }
+    public ResourceUri ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
-        string text,
+        string sourceText,
         RenderStateKey modelRenderStateKey);
 }

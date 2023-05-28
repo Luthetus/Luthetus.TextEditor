@@ -23,7 +23,7 @@ public partial class TextEditorModel
         ResourceUri = resourceUri;
         ResourceLastWriteTime = resourceLastWriteTime;
         FileExtension = fileExtension;
-        Lexer = lexer ?? new TextEditorLexerDefault();
+        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
         SemanticModel = semanticModel ?? new SemanticModelDefault();
         TextEditorKeymap = textEditorKeymap ?? new TextEditorKeymapDefault();
