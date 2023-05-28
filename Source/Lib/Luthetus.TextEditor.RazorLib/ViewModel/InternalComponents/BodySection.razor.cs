@@ -2,6 +2,8 @@
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Luthetus.Common.RazorLib.JavaScriptObjects;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 
@@ -20,10 +22,12 @@ public partial class BodySection : ComponentBase
     public int TabIndex { get; set; } = -1;
     [Parameter, EditorRequired]
     public RenderFragment? ContextMenuRenderFragmentOverride { get; set; }
-    [Parameter]
-    public bool IncludeContextMenuHelperComponent { get; set; }
     [Parameter, EditorRequired]
     public RenderFragment? AutoCompleteMenuRenderFragmentOverride { get; set; }
+    [Parameter, EditorRequired]
+    public bool IncludeContextMenuHelperComponent { get; set; }
+    [Parameter, EditorRequired]
+    public (string message, RelativeCoordinates relativeCoordinates)? MouseStoppedEventMostRecentResult { get; set; }
 
     private RowSection? _rowSectionComponent;
 

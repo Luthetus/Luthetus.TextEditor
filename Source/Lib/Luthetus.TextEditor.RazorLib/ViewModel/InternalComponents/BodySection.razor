@@ -1,4 +1,5 @@
 ﻿@using Luthetus.TextEditor.RazorLib.Cursor
+@using Luthetus.Common.RazorLib.Dimensions
 
 <div class="luth_te_body-section"
      style="@GetBodyStyleCss()">
@@ -27,4 +28,23 @@
                 AutoCompleteMenuRenderFragmentOverride="AutoCompleteMenuRenderFragmentOverride"/>
 
     <ScrollbarSection/>
+
+    <div>
+        @{
+            var localMouseStoppedEventMostRecentResult = MouseStoppedEventMostRecentResult;
+
+            if (localMouseStoppedEventMostRecentResult is not null)
+            {
+                var relativeX = localMouseStoppedEventMostRecentResult.Value.relativeCoordinates.RelativeX
+                    .ToCssValue();
+
+                var relativeY = localMouseStoppedEventMostRecentResult.Value.relativeCoordinates.RelativeY
+                    .ToCssValue();
+
+                <div style="position: absolute; left: @(relativeX)px; top: @(relativeY)px; background-color: gray;">
+                    @localMouseStoppedEventMostRecentResult.Value.message
+                </div>
+            }
+        }
+    </div>
 </div>
