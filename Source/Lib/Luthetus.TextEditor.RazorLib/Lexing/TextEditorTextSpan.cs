@@ -7,6 +7,11 @@ public record TextEditorTextSpan(
     ResourceUri ResourceUri,
     string SourceText)
 {
+#if DEBUG
+    /// <summary>This expression bound property is useful because it will evaluate <see cref="GetText"/> immediately upon inspecting the object instance in the debugger.</summary>
+    public string Text => GetText();
+#endif
+
     public string GetText()
     {
         return SourceText.Substring(
