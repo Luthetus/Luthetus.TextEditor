@@ -32,12 +32,14 @@ public class TextEditorCSharpLexer : ITextEditorLexer
 
     private readonly GenericSyntaxTree _cSharpSyntaxTree;
 
-    public TextEditorCSharpLexer()
+    public TextEditorCSharpLexer(string resourceUri)
     {
         _cSharpSyntaxTree = new GenericSyntaxTree(CSharpLanguageDefinition);
+        ResourceUri = resourceUri;
     }
 
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
+    public string ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
         string text,

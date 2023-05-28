@@ -3,11 +3,13 @@
 public record TextEditorTextSpan(
     int StartingIndexInclusive,
     int EndingIndexExclusive,
-    byte DecorationByte)
+    byte DecorationByte,
+    ResourceUri ResourceUri,
+    string SourceText)
 {
-    public string GetText(string text)
+    public string GetText()
     {
-        return text.Substring(
+        return SourceText.Substring(
             StartingIndexInclusive,
             EndingIndexExclusive - StartingIndexInclusive);
     }

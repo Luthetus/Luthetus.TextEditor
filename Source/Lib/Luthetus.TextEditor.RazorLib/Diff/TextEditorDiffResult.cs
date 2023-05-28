@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
+using Luthetus.TextEditor.RazorLib.Analysis;
 using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Diff;
@@ -38,15 +39,17 @@ public class TextEditorDiffResult
     /// Watching https://www.youtube.com/watch?v=9n8jI2267MM
     /// </summary>
     public static TextEditorDiffResult Calculate(
-        string beforeText,
-        string afterText)
+        ResourceUri beforeResourceUri,
+        string beforeSourceText,
+        ResourceUri afterResourceUri,
+        string afterSourceText)
     {
         // Need to build a square two dimensional array.
         //
         // Envisioning that 'beforeText' represents the rows
         // and 'afterText' represents the columns.
-        var beforeTextLength = beforeText.Length;
-        var afterTextLength = afterText.Length;
+        var beforeTextLength = beforeSourceText.Length;
+        var afterTextLength = afterSourceText.Length;
 
         var squaredSize = Math.Max(beforeTextLength, afterTextLength);
 
@@ -56,11 +59,11 @@ public class TextEditorDiffResult
 
         for (int beforeIndex = 0; beforeIndex < beforeTextLength; beforeIndex++)
         {
-            char beforeCharValue = beforeText[beforeIndex];
+            char beforeCharValue = beforeSourceText[beforeIndex];
 
             for (int afterIndex = 0; afterIndex < afterTextLength; afterIndex++)
             {
-                char afterCharValue = afterText[afterIndex];
+                char afterCharValue = afterSourceText[afterIndex];
 
                 var cellSourceWeight = GetCellSourceWeight(
                     diffMatrix,
@@ -250,10 +253,14 @@ public class TextEditorDiffResult
             // Longest common subsequence
             {
                 beforeTextSpans.AddRange(GetTextSpans(
+                    beforeResourceUri,
+                    beforeSourceText,
                     beforePositionIndicesOfLongestCommonSubsequenceHashSet,
                     (byte)TextEditorDiffDecorationKind.LongestCommonSubsequence));
 
                 afterTextSpans.AddRange(GetTextSpans(
+                    afterResourceUri,
+                    afterSourceText,
                     afterPositionIndicesOfLongestCommonSubsequenceHashSet,
                     (byte)TextEditorDiffDecorationKind.LongestCommonSubsequence));
             }
@@ -261,6 +268,8 @@ public class TextEditorDiffResult
             // Insertion
             {
                 afterTextSpans.AddRange(GetTextSpans(
+                    afterResourceUri,
+                    afterSourceText,
                     afterPositionIndicesOfInsertionHashSet,
                     (byte)TextEditorDiffDecorationKind.Insertion));
             }
@@ -268,6 +277,8 @@ public class TextEditorDiffResult
             // Deletion
             {
                 beforeTextSpans.AddRange(GetTextSpans(
+                    beforeResourceUri,
+                    beforeSourceText,
                     beforePositionIndicesOfDeletionHashSet,
                     (byte)TextEditorDiffDecorationKind.Deletion));
             }
@@ -275,18 +286,22 @@ public class TextEditorDiffResult
             // Modification
             {
                 beforeTextSpans.AddRange(GetTextSpans(
+                    beforeResourceUri,
+                    beforeSourceText,
                     beforePositionIndicesOfModificationHashSet,
                     (byte)TextEditorDiffDecorationKind.Modification));
 
                 afterTextSpans.AddRange(GetTextSpans(
+                    afterResourceUri,
+                    afterSourceText,
                     afterPositionIndicesOfModificationHashSet,
                     (byte)TextEditorDiffDecorationKind.Modification));
             }
         }
 
         var diffResult = new TextEditorDiffResult(
-            beforeText,
-            afterText,
+            beforeSourceText,
+            afterSourceText,
             diffMatrix,
             highestSourceWeightTuple,
             longestCommonSubsequenceValue,
@@ -327,6 +342,8 @@ public class TextEditorDiffResult
     }
 
     private static List<TextEditorTextSpan> GetTextSpans(
+        ResourceUri resourceUri,
+        string sourceText,
         HashSet<int> positionIndicesHashSet,
         byte decorationByte)
     {
@@ -361,7 +378,9 @@ public class TextEditorDiffResult
                 var textSpan = new TextEditorTextSpan(
                     startingIndexInclusive,
                     endingIndexExclusive,
-                    decorationByte);
+                    decorationByte,
+                    resourceUri,
+                    sourceText);
 
                 matchTextSpans.Add(textSpan);
 

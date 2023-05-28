@@ -8,7 +8,9 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;
 
 public class JsonSyntaxTree
 {
-    public static JsonSyntaxUnit ParseText(string content)
+    public static JsonSyntaxUnit ParseText(
+        ResourceUri resourceUri,
+        string content)
     {
         // Items to return wrapped in a JsonSyntaxUnit
         var jsonDocumentChildren = new List<IJsonSyntax>();
@@ -45,7 +47,9 @@ public class JsonSyntaxTree
             new TextEditorTextSpan(
                 0,
                 stringWalker.PositionIndex,
-                (byte)JsonDecorationKind.None),
+                (byte)JsonDecorationKind.None,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText),
             jsonDocumentChildren.ToImmutableArray());
 
         var jsonSyntaxUnit = new JsonSyntaxUnit(

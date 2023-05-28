@@ -6,13 +6,20 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Css.SyntaxActors;
 
 public class TextEditorCssLexer : ITextEditorLexer
 {
+    public TextEditorCssLexer(string resourceUri)
+    {
+        ResourceUri = resourceUri;
+    }
+
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
+ 
+    public string ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
         string text,
         RenderStateKey modelRenderStateKey)
     {
-        var cssSyntaxUnit = CssSyntaxTree.ParseText(text);
+        var cssSyntaxUnit = CssSyntaxTree.ParseText(text, ResourceUri);
 
         var syntaxNodeRoot = cssSyntaxUnit.CssDocumentSyntax;
 

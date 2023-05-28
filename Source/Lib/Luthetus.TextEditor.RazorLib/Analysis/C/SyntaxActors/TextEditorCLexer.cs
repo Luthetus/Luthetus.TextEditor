@@ -39,12 +39,15 @@ public class TextEditorCLexer : ITextEditorLexer
 
     private readonly GenericSyntaxTree _cSyntaxTree;
 
-    public TextEditorCLexer()
+    public TextEditorCLexer(string resourceUri)
     {
         _cSyntaxTree = new GenericSyntaxTree(CLanguageDefinition);
+        ResourceUri = resourceUri;
     }
 
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
+
+    public string ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
         string text,

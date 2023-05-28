@@ -8,7 +8,14 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Razor.SyntaxActors;
 
 public class TextEditorRazorLexer : ITextEditorLexer
 {
+    public TextEditorRazorLexer(string resourceUri)
+    {
+        ResourceUri = resourceUri;
+    }
+
     public RenderStateKey ModelRenderStateKey { get; private set; } = RenderStateKey.Empty;
+
+    public string ResourceUri { get; }
 
     public Task<ImmutableArray<TextEditorTextSpan>> Lex(
         string text,
