@@ -19,6 +19,7 @@ public class GenericDecorationMapper : IDecorationMapper
             GenericDecorationKind.Function => "luth_te_method",
             GenericDecorationKind.PreprocessorDirective => "luth_te_keyword",
             GenericDecorationKind.DeliminationExtended => "luth_te_string-literal",
+            GenericDecorationKind.Type => "luth_te_type",
             _ => string.Empty,
         };
     }

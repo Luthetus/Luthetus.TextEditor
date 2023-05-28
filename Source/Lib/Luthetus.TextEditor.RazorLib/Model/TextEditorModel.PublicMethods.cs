@@ -343,24 +343,29 @@ public partial class TextEditorModel
     /// <summary>If applying syntax highlighting it may be preferred to use <see cref="ApplySyntaxHighlightingAsync" />. It is effectively just invoking the lexer and then <see cref="ApplyDecorationRange" /></summary>
     public void ApplyDecorationRange(IEnumerable<TextEditorTextSpan> textEditorTextSpans)
     {
+        var localContent = _content;
+
         var positionsPainted = new HashSet<int>();
-        
+
         foreach (var textEditorTextSpan in textEditorTextSpans)
         {
             for (var i = textEditorTextSpan.StartingIndexInclusive; i < textEditorTextSpan.EndingIndexExclusive; i++)
             {
-                _content[i].DecorationByte = textEditorTextSpan.DecorationByte;
+                if (i >= localContent.Count)
+                    continue;
+
+                localContent[i].DecorationByte = textEditorTextSpan.DecorationByte;
 
                 positionsPainted.Add(i);
             }
         }
 
-        for (var i = 0; i < _content.Count - 1; i++)
+        for (var i = 0; i < localContent.Count - 1; i++)
         {
             if (!positionsPainted.Contains(i))
             {
                 // DecorationByte of 0 is to be 'None'
-                _content[i].DecorationByte = 0;
+                localContent[i].DecorationByte = 0;
             }
         }
     }
