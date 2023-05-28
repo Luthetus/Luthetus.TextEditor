@@ -381,7 +381,8 @@ public partial class TextEditorModel
             SemanticModel.Parse(this);
 
             textEditorTextSpans = textEditorTextSpans
-                .AddRange(SemanticModel.SymbolTextSpans);
+                .AddRange(SemanticModel.SymbolMessageTextSpanTuples
+                    .Select(x => x.textSpan));
         }
 
         ApplyDecorationRange(textEditorTextSpans);

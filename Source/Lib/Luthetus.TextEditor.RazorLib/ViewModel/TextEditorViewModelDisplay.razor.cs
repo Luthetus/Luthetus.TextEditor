@@ -97,6 +97,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
     private RenderStateKey _currentViewModelRenderStateKey = RenderStateKey.Empty;
+    private Task _mouseStoppedMovingTask = Task.CompletedTask;
+    private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromSeconds(1);
+    private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
+    private bool _userMouseIsInside;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -622,16 +626,40 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             //        renderTrackerEntry));
         }
 
-        var localThinksLeftMouseButtonIsDown = _thinksLeftMouseButtonIsDown;
+        _userMouseIsInside = true;
 
-        if (!_thinksLeftMouseButtonIsDown)
-            return;
+        var localThinksLeftMouseButtonIsDown = _thinksLeftMouseButtonIsDown;
 
         var mostRecentEventArgs = await _onMouseMoveThrottle.FireAsync(
             (mouseEventArgs, localThinksLeftMouseButtonIsDown),
             CancellationToken.None);
 
         if (mostRecentEventArgs.isCancellationRequested)
+            return;
+
+        // MouseStoppedMovingEvent
+        {
+            _mouseStoppedMovingCancellationTokenSource.Cancel();
+            _mouseStoppedMovingCancellationTokenSource = new();
+
+            var cancellationToken = _mouseStoppedMovingCancellationTokenSource.Token;
+
+            _mouseStoppedMovingTask = Task.Run(async () =>
+            {
+                await Task.Delay(_mouseStoppedMovingDelay, cancellationToken);
+
+                if (!cancellationToken.IsCancellationRequested &&
+                    _userMouseIsInside)
+                {
+                    // Lazily calculate row and column index a second time. Otherwise one has to calculate it every mouse moved event.
+                    var rowAndColumnIndex = await CalculateRowAndColumnIndex(mouseEventArgs);
+
+                    await HandleMouseStoppedMovingEventAsync(rowAndColumnIndex);
+                }
+            });
+        }
+
+        if (!_thinksLeftMouseButtonIsDown)
             return;
 
         localThinksLeftMouseButtonIsDown = mostRecentEventArgs.tEventArgs.thinksLeftMouseButtonIsDown;
@@ -670,6 +698,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             _thinksLeftMouseButtonIsDown = false;
         }
+    }
+
+    private void HandleContentOnMouseOut(MouseEventArgs mouseEventArgs)
+    {
+        _userMouseIsInside = false;
     }
 
     private async Task<(int rowIndex, int columnIndex)> CalculateRowAndColumnIndex(
@@ -853,6 +886,51 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                             renderTrackerEntry));
                 }
             }
+        }
+    }
+
+    private async Task HandleMouseStoppedMovingEventAsync(
+        (int rowIndex, int columnIndex) rowAndColumnIndex)
+    {
+        var model = GetModel();
+
+        if (model is null)
+            return;
+
+        var cursorPositionIndex = model.GetCursorPositionIndex(
+            new TextEditorCursor(rowAndColumnIndex, false));
+
+        Console.WriteLine($"Mouse stopped moving: ({rowAndColumnIndex.rowIndex}, {rowAndColumnIndex.columnIndex})");
+        Console.WriteLine($"Mouse stopped moving: POS: {cursorPositionIndex}");
+
+        var foundMatch = false;
+
+        if (model.SemanticModel is not null)
+        {
+            foreach (var diagnosticTextSpanTuple in model.SemanticModel.DiagnosticTextSpanTuples)
+            {
+                if (cursorPositionIndex >= diagnosticTextSpanTuple.textSpan.StartingIndexInclusive &&
+                    cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
+                {
+                    foundMatch = true;
+                    Console.WriteLine(diagnosticTextSpanTuple.diagnostic.Message);
+                }
+            }
+            
+            foreach (var symbolMessageTextSpanTuple in model.SemanticModel.SymbolMessageTextSpanTuples)
+            {
+                if (cursorPositionIndex >= symbolMessageTextSpanTuple.textSpan.StartingIndexInclusive &&
+                    cursorPositionIndex < symbolMessageTextSpanTuple.textSpan.EndingIndexExclusive)
+                {
+                    foundMatch = true;
+                    Console.WriteLine(symbolMessageTextSpanTuple.message);
+                }
+            }
+        }
+     
+        if (!foundMatch)
+        {
+            Console.WriteLine($"Mouse stopped event: nothing found");
         }
     }
 
@@ -1072,7 +1150,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
                 var outPresentationModel = inPresentationModel with
                 {
-                    TextEditorTextSpans = model?.SemanticModel?.DiagnosticTextSpans
+                    TextEditorTextSpans = model?.SemanticModel?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
                         ?? ImmutableList<TextEditorTextSpan>.Empty
                 };
 
@@ -1097,5 +1175,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         Dispatcher.Dispatch(
             new RenderTrackerState.DisposeAction(
                 RenderTrackerDisplayName));
+
+        _mouseStoppedMovingCancellationTokenSource.Cancel();
     }
 }
