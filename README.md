@@ -4,7 +4,7 @@
 ![Example GIF](./Images/Rewrite/introductoryGifLuthetusTextEditor.gif)
 
 ## Demo:
-https://luthetus.github.io/
+https://luthetus.github.io/Luthetus.Website/
 
 ***Blazor.Text.Editor*** is a Text Editor component library using
 the [Blazor UI Framework](https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor)
