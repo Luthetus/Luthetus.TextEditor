@@ -411,6 +411,16 @@
     box-shadow: 0 0 2px var(--luth_te_primary-overlay-box-shadow-color);
 }
 
+.luth_te_tooltip {
+    position: absolute;
+    z-index: 30;
+    background-color: var(--luth_te_secondary-background-color);
+    color: var(--luth_te_secondary-font-color);
+    box-shadow: 0 0 2px var(--luth_te_primary-overlay-box-shadow-color);
+    padding: 20px;
+    cursor: default;
+}
+
 .luth_te_use-vim-keymap {
     height: calc(100% - 200px);
 }
