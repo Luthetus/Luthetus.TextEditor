@@ -1,4 +1,5 @@
 ﻿using Luthetus.TextEditor.RazorLib.Diff;
+using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.Tests.Basics.Diff._2023_03_15;
 
@@ -8,7 +9,10 @@ public class DiffInsertionTests
     public void InsertionOfSingleCharacterAtStartOfBeforeText()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = "foo";
+        
+        var afterResourceUri = new ResourceUri("after");
         var afterText = "afoo";
         
         // Expected
@@ -16,7 +20,9 @@ public class DiffInsertionTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert
@@ -29,7 +35,10 @@ public class DiffInsertionTests
     public void InsertionOfSingleCharacterAtEndOfBeforeText()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = "foo";
+
+        var afterResourceUri = new ResourceUri("after");
         var afterText = "fooa";
         
         // Expected
@@ -37,7 +46,9 @@ public class DiffInsertionTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert
@@ -50,7 +61,10 @@ public class DiffInsertionTests
     public void InsertionOfSingleCharacterBetweenTwoExistingCharacters()
     {
         // Input
+        var beforeResourceUri = new ResourceUri("before");
         var beforeText = "foo";
+
+        var afterResourceUri = new ResourceUri("after");
         var afterText = "foao";
         
         // Expected
@@ -58,7 +72,9 @@ public class DiffInsertionTests
 
         // Calculate
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         // Assert

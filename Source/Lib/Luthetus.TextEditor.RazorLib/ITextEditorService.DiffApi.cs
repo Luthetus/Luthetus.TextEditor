@@ -103,7 +103,9 @@ public partial interface ITextEditorService
             var afterText = afterModel.GetAllText();
 
             var diffResult = TextEditorDiffResult.Calculate(
+                beforeModel.ResourceUri,
                 beforeText,
+                afterModel.ResourceUri,
                 afterText);
 
             ChangeFirstPresentationLayer(

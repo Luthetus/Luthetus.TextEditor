@@ -26,12 +26,12 @@ public partial class RowSection : ComponentBase
     public int TabIndex { get; set; } = -1;
     [Parameter, EditorRequired]
     public RenderFragment? ContextMenuRenderFragmentOverride { get; set; }
-    [Parameter]
-    public bool IncludeContextMenuHelperComponent { get; set; }
     [Parameter, EditorRequired]
     public RenderFragment? AutoCompleteMenuRenderFragmentOverride { get; set; }
     [Parameter, EditorRequired]
     public TextEditorCursorSnapshot PrimaryCursorSnapshot { get; set; } = null!;
+    [Parameter]
+    public bool IncludeContextMenuHelperComponent { get; set; }
 
     public TextEditorCursorDisplay? TextEditorCursorDisplayComponent { get; private set; }
 

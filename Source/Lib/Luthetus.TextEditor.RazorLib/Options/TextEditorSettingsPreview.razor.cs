@@ -1,3 +1,4 @@
+using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.AspNetCore.Components;
@@ -26,7 +27,7 @@ public partial class TextEditorSettingsPreview : ComponentBase
         TextEditorService.Model.RegisterTemplated(
             SettingsPreviewTextEditorModelKey,
             WellKnownModelKind.Plain,
-            "SettingsPreviewTextEditorModelKey",
+            new ResourceUri("SettingsPreviewTextEditorModelKey"),
             DateTime.UtcNow,
             "Settings Preview",
             "Preview settings here");

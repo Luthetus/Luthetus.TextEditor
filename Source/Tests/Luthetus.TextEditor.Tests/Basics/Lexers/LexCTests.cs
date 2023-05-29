@@ -11,21 +11,7 @@ public class LexCTests
     [Fact]
     public async Task SHOULD_LEX_COMMENTS_SINGLE_LINE()
     {
-        // TODO: What I say in the below comment about these local strings being interned I have doubts of.
-        // this doesn't hold true here because I'm invoking a method on it?
-        // Interning I'm thinking is done at compile time with string literals.
-        // Any string made at runtime will that also get the same functionality?
-        // I am using .ReplaceLineEndings("\n") to standardize the line endings of my verbatim string
-        // across various operating systems. But doing so means I'm making a string at runtime.
-        // I could use a non-verbatim string and manually insert '\n' characters.
-        // But would this be annoying to read?
-        //
-        // Strings will be interned by the runtime so that these local
-        // declarations of the same string point to the same immutable string in memory.
-        //
-        // Keeping the strings local to the method makes it far less likely to clobber
-        // someone else's unit test.
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -43,15 +29,17 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(40, 68, (byte)GenericDecorationKind.CommentSingleLine),
+            new(40, 68, (byte)GenericDecorationKind.CommentSingleLine, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans
@@ -65,7 +53,7 @@ int main()
     [Fact]
     public async Task SHOULD_LEX_COMMENTS_MULTI_LINE()
     {
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -83,16 +71,18 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(98, 127, (byte)GenericDecorationKind.CommentMultiLine),
-            new(131, 163, (byte)GenericDecorationKind.CommentMultiLine),
+            new(98, 127, (byte)GenericDecorationKind.CommentMultiLine, resourceUri, sourceText),
+            new(131, 163, (byte)GenericDecorationKind.CommentMultiLine, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans
@@ -106,7 +96,7 @@ int main()
     [Fact]
     public async Task SHOULD_LEX_KEYWORDS()
     {
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -124,16 +114,18 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(70, 73, (byte)GenericDecorationKind.Keyword),
-            new(84, 87, (byte)GenericDecorationKind.Keyword),
+            new(70, 73, (byte)GenericDecorationKind.Keyword, resourceUri, sourceText),
+            new(84, 87, (byte)GenericDecorationKind.Keyword, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans
@@ -147,7 +139,7 @@ int main()
     [Fact]
     public async Task SHOULD_LEX_STRING_LITERALS()
     {
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -165,15 +157,17 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(173, 177, (byte)GenericDecorationKind.StringLiteral),
+            new(173, 177, (byte)GenericDecorationKind.StringLiteral, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans
@@ -187,7 +181,7 @@ int main()
     [Fact]
     public async Task SHOULD_LEX_FUNCTIONS()
     {
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -205,16 +199,18 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(74, 78, (byte)GenericDecorationKind.Function),
-            new(166, 172, (byte)GenericDecorationKind.Function),
+            new(74, 78, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
+            new(166, 172, (byte)GenericDecorationKind.Function, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans
@@ -228,7 +224,7 @@ int main()
     [Fact]
     public async Task SHOULD_LEX_PREPROCESSOR_DIRECTIVES()
     {
-        string testDataHelloWorld = @"#include <stdlib.h>
+        string sourceText = @"#include <stdlib.h>
 #include <stdio.h>
 
 // C:\Users\hunte\Repos\Aaa\
@@ -246,16 +242,18 @@ int main()
 	printf(""%d"", x);
 }".ReplaceLineEndings("\n");
 
+        var resourceUri = new ResourceUri(string.Empty);
+
         var expectedTextEditorTextSpans = new TextEditorTextSpan[]
         {
-            new(0, 8, (byte)GenericDecorationKind.PreprocessorDirective),
-            new(20, 28, (byte)GenericDecorationKind.PreprocessorDirective),
+            new(0, 8, (byte)GenericDecorationKind.PreprocessorDirective, resourceUri, sourceText),
+            new(20, 28, (byte)GenericDecorationKind.PreprocessorDirective, resourceUri, sourceText),
         };
 
-        var cLexer = new TextEditorCLexer();
+        var cLexer = new TextEditorCLexer(resourceUri);
 
         var textEditorTextSpans = await cLexer.Lex(
-            testDataHelloWorld,
+            sourceText,
             RenderStateKey.NewRenderStateKey());
 
         textEditorTextSpans = textEditorTextSpans

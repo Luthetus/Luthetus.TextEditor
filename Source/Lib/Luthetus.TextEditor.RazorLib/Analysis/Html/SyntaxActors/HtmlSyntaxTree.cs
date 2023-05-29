@@ -13,10 +13,11 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;
 public static class HtmlSyntaxTree
 {
     public static HtmlSyntaxUnit ParseText(
+        ResourceUri resourceUri,
         string content,
         InjectedLanguageDefinition? injectedLanguageDefinition = null)
     {
-        var stringWalker = new StringWalker(content);
+        var stringWalker = new StringWalker(resourceUri, content);
 
         var rootTagSyntaxBuilder = new TagSyntax.TagSyntaxBuilder
         {
@@ -25,7 +26,9 @@ public static class HtmlSyntaxTree
                 new TextEditorTextSpan(
                     0,
                     0,
-                    (byte)HtmlDecorationKind.None)),
+                    (byte)HtmlDecorationKind.None,
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText)),
         };
 
         var textEditorHtmlDiagnosticBag = new TextEditorHtmlDiagnosticBag();
@@ -110,7 +113,9 @@ public static class HtmlSyntaxTree
                         new TextEditorTextSpan(
                             startingPositionIndex,
                             stringWalker.PositionIndex,
-                            (byte)HtmlDecorationKind.Error));
+                            (byte)HtmlDecorationKind.Error,
+                            stringWalker.ResourceUri,
+                            stringWalker.SourceText));
 
                     return tagBuilder.Build();
                 }
@@ -170,7 +175,9 @@ public static class HtmlSyntaxTree
                                 new TextEditorTextSpan(
                                     closeTagNameStartingPositionIndex,
                                     stringWalker.PositionIndex,
-                                    (byte)HtmlDecorationKind.TagName));
+                                    (byte)HtmlDecorationKind.TagName,
+                                    stringWalker.ResourceUri,
+                                    stringWalker.SourceText));
 
                             _ = stringWalker.ReadRange(
                                 HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_ENDING
@@ -198,7 +205,9 @@ public static class HtmlSyntaxTree
                             new TextEditorTextSpan(
                                 closeTagNameStartingPositionIndex,
                                 stringWalker.PositionIndex,
-                                (byte)HtmlDecorationKind.Error));
+                                (byte)HtmlDecorationKind.Error,
+                                stringWalker.ResourceUri,
+                                stringWalker.SourceText));
                     }
 
                     return tagBuilder.Build();
@@ -253,7 +262,9 @@ public static class HtmlSyntaxTree
                         new TextEditorTextSpan(
                             startingPositionIndex,
                             stringWalker.PositionIndex,
-                            (byte)HtmlDecorationKind.Error));
+                            (byte)HtmlDecorationKind.Error,
+                            stringWalker.ResourceUri,
+                            stringWalker.SourceText));
                 }
                 else
                 {
@@ -262,7 +273,9 @@ public static class HtmlSyntaxTree
                         new TextEditorTextSpan(
                             startingPositionIndex,
                             stringWalker.PositionIndex,
-                            (byte)HtmlDecorationKind.Error));
+                            (byte)HtmlDecorationKind.Error,
+                            stringWalker.ResourceUri,
+                            stringWalker.SourceText));
 
                     // Fabricate a value for the string variable: 'tagName' so the
                     // rest of the file can still be parsed.
@@ -276,7 +289,9 @@ public static class HtmlSyntaxTree
                 new TextEditorTextSpan(
                     startingPositionIndex,
                     stringWalker.PositionIndex,
-                    (byte)HtmlDecorationKind.TagName));
+                    (byte)HtmlDecorationKind.TagName,
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText));
         }
 
         /*
@@ -375,7 +390,9 @@ public static class HtmlSyntaxTree
                     new TextEditorTextSpan(
                         startingPositionIndex,
                         stringWalker.PositionIndex,
-                        (byte)HtmlDecorationKind.Error));
+                        (byte)HtmlDecorationKind.Error,
+                        stringWalker.ResourceUri,
+                        stringWalker.SourceText));
             }
 
             // If there is text in textNodeBuilder
@@ -402,7 +419,9 @@ public static class HtmlSyntaxTree
                     new TextEditorTextSpan(
                         injectedLanguageFragmentSyntaxStartingPositionIndex,
                         stringWalker.PositionIndex + 1,
-                        (byte)HtmlDecorationKind.InjectedLanguageFragment)));
+                        (byte)HtmlDecorationKind.InjectedLanguageFragment,
+                        stringWalker.ResourceUri,
+                        stringWalker.SourceText)));
 
             injectedLanguageFragmentSyntaxes.AddRange(
                 injectedLanguageDefinition.ParseInjectedLanguageFunc
@@ -470,7 +489,9 @@ public static class HtmlSyntaxTree
             var attributeNameTextSpan = new TextEditorTextSpan(
                 startingPositionIndex,
                 stringWalker.PositionIndex,
-                (byte)HtmlDecorationKind.AttributeName);
+                (byte)HtmlDecorationKind.AttributeName,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText);
 
             return new AttributeNameSyntax(attributeNameTextSpan);
         }
@@ -520,7 +541,9 @@ public static class HtmlSyntaxTree
             var attributeValueTextSpan = new TextEditorTextSpan(
                 0,
                 0,
-                (byte)HtmlDecorationKind.AttributeValue);
+                (byte)HtmlDecorationKind.AttributeValue,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText);
 
             attributeValueSyntax = new AttributeValueSyntax(attributeValueTextSpan);
 
@@ -590,7 +613,9 @@ public static class HtmlSyntaxTree
             var attributeValueTextSpan = new TextEditorTextSpan(
                 startingPositionIndex,
                 endingIndexExclusive,
-                (byte)HtmlDecorationKind.AttributeValue);
+                (byte)HtmlDecorationKind.AttributeValue,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText);
 
             return new AttributeValueSyntax(attributeValueTextSpan);
         }
@@ -616,7 +641,9 @@ public static class HtmlSyntaxTree
             var commentTagTextSpan = new TextEditorTextSpan(
                 startingPositionIndex,
                 stringWalker.PositionIndex + 1,
-                (byte)HtmlDecorationKind.Comment);
+                (byte)HtmlDecorationKind.Comment,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText);
 
             return new CommentSyntax(commentTagTextSpan);
         }

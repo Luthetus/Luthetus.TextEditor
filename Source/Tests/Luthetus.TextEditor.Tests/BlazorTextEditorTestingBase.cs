@@ -84,7 +84,7 @@ public class LuthetusTextEditorTestingBase
             .GetRequiredService<ITextEditorService>();
 
         var textEditor = new TextEditorModel(
-            nameof(LuthetusTextEditorTestingBase),
+            new(nameof(LuthetusTextEditorTestingBase)),
             DateTime.UtcNow,
             "UnitTests",
             string.Empty,

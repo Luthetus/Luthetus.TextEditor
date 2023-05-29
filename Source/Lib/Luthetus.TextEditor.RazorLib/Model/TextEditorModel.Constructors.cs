@@ -11,7 +11,7 @@ namespace Luthetus.TextEditor.RazorLib.Model;
 public partial class TextEditorModel
 {
     public TextEditorModel(
-        string resourceUri,
+        ResourceUri resourceUri,
         DateTime resourceLastWriteTime,
         string fileExtension,
         string content,
@@ -23,7 +23,7 @@ public partial class TextEditorModel
         ResourceUri = resourceUri;
         ResourceLastWriteTime = resourceLastWriteTime;
         FileExtension = fileExtension;
-        Lexer = lexer ?? new TextEditorLexerDefault();
+        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
         SemanticModel = semanticModel ?? new SemanticModelDefault();
         TextEditorKeymap = textEditorKeymap ?? new TextEditorKeymapDefault();
@@ -32,7 +32,7 @@ public partial class TextEditorModel
     }
 
     public TextEditorModel(
-        string resourceUri,
+        ResourceUri resourceUri,
         DateTime resourceLastWriteTime,
         string fileExtension,
         string content,
@@ -54,14 +54,7 @@ public partial class TextEditorModel
         ModelKey = modelKey;
     }
 
-    /// <summary>
-    /// Clone the TextEditorModel using shallow copy
-    /// so that Fluxor will notify all the <see cref="TextEditorView"/>
-    /// of the <see cref="TextEditorModel"/> having been replaced
-    /// <br/><br/>
-    /// Do not use a record would that do a deep value comparison
-    /// and be incredibly slow? (i.e.) compare every RichCharacter in the list.
-    /// </summary>
+    /// <summary>Clone the TextEditorModel using shallow copy so that Fluxor will notify all the <see cref="TextEditorView"/> of the <see cref="TextEditorModel"/> having been replaced<br/><br/>Do not use a record would that do a deep value comparison and be incredibly slow? (i.e.) compare every RichCharacter in the list.</summary>
     public TextEditorModel(TextEditorModel original)
     {
         ResourceUri = original.ResourceUri;

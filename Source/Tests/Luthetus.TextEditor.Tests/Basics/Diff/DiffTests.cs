@@ -1,4 +1,5 @@
 using Luthetus.TextEditor.RazorLib.Diff;
+using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.Tests.TestDataFolder;
 
 namespace Luthetus.TextEditor.Tests.Basics.Diff;
@@ -27,8 +28,13 @@ public class DiffTests
         string afterText,
         int lengthOfLongestCommonSubsequence)
     {
+        var beforeResourceUri = new ResourceUri("before");
+        var afterResourceUri = new ResourceUri("after");
+
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         Assert.Equal(
@@ -57,8 +63,13 @@ public class DiffTests
         string afterText,
         int lengthOfLongestCommonSubsequence)
     {
+        var beforeResourceUri = new ResourceUri("before");
+        var afterResourceUri = new ResourceUri("after");
+
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         Assert.Equal(
@@ -91,8 +102,13 @@ public class DiffTests
         string afterText,
         int lengthOfLongestCommonSubsequence)
     {
+        var beforeResourceUri = new ResourceUri("before");
+        var afterResourceUri = new ResourceUri("after");
+
         var diffResult = TextEditorDiffResult.Calculate(
+            beforeResourceUri,
             beforeText,
+            afterResourceUri,
             afterText);
 
         Assert.Equal(

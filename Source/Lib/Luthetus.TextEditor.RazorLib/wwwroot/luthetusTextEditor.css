@@ -411,6 +411,16 @@
     box-shadow: 0 0 2px var(--luth_te_primary-overlay-box-shadow-color);
 }
 
+.luth_te_tooltip {
+    position: absolute;
+    z-index: 30;
+    background-color: var(--luth_te_secondary-background-color);
+    color: var(--luth_te_secondary-font-color);
+    box-shadow: 0 0 2px var(--luth_te_primary-overlay-box-shadow-color);
+    padding: 20px;
+    cursor: default;
+}
+
 .luth_te_use-vim-keymap {
     height: calc(100% - 200px);
 }
@@ -649,7 +659,7 @@
     --luth_te_string-literal-foreground-color: #E06C75;
     --luth_te_string-literal-escape-character-foreground-color: #ffd68f;
     --luth_te_keyword-foreground-color: #E09C6C;
-    --luth_te_keyword-control-foreground-color: rgb(249, 130, 190);
+    --luth_te_keyword-control-foreground-color: rgb(255, 140, 210);
     --luth_te_comment-foreground-color: #96968C;
     --luth_te_tag-name-foreground-color: #E09C6C;
     --luth_te_injected-language-fragment-color: #dcd050;
@@ -724,13 +734,13 @@
     --luth_te_newline-foreground-color: #007F00;
     --luth_te_newline-background-color: #faeee2;
     --luth_te_method-foreground-color: rgb(0, 165, 0);
-    --luth_te_type-foreground-color: rgb(20, 100, 235);
+    --luth_te_type-foreground-color: rgb(20, 120, 235);
     --luth_te_parameter-foreground-color: rgb(108, 40, 198);
     --luth_te_string-literal-foreground-color: rgb(180, 0, 0);
-    --luth_te_string-literal-escape-character-foreground-color: rgb(183, 118, 251);
+    --luth_te_string-literal-escape-character-foreground-color: rgb(0, 90, 245);
     --luth_te_keyword-foreground-color: rgb(210, 110, 0);
-    --luth_te_keyword-control-foreground-color: rgb(227, 0, 233);
-    --luth_te_comment-foreground-color: rgb(110, 120, 115);
+    --luth_te_keyword-control-foreground-color: rgb(220, 0, 217);
+    --luth_te_comment-foreground-color: rgb(115, 125, 120);
     --luth_te_tag-name-foreground-color: rgb(210, 110, 0);
     --luth_te_injected-language-fragment-color: rgb(227, 0, 233);
     --luth_te_css-property-name-color: rgb(20, 100, 235);

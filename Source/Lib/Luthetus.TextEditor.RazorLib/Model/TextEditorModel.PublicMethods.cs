@@ -15,14 +15,7 @@ namespace Luthetus.TextEditor.RazorLib.Model;
 
 public partial class TextEditorModel
 {
-    /// <summary>
-    /// The cursor is a separate element
-    /// and at times will try to access out of bounds locations.
-    /// <br/><br/>
-    /// When cursor accesses out of bounds location
-    /// return largest available RowIndex and
-    /// largest available ColumnIndex
-    /// </summary>
+    /// <summary>The cursor is a separate Blazor Component and at times will try to access out of bounds locations.<br/><br/>When cursor accesses out of bounds location return the final RowIndex, and that row's final ColumnIndex</summary>
     public (int positionIndex, RowEndingKind rowEndingKind) GetStartOfRowTuple(int rowIndex)
     {
         if (rowIndex > _rowEndingPositions.Count - 1)
@@ -34,9 +27,7 @@ public partial class TextEditorModel
         return (0, RowEndingKind.StartOfFile);
     }
 
-    /// <summary>
-    ///     Returns the Length of a row however it does not include the line ending characters by default.
-    ///     To include line ending characters the parameter <see cref="includeLineEndingCharacters" /> must be true.
+    /// <summary>Returns the Length of a row however it does not include the line ending characters by default. To include line ending characters the parameter <see cref="includeLineEndingCharacters" /> must be true.
     /// </summary>
     public int GetLengthOfRow(
         int rowIndex,
@@ -349,31 +340,32 @@ public partial class TextEditorModel
         return new TextEditorModel(this);
     }
 
-    /// <summary>
-    ///     If applying syntax highlighting it may be preferred to use
-    ///     <see cref="ApplySyntaxHighlightingAsync" />. It is effectively
-    ///     just invoking the lexer and then <see cref="ApplyDecorationRange" />
-    /// </summary>
+    /// <summary>If applying syntax highlighting it may be preferred to use <see cref="ApplySyntaxHighlightingAsync" />. It is effectively just invoking the lexer and then <see cref="ApplyDecorationRange" /></summary>
     public void ApplyDecorationRange(IEnumerable<TextEditorTextSpan> textEditorTextSpans)
     {
+        var localContent = _content;
+
         var positionsPainted = new HashSet<int>();
-        
+
         foreach (var textEditorTextSpan in textEditorTextSpans)
         {
             for (var i = textEditorTextSpan.StartingIndexInclusive; i < textEditorTextSpan.EndingIndexExclusive; i++)
             {
-                _content[i].DecorationByte = textEditorTextSpan.DecorationByte;
+                if (i >= localContent.Count)
+                    continue;
+
+                localContent[i].DecorationByte = textEditorTextSpan.DecorationByte;
 
                 positionsPainted.Add(i);
             }
         }
 
-        for (var i = 0; i < _content.Count - 1; i++)
+        for (var i = 0; i < localContent.Count - 1; i++)
         {
             if (!positionsPainted.Contains(i))
             {
                 // DecorationByte of 0 is to be 'None'
-                _content[i].DecorationByte = 0;
+                localContent[i].DecorationByte = 0;
             }
         }
     }
@@ -389,7 +381,8 @@ public partial class TextEditorModel
             SemanticModel.Parse(this);
 
             textEditorTextSpans = textEditorTextSpans
-                .AddRange(SemanticModel.SymbolTextSpans);
+                .AddRange(SemanticModel.SymbolMessageTextSpanTuples
+                    .Select(x => x.textSpan));
         }
 
         ApplyDecorationRange(textEditorTextSpans);
@@ -462,16 +455,7 @@ public partial class TextEditorModel
             endingPositionIndexExclusive - startingPositionIndexInclusive);
     }
     
-    /// <summary>
-    /// Given a <see cref="TextEditorModel"/> with a preference for the right side
-    /// of the cursor, the following conditional branch will play out.
-    /// <br/><br/>
-    /// -IF the cursor is amongst a word, that word will be returned.
-    /// <br/><br/>
-    /// -ELSE IF the start of the word is to the right of the cursor that word will be returned.
-    /// <br/><br/>
-    /// -ELSE IF the end of the word is to the left of the cursor that word will be returned.
-    /// </summary>
+    /// <summary>Given a <see cref="TextEditorModel"/> with a preference for the right side of the cursor, the following conditional branch will play out.<br/><br/>-IF the cursor is amongst a word, that word will be returned.<br/><br/>-ELSE IF the start of a word is to the right of the cursor that word will be returned.<br/><br/>-ELSE IF the end of a word is to the left of the cursor that word will be returned.</summary>
     public TextEditorTextSpan? GetWordAt(int positionIndex)
     {
         var previousCharacter = GetTextAt(
@@ -516,7 +500,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 wordColumnIndexStartInclusive + rowInformation.rowStartPositionIndex,
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
         else if (currentCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -532,7 +519,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 columnIndex + rowInformation.rowStartPositionIndex,
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
         else if (previousCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -548,7 +538,10 @@ public partial class TextEditorModel
             return new TextEditorTextSpan(
                 wordColumnIndexStartInclusive + rowInformation.rowStartPositionIndex,
                 columnIndex + rowInformation.rowStartPositionIndex,
-                0);
+                0,
+                ResourceUri,
+                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
+                string.Empty);
         }
 
         return null;
@@ -643,13 +636,13 @@ public partial class TextEditorModel
 
     public void SetLexer(ITextEditorLexer? lexer)
     {
-        Lexer = lexer ?? new TextEditorLexerDefault();
+        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
 
         // TODO: Invoke an event to reapply the CSS classes?
     }
     
     public TextEditorModel SetResourceData(
-        string resourceUri,
+        ResourceUri resourceUri,
         DateTime resourceLastWriteTime)
     {
         var nextTextEditor = new TextEditorModel(this);
@@ -687,17 +680,7 @@ public partial class TextEditorModel
         return EditBlockIndex < _editBlocksPersisted.Count - 1;
     }
 
-    /// <summary>
-    /// The "if (EditBlockIndex == _editBlocksPersisted.Count)"
-    /// <br/><br/>
-    /// Is done because the active EditBlock is not yet persisted.
-    /// <br/><br/>
-    /// The active EditBlock is instead being 'created' as the user
-    /// continues to make edits of the same <see cref="TextEditKind"/>
-    /// <br/><br/>
-    /// For complete clarity, this comment refers to one possibly expecting
-    /// to see "if (EditBlockIndex == _editBlocksPersisted.Count - 1)"
-    /// </summary>
+    /// <summary>The "if (EditBlockIndex == _editBlocksPersisted.Count)"<br/><br/>Is done because the active EditBlock is not yet persisted.<br/><br/>The active EditBlock is instead being 'created' as the user continues to make edits of the same <see cref="TextEditKind"/><br/><br/>For complete clarity, this comment refers to one possibly expecting to see "if (EditBlockIndex == _editBlocksPersisted.Count - 1)"</summary>
     public TextEditorModel UndoEdit()
     {
         if (!CanUndoEdit())
@@ -819,14 +802,7 @@ public partial class TextEditorModel
         return null;
     }
     
-    /// <summary>
-    /// This method returns the text to the left of the cursor in most cases.
-    /// The method name is such because of right to left written texts.
-    /// <br/><br/>
-    /// One uses this method most often to measure the position of the cursor
-    /// when rendering the UI for a font-family which is proportional
-    /// (i.e. not monospace).
-    /// </summary>
+    /// <summary>This method returns the text to the left of the cursor in most cases. The method name is as such because of right to left written texts.<br/><br/>One uses this method most often to measure the position of the cursor when rendering the UI for a font-family which is proportional (i.e. not monospace).</summary>
     public string GetTextOffsettingCursor(
         TextEditorCursor textEditorCursor)
     {

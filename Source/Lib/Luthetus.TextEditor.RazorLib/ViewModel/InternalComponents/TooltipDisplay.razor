@@ -1,0 +1,25 @@
+﻿@using Luthetus.Common.RazorLib.Dimensions;
+
+@{
+    var localMouseStoppedEventMostRecentResult = MouseStoppedEventMostRecentResult;
+
+    if (localMouseStoppedEventMostRecentResult is not null)
+    {
+        var relativeX = localMouseStoppedEventMostRecentResult.Value.relativeCoordinates.RelativeX
+            .ToCssValue();
+
+        var relativeY = localMouseStoppedEventMostRecentResult.Value.relativeCoordinates.RelativeY
+            .ToCssValue();
+
+        <div class="luth_te_tooltip luth_set-selectable"
+             style="left: @(relativeX)px; top: @(relativeY)px;"
+             @onmousedown:stopPropagation="true"
+             @onmousemove:stopPropagation="true"
+             @ondblclick:stopPropagation="true"
+             @onclick:stopPropagation="true"
+             @oncontextmenu:stopPropagation="true">
+            
+             @localMouseStoppedEventMostRecentResult.Value.message
+        </div>
+    }
+}

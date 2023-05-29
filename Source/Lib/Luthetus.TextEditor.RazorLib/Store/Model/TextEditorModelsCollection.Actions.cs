@@ -3,6 +3,7 @@ using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Row;
 using Microsoft.AspNetCore.Components.Web;
+using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Store.Model;
 
@@ -47,7 +48,7 @@ public partial class TextEditorModelsCollection
 
     public record SetResourceDataAction(
         TextEditorModelKey TextEditorModelKey,
-        string ResourceUri,
+        ResourceUri ResourceUri,
         DateTime ResourceLastWriteTime);
 
     public record SetUsingRowEndingKindAction(

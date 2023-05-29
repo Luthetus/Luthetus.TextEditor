@@ -37,12 +37,12 @@ public partial interface ITextEditorService
         /// <summary>It is recommended to use the <see cref="RegisterTemplated" /> method as it will internally reference the <see cref="ITextEditorLexer" /> and <see cref="IDecorationMapper" /> that correspond to the desired text editor.</summary>
         public void RegisterCustom(TextEditorModel model);
         /// <summary>As an example, for a C# Text Editor one would pass in a <see cref="WellKnownModelKind" /> of <see cref="WellKnownModelKind.CSharp" />.<br /><br />For a Plain Text Editor one would pass in a <see cref="WellKnownModelKind" /> of <see cref="WellKnownModelKind.Plain" />.</summary>
-        public void RegisterTemplated(TextEditorModelKey textEditorModelKey, WellKnownModelKind wellKnownModelKind, string resourceUri, DateTime resourceLastWriteTime, string fileExtension, string initialContent);
+        public void RegisterTemplated(TextEditorModelKey textEditorModelKey, WellKnownModelKind wellKnownModelKind, ResourceUri resourceUri, DateTime resourceLastWriteTime, string fileExtension, string initialContent);
         public void Reload(TextEditorModelKey textEditorModelKey, string content, DateTime resourceLastWriteTime);
-        public void SetResourceData(TextEditorModelKey textEditorModelKey, string resourceUri, DateTime resourceLastWriteTime);
+        public void SetResourceData(TextEditorModelKey textEditorModelKey, ResourceUri resourceUri, DateTime resourceLastWriteTime);
         public void SetUsingRowEndingKind(TextEditorModelKey textEditorModelKey, RowEndingKind rowEndingKind);
         public void UndoEdit(TextEditorModelKey textEditorModelKey);
-        public TextEditorModel? FindOrDefaultByResourceUri(string resourceUri);
+        public TextEditorModel? FindOrDefaultByResourceUri(ResourceUri resourceUri);
     }
 
     public class ModelApi : IModelApi
@@ -62,7 +62,7 @@ public partial interface ITextEditorService
         }
 
         public TextEditorModel? FindOrDefaultByResourceUri(
-            string resourceUri)
+            ResourceUri resourceUri)
         {
             return _textEditorService.ModelsCollectionWrap.Value.TextEditorList
                 .FirstOrDefault(x =>
@@ -90,7 +90,7 @@ public partial interface ITextEditorService
 
         public void SetResourceData(
             TextEditorModelKey textEditorModelKey,
-            string resourceUri,
+            ResourceUri resourceUri,
             DateTime resourceLastWriteTime)
         {
             _dispatcher.Dispatch(
@@ -115,7 +115,7 @@ public partial interface ITextEditorService
         public void RegisterTemplated(
             TextEditorModelKey textEditorModelKey,
             WellKnownModelKind wellKnownModelKind,
-            string resourceUri,
+            ResourceUri resourceUri,
             DateTime resourceLastWriteTime,
             string fileExtension,
             string initialContent)
@@ -126,35 +126,35 @@ public partial interface ITextEditorService
             switch (wellKnownModelKind)
             {
                 case WellKnownModelKind.CSharp:
-                    lexer = new TextEditorCSharpLexer();
+                    lexer = new TextEditorCSharpLexer(resourceUri);
                     decorationMapper = new GenericDecorationMapper();
                     break;
                 case WellKnownModelKind.Html:
-                    lexer = new TextEditorHtmlLexer();
+                    lexer = new TextEditorHtmlLexer(resourceUri);
                     decorationMapper = new TextEditorHtmlDecorationMapper();
                     break;
                 case WellKnownModelKind.Css:
-                    lexer = new TextEditorCssLexer();
+                    lexer = new TextEditorCssLexer(resourceUri);
                     decorationMapper = new TextEditorCssDecorationMapper();
                     break;
                 case WellKnownModelKind.Json:
-                    lexer = new TextEditorJsonLexer();
+                    lexer = new TextEditorJsonLexer(resourceUri);
                     decorationMapper = new TextEditorJsonDecorationMapper();
                     break;
                 case WellKnownModelKind.FSharp:
-                    lexer = new TextEditorFSharpLexer();
+                    lexer = new TextEditorFSharpLexer(resourceUri);
                     decorationMapper = new GenericDecorationMapper();
                     break;
                 case WellKnownModelKind.Razor:
-                    lexer = new TextEditorRazorLexer();
+                    lexer = new TextEditorRazorLexer(resourceUri);
                     decorationMapper = new TextEditorHtmlDecorationMapper();
                     break;
                 case WellKnownModelKind.JavaScript:
-                    lexer = new TextEditorJavaScriptLexer();
+                    lexer = new TextEditorJavaScriptLexer(resourceUri);
                     decorationMapper = new GenericDecorationMapper();
                     break;
                 case WellKnownModelKind.TypeScript:
-                    lexer = new TextEditorTypeScriptLexer();
+                    lexer = new TextEditorTypeScriptLexer(resourceUri);
                     decorationMapper = new GenericDecorationMapper();
                     break;
             }

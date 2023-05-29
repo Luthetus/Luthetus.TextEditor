@@ -16,12 +16,14 @@ public class GenericSyntaxTree
 
     public GenericLanguageDefinition GenericLanguageDefinition { get; }
 
-    public virtual GenericSyntaxUnit ParseText(string content)
+    public virtual GenericSyntaxUnit ParseText(
+        ResourceUri resourceUri,
+        string content)
     {
         var documentChildren = new List<IGenericSyntax>();
         var diagnosticBag = new TextEditorDiagnosticBag();
 
-        var stringWalker = new StringWalker(content);
+        var stringWalker = new StringWalker(resourceUri, content);
 
         while (!stringWalker.IsEof)
         {
@@ -74,7 +76,9 @@ public class GenericSyntaxTree
             new TextEditorTextSpan(
                 0,
                 stringWalker.PositionIndex,
-                (byte)GenericDecorationKind.None),
+                (byte)GenericDecorationKind.None,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText),
             documentChildren.ToImmutableArray());
 
         return new GenericSyntaxUnit(
@@ -106,13 +110,17 @@ public class GenericSyntaxTree
                 new TextEditorTextSpan(
                     startingPositionIndex,
                     stringWalker.PositionIndex,
-                    (byte)GenericDecorationKind.Error));
+                    (byte)GenericDecorationKind.Error,
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText));
         }
 
         var commentTextEditorTextSpan = new TextEditorTextSpan(
             startingPositionIndex,
             stringWalker.PositionIndex,
-            (byte)GenericDecorationKind.CommentSingleLine);
+            (byte)GenericDecorationKind.CommentSingleLine,
+            stringWalker.ResourceUri,
+            stringWalker.SourceText);
 
         return new GenericCommentSingleLineSyntax(
             commentTextEditorTextSpan);
@@ -138,13 +146,17 @@ public class GenericSyntaxTree
                 new TextEditorTextSpan(
                     startingPositionIndex,
                     stringWalker.PositionIndex,
-                    (byte)GenericDecorationKind.Error));
+                    (byte)GenericDecorationKind.Error,
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText));
         }
 
         var commentTextEditorTextSpan = new TextEditorTextSpan(
             startingPositionIndex,
             stringWalker.PositionIndex + GenericLanguageDefinition.CommentMultiLineEnd.Length,
-            (byte)GenericDecorationKind.CommentMultiLine);
+            (byte)GenericDecorationKind.CommentMultiLine,
+            stringWalker.ResourceUri,
+            stringWalker.SourceText);
 
         return new GenericCommentMultiLineSyntax(
             commentTextEditorTextSpan);
@@ -170,13 +182,17 @@ public class GenericSyntaxTree
                 new TextEditorTextSpan(
                     startingPositionIndex,
                     stringWalker.PositionIndex,
-                    (byte)GenericDecorationKind.Error));
+                    (byte)GenericDecorationKind.Error,
+                    stringWalker.ResourceUri,
+                    stringWalker.SourceText));
         }
 
         var stringTextEditorTextSpan = new TextEditorTextSpan(
             startingPositionIndex,
             stringWalker.PositionIndex + 1,
-            (byte)GenericDecorationKind.StringLiteral);
+            (byte)GenericDecorationKind.StringLiteral,
+            stringWalker.ResourceUri,
+            stringWalker.SourceText);
 
         return new GenericStringSyntax(
             stringTextEditorTextSpan);
@@ -291,7 +307,9 @@ public class GenericSyntaxTree
             new TextEditorTextSpan(
                 stringWalker.PositionIndex + 1,
                 rememberPositionIndex,
-                (byte)GenericDecorationKind.Function));
+                (byte)GenericDecorationKind.Function,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText));
 
         _ = stringWalker.ReadRange(
             rememberPositionIndex - stringWalker.PositionIndex);
@@ -334,7 +352,9 @@ public class GenericSyntaxTree
         var textSpan = new TextEditorTextSpan(
             startingPositionIndex,
             stringWalker.PositionIndex,
-            (byte)GenericDecorationKind.PreprocessorDirective);
+            (byte)GenericDecorationKind.PreprocessorDirective,
+            stringWalker.ResourceUri,
+            stringWalker.SourceText);
 
         var success = TryParsePreprocessorDirectiveDeliminationExtendedSyntaxes(
             stringWalker,
@@ -402,7 +422,9 @@ public class GenericSyntaxTree
             var textSpan = new TextEditorTextSpan(
                 deliminationExtendedSyntaxStartingInclusiveIndex,
                 stringWalker.PositionIndex,
-                (byte)matchedDeliminationExtendedSyntax.GenericDecorationKind);
+                (byte)matchedDeliminationExtendedSyntax.GenericDecorationKind,
+                stringWalker.ResourceUri,
+                stringWalker.SourceText);
 
             genericSyntax = new GenericDeliminationExtendedSyntax(textSpan);
 
