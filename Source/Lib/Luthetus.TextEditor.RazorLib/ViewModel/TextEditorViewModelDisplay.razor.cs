@@ -910,9 +910,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         var cursorPositionIndex = model.GetCursorPositionIndex(
             new TextEditorCursor(rowAndColumnIndex, false));
 
-        Console.WriteLine($"Mouse stopped moving: ({rowAndColumnIndex.rowIndex}, {rowAndColumnIndex.columnIndex})");
-        Console.WriteLine($"Mouse stopped moving: POS: {cursorPositionIndex}");
-
         var foundMatch = false;
 
         if (model.SemanticModel is not null)
@@ -923,7 +920,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
                 {
                     foundMatch = true;
-                    Console.WriteLine(diagnosticTextSpanTuple.diagnostic.Message);
 
                     _mouseStoppedEventMostRecentResult = (
                         diagnosticTextSpanTuple.diagnostic.Message,
@@ -937,7 +933,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     cursorPositionIndex < symbolMessageTextSpanTuple.textSpan.EndingIndexExclusive)
                 {
                     foundMatch = true;
-                    Console.WriteLine(symbolMessageTextSpanTuple.message);
 
                     _mouseStoppedEventMostRecentResult = (
                         symbolMessageTextSpanTuple.message,
@@ -947,11 +942,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
      
         if (!foundMatch)
-        {
-            Console.WriteLine($"Mouse stopped event: nothing found");
-
             _mouseStoppedEventMostRecentResult = null;
-        }
 
         await InvokeAsync(StateHasChanged);
     }

@@ -270,4 +270,9 @@ public class CSharpKeywords
         WHILE_KEYWORD,
         YIELD_KEYWORD
     }.ToImmutableArray();
+    
+    public static readonly ImmutableArray<string> CONTEXTUAL_KEYWORDS = new[]
+    {
+        VAR_KEYWORD
+    }.ToImmutableArray();
 }
