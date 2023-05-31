@@ -85,6 +85,16 @@
                                 <IconProjectDependencies />
                             </button>
                             break;
+                        case TextEditorHeaderButtonKind.RunFile:
+                            @if (LuthetusCommonComponentRenderers.RunFileDisplayRenderer is not null)
+                            {
+                                <button title="@headerButtonKind.ToString()"
+                                        class="luth_te_button"
+                                        @onclick="RunFileOnClick">
+                                    <IconStartWithoutDebugging />
+                                </button>
+                            }
+                            break;
                     }
                 </div>
             }
