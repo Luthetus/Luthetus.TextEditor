@@ -10,4 +10,5 @@ public enum TextEditorHeaderButtonKind
     Save,
     SelectAll,
     PeekWindowDisplay,
+    RunFile,
 }

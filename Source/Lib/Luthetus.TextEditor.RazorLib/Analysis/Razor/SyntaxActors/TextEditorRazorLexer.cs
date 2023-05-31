@@ -36,31 +36,31 @@ public class TextEditorRazorLexer : ITextEditorLexer
 
         // Tag Names
         {
-            textEditorTextSpans.AddRange(htmlSyntaxWalker.TagNameSyntaxes
+            textEditorTextSpans.AddRange(htmlSyntaxWalker.TagNameNodes
                 .Select(tns => tns.TextEditorTextSpan));
         }
 
         // InjectedLanguageFragmentSyntaxes
         {
-            textEditorTextSpans.AddRange(htmlSyntaxWalker.InjectedLanguageFragmentSyntaxes
+            textEditorTextSpans.AddRange(htmlSyntaxWalker.InjectedLanguageFragmentNodes
                 .Select(ilfs => ilfs.TextEditorTextSpan));
         }
 
         // Attribute Names
         {
-            textEditorTextSpans.AddRange(htmlSyntaxWalker.AttributeNameSyntaxes
+            textEditorTextSpans.AddRange(htmlSyntaxWalker.AttributeNameNodes
                 .Select(an => an.TextEditorTextSpan));
         }
 
         // Attribute Values
         {
-            textEditorTextSpans.AddRange(htmlSyntaxWalker.AttributeValueSyntaxes
+            textEditorTextSpans.AddRange(htmlSyntaxWalker.AttributeValueNodes
                 .Select(av => av.TextEditorTextSpan));
         }
 
         // Comments
         {
-            textEditorTextSpans.AddRange(htmlSyntaxWalker.CommentSyntaxes
+            textEditorTextSpans.AddRange(htmlSyntaxWalker.CommentNodes
                 .Select(c => c.TextEditorTextSpan));
         }
 

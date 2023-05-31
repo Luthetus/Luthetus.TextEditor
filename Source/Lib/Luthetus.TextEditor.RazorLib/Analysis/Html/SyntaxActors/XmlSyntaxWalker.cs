@@ -5,92 +5,98 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;
 
 public abstract class XmlSyntaxWalker
 {
-    public virtual void Visit(IHtmlSyntax syntaxNode)
+    public virtual void Visit(IHtmlSyntaxNode node)
     {
-        foreach (var child in syntaxNode.ChildHtmlSyntaxes) Visit(child);
-
-        switch (syntaxNode.HtmlSyntaxKind)
+        foreach (var child in node.Children)
         {
-            case HtmlSyntaxKind.Tag:
-            case HtmlSyntaxKind.InjectedLanguageFragment:
-            case HtmlSyntaxKind.TagText:
-                {
-                    var tagSyntax = (TagSyntax)syntaxNode;
+            if (child is null)
+                continue;
 
-                    if (tagSyntax.OpenTagNameSyntax is not null)
-                        VisitTagNameSyntax(tagSyntax.OpenTagNameSyntax);
+            if (child.HtmlSyntaxKind.ToString().EndsWith("Node"))
+                Visit((IHtmlSyntaxNode)child);
+        }
 
-                    if (tagSyntax.CloseTagNameSyntax is not null)
-                        VisitTagNameSyntax(tagSyntax.CloseTagNameSyntax);
-
-                    if (tagSyntax.TagKind == TagKind.InjectedLanguageCodeBlock)
-                    {
-                        VisitInjectedLanguageFragmentSyntax(
-                            (InjectedLanguageFragmentSyntax)tagSyntax);
-                    }
-                    else if (tagSyntax.TagKind == TagKind.Opening ||
-                             tagSyntax.TagKind == TagKind.SelfClosing)
-                    {
-                        VisitTagSyntax(tagSyntax);
-                    }
-
-                    foreach (var attributeSyntax in tagSyntax.AttributeSyntaxes)
-                        Visit(attributeSyntax);
-
-                    break;
-                }
-            case HtmlSyntaxKind.Attribute:
-                {
-                    var attributeSyntax = (AttributeSyntax)syntaxNode;
-
-                    VisitAttributeNameSyntax(attributeSyntax.AttributeNameSyntax);
-                    VisitAttributeValueSyntax(attributeSyntax.AttributeValueSyntax);
-
-                    break;
-                }
-            case HtmlSyntaxKind.Comment:
-                {
-                    var commentSyntax = (CommentSyntax)syntaxNode;
-
-                    VisitCommentSyntax(commentSyntax);
-
-                    break;
-                }
+        switch (node.HtmlSyntaxKind)
+        {
+            case HtmlSyntaxKind.AttributeNameNode:
+                VisitAttributeNameNode((AttributeNameNode)node);
+                break;
+            case HtmlSyntaxKind.AttributeValueNode:
+                VisitAttributeValueNode((AttributeValueNode)node);
+                break;
+            case HtmlSyntaxKind.AttributeNode:
+                VisitAttributeNode((AttributeNode)node);
+                break;
+            case HtmlSyntaxKind.CommentNode:
+                VisitCommentNode((CommentNode)node);
+                break;
+            case HtmlSyntaxKind.InjectedLanguageFragmentNode:
+                VisitInjectedLanguageFragmentNode((InjectedLanguageFragmentNode)node);
+                break;
+            case HtmlSyntaxKind.TagNameNode:
+                VisitTagNameNode((TagNameNode)node);
+                break;
+            case HtmlSyntaxKind.TextNode:
+                VisitTextNode((TextNode)node);
+                break;
+            case HtmlSyntaxKind.TagOpeningNode:
+                VisitTagOpeningNode((TagNode)node);
+                break;
+            case HtmlSyntaxKind.TagClosingNode:
+                VisitTagClosingNode((TagNode)node);
+                break;
+            case HtmlSyntaxKind.TagSelfClosingNode:
+                VisitTagSelfClosingNode((TagNode)node);
+                break;
         }
     }
 
-    public virtual void VisitAttributeNameSyntax(
-        AttributeNameSyntax attributeNameSyntax)
+    public virtual void VisitAttributeNameNode(AttributeNameNode node)
     {
 
     }
 
-    public virtual void VisitAttributeValueSyntax(
-        AttributeValueSyntax attributeValueSyntax)
+    public virtual void VisitAttributeValueNode(AttributeValueNode node)
     {
 
     }
 
-    public virtual void VisitInjectedLanguageFragmentSyntax(
-        InjectedLanguageFragmentSyntax injectedLanguageFragmentSyntax)
+    public virtual void VisitAttributeNode(AttributeNode node)
     {
 
     }
 
-    public virtual void VisitTagNameSyntax(
-        TagNameSyntax tagNameSyntax)
+    public virtual void VisitCommentNode(CommentNode node)
     {
 
     }
 
-    public virtual void VisitCommentSyntax(
-        CommentSyntax commentSyntax)
+    public virtual void VisitInjectedLanguageFragmentNode(InjectedLanguageFragmentNode node)
     {
 
     }
 
-    public virtual void VisitTagSyntax(
-        TagSyntax tagSyntax)
+    public virtual void VisitTagNameNode(TagNameNode node)
+    {
+
+    }
+
+    public virtual void VisitTextNode(TextNode node)
+    {
+
+    }
+
+    public virtual void VisitTagOpeningNode(TagNode node)
+    {
+
+    }
+    
+    public virtual void VisitTagClosingNode(TagNode node)
+    {
+
+    }
+
+    public virtual void VisitTagSelfClosingNode(TagNode node)
     {
 
     }

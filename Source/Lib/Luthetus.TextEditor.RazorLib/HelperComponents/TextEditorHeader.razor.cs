@@ -13,6 +13,8 @@ using Luthetus.TextEditor.RazorLib.Semantics;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Luthetus.Common.RazorLib.ComponentRenderers;
+using Luthetus.Common.RazorLib.ComponentRenderers.Types;
 
 namespace Luthetus.TextEditor.RazorLib.HelperComponents;
 
@@ -22,6 +24,8 @@ public partial class TextEditorHeader : TextEditorView
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
+    [Inject]
+    private ILuthetusCommonComponentRenderers LuthetusCommonComponentRenderers { get; set; } = null!;
 
     [Parameter]
     public ImmutableArray<TextEditorHeaderButtonKind>? HeaderButtonKinds { get; set; }
@@ -260,6 +264,37 @@ public partial class TextEditorHeader : TextEditorView
         DialogService.RegisterDialogRecord(dialogRecord);
 
         ChangeLastPresentationLayer();
+    }
+    
+    private void RunFileOnClick()
+    {
+        if (LuthetusCommonComponentRenderers.RunFileDisplayRenderer is null)
+            return;
+        
+        var model = MutableReferenceToModel;
+
+        if (model is null)
+            return;
+
+        var sourceText = model.GetAllText();
+
+        var dialogRecord = new DialogRecord(
+            DialogKey.NewDialogKey(),
+            $"RunFile: {model.ResourceUri}",
+            LuthetusCommonComponentRenderers.RunFileDisplayRenderer,
+            new Dictionary<string, object?>
+            {
+                {
+                    nameof(IRunFileDisplayRenderer.SourceText),
+                    sourceText
+                }
+            },
+            null)
+        {
+            IsResizable = true
+        };
+
+        DialogService.RegisterDialogRecord(dialogRecord);
     }
 
     private async Task DoRefreshOnClick()
