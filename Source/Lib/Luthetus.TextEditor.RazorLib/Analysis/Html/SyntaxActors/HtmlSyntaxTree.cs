@@ -139,6 +139,8 @@ public static class HtmlSyntaxTree
                 }
                 else if (stringWalker.CheckForSubstring(HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_BEGINNING))
                 {
+                    tagBuilder.HtmlSyntaxKind = HtmlSyntaxKind.TagClosingNode;
+
                     _ = stringWalker.ReadRange(
                         HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_BEGINNING
                             .Length);

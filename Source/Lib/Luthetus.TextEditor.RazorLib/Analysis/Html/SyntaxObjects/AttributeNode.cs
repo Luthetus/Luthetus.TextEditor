@@ -14,16 +14,19 @@ public class AttributeNode : IHtmlSyntaxNode
         AttributeNameSyntax = attributeNameSyntax;
         AttributeValueSyntax = attributeValueSyntax;
 
-        Children = new IHtmlSyntax[]
+        ChildContent = new IHtmlSyntax[]
         {
             AttributeNameSyntax,
             AttributeValueSyntax,
         }.ToImmutableArray();
+
+        Children = ChildContent;
     }
 
     public AttributeNameNode AttributeNameSyntax { get; }
     public AttributeValueNode AttributeValueSyntax { get; }
 
+    public ImmutableArray<IHtmlSyntax> ChildContent { get; }
     public ImmutableArray<IHtmlSyntax> Children { get; }
 
     public TextEditorTextSpan TextEditorTextSpan => new(

@@ -12,10 +12,12 @@ public class InjectedLanguageFragmentNode : IHtmlSyntaxNode
     {
         TextEditorTextSpan = textEditorTextSpan;
 
-        Children = childHtmlSyntaxes;
+        ChildContent = childHtmlSyntaxes;
+        Children = ChildContent;
     }
 
     public TextEditorTextSpan TextEditorTextSpan { get; }
+    public ImmutableArray<IHtmlSyntax> ChildContent { get; }
     public ImmutableArray<IHtmlSyntax> Children { get; }
 
     public HtmlSyntaxKind HtmlSyntaxKind => HtmlSyntaxKind.InjectedLanguageFragmentNode;

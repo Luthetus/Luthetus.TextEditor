@@ -9,7 +9,7 @@ public class TagNodeBuilder
     public TagNameNode? CloseTagNameSyntax { get; set; }
     public List<AttributeNode> AttributeSyntaxes { get; set; } = new();
     public List<IHtmlSyntax> Children { get; set; } = new();
-    public HtmlSyntaxKind HtmlSyntaxKind { get; set; }
+    public HtmlSyntaxKind HtmlSyntaxKind { get; set; } = HtmlSyntaxKind.TagSelfClosingNode;
     public bool HasSpecialHtmlCharacter { get; set; }
 
     public TagNode Build()

@@ -10,9 +10,11 @@ public class TextNode : IHtmlSyntaxNode
     {
         TextEditorTextSpan = textEditorTextSpan;
 
+        ChildContent = ImmutableArray<IHtmlSyntax>.Empty;
         Children = ImmutableArray<IHtmlSyntax>.Empty;
     }
 
+    public ImmutableArray<IHtmlSyntax> ChildContent { get; }
     public ImmutableArray<IHtmlSyntax> Children { get; }
     public TextEditorTextSpan TextEditorTextSpan { get; }
 

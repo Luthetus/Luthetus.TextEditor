@@ -8,26 +8,47 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxObjects;
 public class TagNode : IHtmlSyntaxNode
 {
     public TagNode(
-        TagNameNode? openTagNameSyntax,
-        TagNameNode? closeTagNameSyntax,
-        ImmutableArray<AttributeNode> attributeSyntaxes,
+        TagNameNode? openTagNameNode,
+        TagNameNode? closeTagNameNode,
+        ImmutableArray<AttributeNode> attributeNodes,
         ImmutableArray<IHtmlSyntax> childHtmlSyntaxes,
         HtmlSyntaxKind htmlSyntaxKind,
         bool hasSpecialHtmlCharacter = false)
     {
-        Children = childHtmlSyntaxes;
+        ChildContent = childHtmlSyntaxes;
         HtmlSyntaxKind = htmlSyntaxKind;
         HasSpecialHtmlCharacter = hasSpecialHtmlCharacter;
-        AttributeSyntaxes = attributeSyntaxes;
-        OpenTagNameSyntax = openTagNameSyntax;
-        CloseTagNameSyntax = closeTagNameSyntax;
+        AttributeNodes = attributeNodes;
+        OpenTagNameNode = openTagNameNode;
+        CloseTagNameNode = closeTagNameNode;
+
+        var childrenAsList = new List<IHtmlSyntax>();
+
+        if (OpenTagNameNode is not null)
+            childrenAsList.Add(OpenTagNameNode);
+
+        foreach (var attribute in AttributeNodes)
+        {
+            childrenAsList.Add(attribute);
+        }
+        
+        foreach (var child in ChildContent)
+        {
+            childrenAsList.Add(child);
+        }
+        
+        if (CloseTagNameNode is not null)
+            childrenAsList.Add(CloseTagNameNode);
+
+        Children = childrenAsList.ToImmutableArray();
     }
 
-    public TagNameNode? OpenTagNameSyntax { get; }
-    public TagNameNode? CloseTagNameSyntax { get; }
-    public ImmutableArray<AttributeNode> AttributeSyntaxes { get; }
+    public TagNameNode? OpenTagNameNode { get; }
+    public TagNameNode? CloseTagNameNode { get; }
+    public ImmutableArray<AttributeNode> AttributeNodes { get; }
     public bool HasSpecialHtmlCharacter { get; }
 
+    public ImmutableArray<IHtmlSyntax> ChildContent { get; }
     public ImmutableArray<IHtmlSyntax> Children { get; }
     public HtmlSyntaxKind HtmlSyntaxKind { get; }
 
