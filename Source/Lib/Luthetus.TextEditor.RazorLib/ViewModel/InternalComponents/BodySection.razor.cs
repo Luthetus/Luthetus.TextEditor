@@ -2,7 +2,6 @@
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Luthetus.Common.RazorLib.JavaScriptObjects;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
