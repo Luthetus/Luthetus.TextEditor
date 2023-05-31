@@ -430,9 +430,27 @@ public static class HtmlSyntaxTree
 
             var startingPositionIndex = stringWalker.PositionIndex;
 
+            bool firstLoop = true;
+
             while (!stringWalker.IsEof)
             {
                 _ = stringWalker.ReadCharacter();
+
+                // Try to read for injected language
+                if (firstLoop)
+                {
+                    firstLoop = false;
+
+                    if (injectedLanguageDefinition?.ParseAttributeName is not null &&
+                        stringWalker.CheckForInjectedLanguageCodeBlockTag(injectedLanguageDefinition))
+                    {
+                        return injectedLanguageDefinition.ParseAttributeName
+                            .Invoke(
+                                stringWalker,
+                                textEditorHtmlDiagnosticBag,
+                                injectedLanguageDefinition);
+                    }
+                }
 
                 if (WhitespaceFacts.ALL.Contains(stringWalker.CurrentCharacter) ||
                     HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE == stringWalker.CurrentCharacter ||
@@ -515,6 +533,8 @@ public static class HtmlSyntaxTree
                 HtmlFacts.OPEN_TAG_ENDING_OPTIONS,
                 out _);
 
+            bool firstLoop = true;
+
             if (!foundOpenTagEnding)
             {
                 var beganWithAttributeValueStarting =
@@ -522,6 +542,23 @@ public static class HtmlSyntaxTree
 
                 while (!stringWalker.IsEof)
                 {
+                    // TODO: (2023-05-31) This is logic for syntax highlighting a blazor event handler such as @onclick for example. In specific it would be the method group provided that this syntax highlights.
+                    //// Try to read for injected language
+                    //if (firstLoop)
+                    //{
+                    //    firstLoop = false;
+
+                    //    if (injectedLanguageDefinition?.ParseAttributeValue is not null &&
+                    //        stringWalker.CheckForInjectedLanguageCodeBlockTag(injectedLanguageDefinition))
+                    //    {
+                    //        return injectedLanguageDefinition.ParseAttributeValue
+                    //            .Invoke(
+                    //                stringWalker,
+                    //                textEditorHtmlDiagnosticBag,
+                    //                injectedLanguageDefinition);
+                    //    }
+                    //}
+
                     _ = stringWalker.ReadCharacter();
 
                     if (!beganWithAttributeValueStarting &&
