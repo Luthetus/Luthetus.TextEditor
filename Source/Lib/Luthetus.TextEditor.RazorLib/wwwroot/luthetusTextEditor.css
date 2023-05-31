@@ -36,8 +36,8 @@
     color: var(--luth_te_type-foreground-color);
 }
 
-.luth_te_parameter {
-    color: var(--luth_te_parameter-foreground-color);
+.luth_te_variable {
+    color: var(--luth_te_variable-foreground-color);
 }
 
 .luth_te_string-literal {
@@ -495,7 +495,7 @@
     --luth_te_newline-background-color: #faeee2;
     --luth_te_method-foreground-color: #C86E00;
     --luth_te_type-foreground-color: #2B91AF;
-    --luth_te_parameter-foreground-color: #751FA3;
+    --luth_te_variable-foreground-color: #751FA3;
     --luth_te_string-literal-foreground-color: #A31515;
     --luth_te_string-literal-escape-character-foreground-color: #ffd68f;
     --luth_te_keyword-foreground-color: #0000FF;
@@ -575,7 +575,7 @@
     --luth_te_newline-background-color: #424242;
     --luth_te_method-foreground-color: #D7D778;
     --luth_te_type-foreground-color: #4EC9B0;
-    --luth_te_parameter-foreground-color: #9CDCFE;
+    --luth_te_variable-foreground-color: #9CDCFE;
     --luth_te_string-literal-foreground-color: #D69D85;
     --luth_te_string-literal-escape-character-foreground-color: #ffd68f;
     --luth_te_keyword-foreground-color: #569CD6;
@@ -655,7 +655,7 @@
     --luth_te_newline-background-color: #424242;
     --luth_te_method-foreground-color: #5AC85A;
     --luth_te_type-foreground-color: #64B5E6;
-    --luth_te_parameter-foreground-color: #B4A0DD;
+    --luth_te_variable-foreground-color: #B4A0DD;
     --luth_te_string-literal-foreground-color: #E06C75;
     --luth_te_string-literal-escape-character-foreground-color: #ffd68f;
     --luth_te_keyword-foreground-color: #E09C6C;
@@ -735,7 +735,7 @@
     --luth_te_newline-background-color: #faeee2;
     --luth_te_method-foreground-color: rgb(0, 165, 0);
     --luth_te_type-foreground-color: rgb(20, 120, 235);
-    --luth_te_parameter-foreground-color: rgb(108, 40, 198);
+    --luth_te_variable-foreground-color: rgb(108, 40, 198);
     --luth_te_string-literal-foreground-color: rgb(180, 0, 0);
     --luth_te_string-literal-escape-character-foreground-color: rgb(0, 90, 245);
     --luth_te_keyword-foreground-color: rgb(210, 110, 0);

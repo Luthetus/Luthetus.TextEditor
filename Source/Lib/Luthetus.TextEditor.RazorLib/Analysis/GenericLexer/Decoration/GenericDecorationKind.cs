@@ -9,6 +9,7 @@ public enum GenericDecorationKind
     CommentMultiLine,
     Error,
     StringLiteral,
+    Variable,
     Function,
     PreprocessorDirective,
     DeliminationExtended,

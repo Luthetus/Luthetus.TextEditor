@@ -14,6 +14,7 @@ public class GenericDecorationMapper : IDecorationMapper
             GenericDecorationKind.Keyword => "luth_te_keyword",
             GenericDecorationKind.KeywordControl => "luth_te_keyword-control",
             GenericDecorationKind.StringLiteral => "luth_te_string-literal",
+            GenericDecorationKind.Variable => "luth_te_variable",
             GenericDecorationKind.CommentSingleLine => "luth_te_comment",
             GenericDecorationKind.CommentMultiLine => "luth_te_comment",
             GenericDecorationKind.Function => "luth_te_method",
