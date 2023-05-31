@@ -16,11 +16,8 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Razor.SyntaxActors;
 
 public class RazorSyntaxTree
 {
-    /// <summary>
-    /// currentCharacterIn:<br/>
-    /// - <see cref="InjectedLanguageDefinition.TransitionSubstring"/><br/>
-    /// </summary>
-    public static List<TagSyntax> ParseInjectedLanguageFragment(
+    /// <summary>currentCharacterIn:<br/> -<see cref="InjectedLanguageDefinition.TransitionSubstring"/><br/></summary>
+    public static List<IHtmlSyntaxNode> ParseInjectedLanguageFragment(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
@@ -40,7 +37,7 @@ public class RazorSyntaxTree
                     stringWalker.ResourceUri,
                     stringWalker.SourceText));
 
-            return new List<TagSyntax>();
+            return new List<IHtmlSyntaxNode>();
         }
 
         // Check for both RazorKeywords and CSharpRazorKeywords
@@ -118,28 +115,22 @@ public class RazorSyntaxTree
             injectedLanguageDefinition);
     }
 
-    /// <summary>
-    /// The @code{...} section must be wrapped in an adhoc class definition
-    /// so that Roslyn can syntax highlight methods.
-    /// <br/><br/>
-    /// The @{...} code blocks must be wrapped in an adhoc method.
-    /// </summary>
-    private static List<TagSyntax> ReadCodeBlock(
+    /// <summary> The @code{...} section must be wrapped in an adhoc class definition so that Roslyn can syntax highlight methods. <br/><br/> The @{...} code blocks must be wrapped in an adhoc method.</summary>
+    private static List<IHtmlSyntaxNode> ReadCodeBlock(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         bool isClassLevelCodeBlock)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         var startingPositionIndex = stringWalker.PositionIndex;
 
         // Syntax highlight the CODE_BLOCK_START as a razor keyword specifically
         {
             injectedLanguageFragmentSyntaxes.Add(
-                new InjectedLanguageFragmentSyntax(
+                new InjectedLanguageFragmentNode(
                     ImmutableArray<IHtmlSyntax>.Empty,
-                    string.Empty,
                     new TextEditorTextSpan(
                         stringWalker.PositionIndex,
                         stringWalker.PositionIndex +
@@ -152,9 +143,7 @@ public class RazorSyntaxTree
         // Enters the while loop on the '{'
         var unmatchedCodeBlockStarts = 1;
 
-        // While iterating through the text append any C# text to the cSharpBuilder
-        // afterwards pass it through Roslyn for the syntax highlighting and map
-        // the corresponding position indices.
+        // While iterating through the text append any C# text to the cSharpBuilder afterwards pass it through Roslyn for the syntax highlighting and map the corresponding position indices.
         var cSharpBuilder = new StringBuilder();
 
         var positionIndexOffset = stringWalker.PositionIndex + 1;
@@ -202,9 +191,8 @@ public class RazorSyntaxTree
 
                     // Track text span of the "@" sign
                     injectedLanguageFragmentSyntaxes.Add(
-                        new InjectedLanguageFragmentSyntax(
+                        new InjectedLanguageFragmentNode(
                             ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
                             new TextEditorTextSpan(
                                 injectedLanguageFragmentSyntaxStartingPositionIndex,
                                 stringWalker.PositionIndex + 1,
@@ -252,9 +240,8 @@ public class RazorSyntaxTree
                     // Syntax highlight the CODE_BLOCK_END as a razor keyword specifically
                     {
                         injectedLanguageFragmentSyntaxes.Add(
-                            new InjectedLanguageFragmentSyntax(
+                            new InjectedLanguageFragmentNode(
                                 ImmutableArray<IHtmlSyntax>.Empty,
-                                string.Empty,
                                 new TextEditorTextSpan(
                                     stringWalker.PositionIndex,
                                     stringWalker.PositionIndex +
@@ -292,7 +279,7 @@ public class RazorSyntaxTree
         return injectedLanguageFragmentSyntaxes;
     }
 
-    private static List<TagSyntax> ReadInlineExpression(
+    private static List<IHtmlSyntaxNode> ReadInlineExpression(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
@@ -311,24 +298,21 @@ public class RazorSyntaxTree
             injectedLanguageDefinition);
     }
 
-    /// <summary>
-    /// Example: @(myVariable)
-    /// </summary>
-    private static List<TagSyntax> ReadExplicitInlineExpression(
+    /// <summary>Example: @(myVariable)</summary>
+    private static List<IHtmlSyntaxNode> ReadExplicitInlineExpression(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         var startingPositionIndex = stringWalker.PositionIndex;
 
         // Syntax highlight the EXPLICIT_EXPRESSION_START as a razor keyword specifically
         {
             injectedLanguageFragmentSyntaxes.Add(
-                new InjectedLanguageFragmentSyntax(
+                new InjectedLanguageFragmentNode(
                     ImmutableArray<IHtmlSyntax>.Empty,
-                    string.Empty,
                     new TextEditorTextSpan(
                         stringWalker.PositionIndex,
                         stringWalker.PositionIndex +
@@ -357,9 +341,8 @@ public class RazorSyntaxTree
                     // Syntax highlight the EXPLICIT_EXPRESSION_END as a razor keyword specifically
                     {
                         injectedLanguageFragmentSyntaxes.Add(
-                            new InjectedLanguageFragmentSyntax(
+                            new InjectedLanguageFragmentNode(
                                 ImmutableArray<IHtmlSyntax>.Empty,
-                                string.Empty,
                                 new TextEditorTextSpan(
                                     stringWalker.PositionIndex,
                                     stringWalker.PositionIndex +
@@ -378,34 +361,29 @@ public class RazorSyntaxTree
         return injectedLanguageFragmentSyntaxes;
     }
 
-    /// <summary>
-    /// Example: @myVariable
-    /// </summary>
-    private static List<TagSyntax> ReadImplicitInlineExpression(
+    /// <summary>Example: @myVariable</summary>
+    private static List<IHtmlSyntaxNode> ReadImplicitInlineExpression(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
     {
-        return new List<TagSyntax>();
+        return new List<IHtmlSyntaxNode>();
     }
 
-    /// <summary>
-    /// Example: @if (true) { ... } else { ... }
-    /// </summary>
-    private static List<TagSyntax> ReadCSharpRazorKeyword(
+    /// <summary>Example: @if (true) { ... } else { ... }</summary>
+    private static List<IHtmlSyntaxNode> ReadCSharpRazorKeyword(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string matchedOn)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         // Syntax highlight the keyword as a razor keyword specifically
         {
             injectedLanguageFragmentSyntaxes.Add(
-                new InjectedLanguageFragmentSyntax(
+                new InjectedLanguageFragmentNode(
                     ImmutableArray<IHtmlSyntax>.Empty,
-                    string.Empty,
                     new TextEditorTextSpan(
                         stringWalker.PositionIndex,
                         stringWalker.PositionIndex +
@@ -424,8 +402,7 @@ public class RazorSyntaxTree
                 break;
             case CSharpRazorKeywords.DO_KEYWORD:
                 {
-                    // Necessary in the case where the do-while statement's code block immediately follows the 'do' text
-                    // Example: "@do{"
+                    // Necessary in the case where the do-while statement's code block immediately follows the 'do' text. Example: "@do{"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadCodeBlock(
@@ -458,8 +435,7 @@ public class RazorSyntaxTree
                 break;
             case CSharpRazorKeywords.FOR_KEYWORD:
                 {
-                    // Necessary in the case where the switch statement's predicate expression immediately follows the 'switch' text
-                    // Example: "@switch(predicate) {"
+                    // Necessary in the case where the switch statement's predicate expression immediately follows the 'switch' text. Example: "@switch(predicate) {"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadExplicitInlineExpression(
@@ -490,8 +466,7 @@ public class RazorSyntaxTree
                 }
             case CSharpRazorKeywords.FOREACH_KEYWORD:
                 {
-                    // Necessary in the case where the foreach statement's predicate expression immediately follows the 'foreach' text
-                    // Example: "@foreach(predicate) {"
+                    // Necessary in the case where the foreach statement's predicate expression immediately follows the 'foreach' text. Example: "@foreach(predicate) {"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadExplicitInlineExpression(
@@ -522,8 +497,7 @@ public class RazorSyntaxTree
                 }
             case CSharpRazorKeywords.IF_KEYWORD:
                 {
-                    // Necessary in the case where the if statement's predicate expression immediately follows the 'if' text
-                    // Example: "@if(predicate) {"
+                    // Necessary in the case where the if statement's predicate expression immediately follows the 'if' text. Example: "@if(predicate) {"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadExplicitInlineExpression(
@@ -589,8 +563,7 @@ public class RazorSyntaxTree
                 break;
             case CSharpRazorKeywords.SWITCH_KEYWORD:
                 {
-                    // Necessary in the case where the switch statement's predicate expression immediately follows the 'switch' text
-                    // Example: "@switch(predicate) {"
+                    // Necessary in the case where the switch statement's predicate expression immediately follows the 'switch' text. Example: "@switch(predicate) {"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadExplicitInlineExpression(
@@ -629,8 +602,7 @@ public class RazorSyntaxTree
                 break;
             case CSharpRazorKeywords.WHILE_KEYWORD:
                 {
-                    // Necessary in the case where the while statement's predicate expression immediately follows the 'while' text
-                    // Example: "@while(predicate) {"
+                    // Necessary in the case where the while statement's predicate expression immediately follows the 'while' text. Example: "@while(predicate) {"
                     stringWalker.BacktrackCharacter();
 
                     if (!TryReadExplicitInlineExpression(
@@ -664,22 +636,20 @@ public class RazorSyntaxTree
         return injectedLanguageFragmentSyntaxes;
     }
 
-    /// <summary>
-    /// Example: @page "/counter"
-    /// </summary>
-    private static List<TagSyntax> ReadRazorKeyword(StringWalker stringWalker,
+    /// <summary>Example: @page "/counter"</summary>
+    private static List<IHtmlSyntaxNode> ReadRazorKeyword(
+        StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string matchedOn)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         // Syntax highlight the keyword as a razor keyword specifically
         {
             injectedLanguageFragmentSyntaxes.Add(
-                new InjectedLanguageFragmentSyntax(
+                new InjectedLanguageFragmentNode(
                     ImmutableArray<IHtmlSyntax>.Empty,
-                    string.Empty,
                     new TextEditorTextSpan(
                         stringWalker.PositionIndex,
                         stringWalker.PositionIndex +
@@ -707,8 +677,7 @@ public class RazorSyntaxTree
             case RazorKeywords.CODE_KEYWORD:
             case RazorKeywords.FUNCTIONS_KEYWORD:
                 {
-                    // Necessary in the case where the code block immediately follows any keyword's text
-                    // Example: "@code{" 
+                    // Necessary in the case where the code block immediately follows any keyword's text. Example: "@code{" 
                     stringWalker.BacktrackCharacter();
 
                     var keywordText = matchedOn == RazorKeywords.CODE_KEYWORD
@@ -740,15 +709,13 @@ public class RazorSyntaxTree
         return injectedLanguageFragmentSyntaxes;
     }
 
-    /// <summary>
-    /// Example: @* This is a razor comment *@
-    /// </summary>
-    private static List<TagSyntax> ReadComment(
+    /// <summary>Example: @* This is a razor comment *@</summary>
+    private static List<IHtmlSyntaxNode> ReadComment(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         // Enters the while loop on the '*'
 
@@ -761,9 +728,8 @@ public class RazorSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            var commentStartSyntax = new InjectedLanguageFragmentSyntax(
+            var commentStartSyntax = new InjectedLanguageFragmentNode(
                 ImmutableArray<IHtmlSyntax>.Empty,
-                string.Empty,
                 commentStartTextSpan);
 
             injectedLanguageFragmentSyntaxes.Add(commentStartSyntax);
@@ -784,15 +750,14 @@ public class RazorSyntaxTree
         }
 
         var commentValueTextSpan = new TextEditorTextSpan(
-            commentTextStartingPositionIndex,
-            stringWalker.PositionIndex,
-            (byte)HtmlDecorationKind.Comment,
+                commentTextStartingPositionIndex,
+                stringWalker.PositionIndex,
+                (byte)HtmlDecorationKind.Comment,
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-        var commentValueSyntax = new InjectedLanguageFragmentSyntax(
+        var commentValueSyntax = new InjectedLanguageFragmentNode(
             ImmutableArray<IHtmlSyntax>.Empty,
-            string.Empty,
             commentValueTextSpan);
 
         injectedLanguageFragmentSyntaxes.Add(commentValueSyntax);
@@ -806,9 +771,8 @@ public class RazorSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            var commentEndSyntax = new InjectedLanguageFragmentSyntax(
+            var commentEndSyntax = new InjectedLanguageFragmentNode(
                 ImmutableArray<IHtmlSyntax>.Empty,
-                string.Empty,
                 commentEndTextSpan);
 
             injectedLanguageFragmentSyntaxes.Add(commentEndSyntax);
@@ -817,15 +781,13 @@ public class RazorSyntaxTree
         return injectedLanguageFragmentSyntaxes;
     }
 
-    /// <summary>
-    /// Example: @* This is a razor comment *@
-    /// </summary>
-    private static List<TagSyntax> ReadSingleLineTextOutputWithoutAddingHtmlElement(
+    /// <summary>Example: @* This is a razor comment *@</summary>
+    private static List<IHtmlSyntaxNode> ReadSingleLineTextOutputWithoutAddingHtmlElement(
         StringWalker stringWalker,
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         // Enters the while loop on the ':'
 
@@ -838,9 +800,8 @@ public class RazorSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            var commentStartSyntax = new InjectedLanguageFragmentSyntax(
+            var commentStartSyntax = new InjectedLanguageFragmentNode(
                 ImmutableArray<IHtmlSyntax>.Empty,
-                string.Empty,
                 commentStartTextSpan);
 
             injectedLanguageFragmentSyntaxes.Add(commentStartSyntax);
@@ -864,7 +825,7 @@ public class RazorSyntaxTree
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string keywordText,
-        out List<TagSyntax>? tagSyntaxes)
+        out List<IHtmlSyntaxNode>? tagSyntaxes)
     {
         while (!stringWalker.IsEof)
         {
@@ -911,7 +872,7 @@ public class RazorSyntaxTree
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string keywordText,
-        out List<TagSyntax>? tagSyntaxes)
+        out List<IHtmlSyntaxNode>? tagSyntaxes)
     {
         while (!stringWalker.IsEof)
         {
@@ -953,9 +914,9 @@ public class RazorSyntaxTree
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string keywordText,
-        out List<TagSyntax>? tagSyntaxes)
+        out List<IHtmlSyntaxNode>? tagSyntaxes)
     {
-        tagSyntaxes = new List<TagSyntax>();
+        tagSyntaxes = new List<IHtmlSyntaxNode>();
 
         while (!stringWalker.IsEof)
         {
@@ -969,9 +930,8 @@ public class RazorSyntaxTree
                 // Syntax highlight the keyword as a razor keyword specifically
                 {
                     tagSyntaxes.Add(
-                        new InjectedLanguageFragmentSyntax(
+                        new InjectedLanguageFragmentNode(
                             ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
                             new TextEditorTextSpan(
                                 stringWalker.PositionIndex,
                                 stringWalker.PositionIndex +
@@ -1031,9 +991,9 @@ public class RazorSyntaxTree
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string keywordText,
-        out List<TagSyntax>? tagSyntaxes)
+        out List<IHtmlSyntaxNode>? tagSyntaxes)
     {
-        tagSyntaxes = new List<TagSyntax>();
+        tagSyntaxes = new List<IHtmlSyntaxNode>();
 
         while (!stringWalker.IsEof)
         {
@@ -1044,9 +1004,8 @@ public class RazorSyntaxTree
                 // Syntax highlight the keyword as a razor keyword specifically
                 {
                     tagSyntaxes.Add(
-                        new InjectedLanguageFragmentSyntax(
+                        new InjectedLanguageFragmentNode(
                             ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
                             new TextEditorTextSpan(
                                 stringWalker.PositionIndex,
                                 stringWalker.PositionIndex +
@@ -1090,9 +1049,9 @@ public class RazorSyntaxTree
         TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
         InjectedLanguageDefinition injectedLanguageDefinition,
         string keywordText,
-        out List<TagSyntax>? tagSyntaxes)
+        out List<IHtmlSyntaxNode>? tagSyntaxes)
     {
-        tagSyntaxes = new List<TagSyntax>();
+        tagSyntaxes = new List<IHtmlSyntaxNode>();
 
         while (!stringWalker.IsEof)
         {
@@ -1103,9 +1062,8 @@ public class RazorSyntaxTree
                 // Syntax highlight the keyword as a razor keyword specifically
                 {
                     tagSyntaxes.Add(
-                        new InjectedLanguageFragmentSyntax(
+                        new InjectedLanguageFragmentNode(
                             ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
                             new TextEditorTextSpan(
                                 stringWalker.PositionIndex,
                                 stringWalker.PositionIndex +
@@ -1144,7 +1102,7 @@ public class RazorSyntaxTree
         return false;
     }
 
-    private static List<TagSyntax> ParseCSharpWithAdhocClassWrapping(
+    private static List<IHtmlSyntaxNode> ParseCSharpWithAdhocClassWrapping(
         string cSharpText,
         int offsetPositionIndex)
     {
@@ -1159,7 +1117,7 @@ public class RazorSyntaxTree
             offsetPositionIndex);
     }
 
-    private static List<TagSyntax> ParseCSharpWithAdhocMethodWrapping(
+    private static List<IHtmlSyntaxNode> ParseCSharpWithAdhocMethodWrapping(
         string cSharpText,
         int offsetPositionIndex)
     {
@@ -1174,17 +1132,13 @@ public class RazorSyntaxTree
             offsetPositionIndex);
     }
 
-    /// <summary>
-    /// If Lexing C# from a razor code block
-    /// one must either use <see cref="ParseCSharpWithAdhocClassWrapping"/> for an @code{} section
-    /// or <see cref="ParseCSharpWithAdhocMethodWrapping"/> for a basic @{} block
-    /// </summary>
-    private static List<TagSyntax> ParseCSharp(
+    /// <summary> If Lexing C# from a razor code block one must either use <see cref="ParseCSharpWithAdhocClassWrapping"/> for an @code{} section or <see cref="ParseCSharpWithAdhocMethodWrapping"/> for a basic @{} block</summary>
+    private static List<IHtmlSyntaxNode> ParseCSharp(
         string cSharpText,
         int adhocTemplateOpeningLength,
         int offsetPositionIndex)
     {
-        var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+        var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
         var lexer = new TextEditorCSharpLexer(new ResourceUri(string.Empty));
 
@@ -1203,8 +1157,7 @@ public class RazorSyntaxTree
                                        offsetPositionIndex -
                                        adhocTemplateOpeningLength;
 
-            // startingIndexInclusive < 0 means it was part of the class
-            // template that was prepended so roslyn would recognize methods
+            // startingIndexInclusive < 0 means it was part of the class template that was prepended so roslyn would recognize methods
             if (lexedTokenTextSpan.StartingIndexInclusive - adhocTemplateOpeningLength
                 < 0)
                 continue;
@@ -1216,117 +1169,112 @@ public class RazorSyntaxTree
                 case GenericDecorationKind.None:
                     break;
                 case GenericDecorationKind.Function:
+                {
+                    var razorMethodTextSpan = lexedTokenTextSpan with
                     {
-                        var razorMethodTextSpan = lexedTokenTextSpan with
-                        {
-                            DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageMethod,
-                            StartingIndexInclusive = startingIndexInclusive,
-                            EndingIndexExclusive = endingIndexExclusive,
-                        };
+                        DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageMethod,
+                        StartingIndexInclusive = startingIndexInclusive,
+                        EndingIndexExclusive = endingIndexExclusive,
+                    };
 
-                        injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                            ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
-                            razorMethodTextSpan));
+                    injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentNode(
+                        ImmutableArray<IHtmlSyntax>.Empty,
+                        razorMethodTextSpan));
 
-                        break;
-                    }
-                    // case CSharpDecorationKind.Type:
-                    {
-                        //     var razorTypeTextSpan = lexedTokenTextSpan with
-                        //     {
-                        //         DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageType,
-                        //         StartingIndexInclusive = startingIndexInclusive,
-                        //         EndingIndexExclusive = endingIndexExclusive,
-                        //     };
-                        //
-                        //     injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                        //         ImmutableArray<IHtmlSyntax>.Empty,
-                        //         string.Empty,
-                        //         razorTypeTextSpan));
-                        //
-                        //     break;
-                    }
-                    // case CSharpDecorationKind.Parameter:
-                    {
-                        //     var razorVariableTextSpan = lexedTokenTextSpan with
-                        //     {
-                        //         DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageVariable,
-                        //         StartingIndexInclusive = startingIndexInclusive,
-                        //         EndingIndexExclusive = endingIndexExclusive,
-                        //     };
-                        //
-                        //     injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                        //         ImmutableArray<IHtmlSyntax>.Empty,
-                        //         string.Empty,
-                        //         razorVariableTextSpan));
-                        //
-                        //     break;
-                    }
+                    break;
+                }
+                // case CSharpDecorationKind.Type:
+                {
+                    //     var razorTypeTextSpan = lexedTokenTextSpan with
+                    //     {
+                    //         DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageType,
+                    //         StartingIndexInclusive = startingIndexInclusive,
+                    //         EndingIndexExclusive = endingIndexExclusive,
+                    //     };
+                    //
+                    //     injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
+                    //         ImmutableArray<IHtmlSyntax>.Empty,
+                    //         string.Empty,
+                    //         razorTypeTextSpan));
+                    //
+                    //     break;
+                }
+                // case CSharpDecorationKind.Parameter:
+                {
+                    //     var razorVariableTextSpan = lexedTokenTextSpan with
+                    //     {
+                    //         DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageVariable,
+                    //         StartingIndexInclusive = startingIndexInclusive,
+                    //         EndingIndexExclusive = endingIndexExclusive,
+                    //     };
+                    //
+                    //     injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
+                    //         ImmutableArray<IHtmlSyntax>.Empty,
+                    //         string.Empty,
+                    //         razorVariableTextSpan));
+                    //
+                    //     break;
+                }
                 case GenericDecorationKind.StringLiteral:
+                {
+                    var razorStringLiteralTextSpan = lexedTokenTextSpan with
                     {
-                        var razorStringLiteralTextSpan = lexedTokenTextSpan with
-                        {
-                            DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageStringLiteral,
-                            StartingIndexInclusive = startingIndexInclusive,
-                            EndingIndexExclusive = endingIndexExclusive,
-                        };
+                        DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageStringLiteral,
+                        StartingIndexInclusive = startingIndexInclusive,
+                        EndingIndexExclusive = endingIndexExclusive,
+                    };
 
-                        injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                            ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
-                            razorStringLiteralTextSpan));
+                    injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentNode(
+                        ImmutableArray<IHtmlSyntax>.Empty,
+                        razorStringLiteralTextSpan));
 
-                        break;
-                    }
+                    break;
+                }
                 case GenericDecorationKind.Keyword:
+                {
+                    var razorKeywordTextSpan = lexedTokenTextSpan with
                     {
-                        var razorKeywordTextSpan = lexedTokenTextSpan with
-                        {
-                            DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageKeyword,
-                            StartingIndexInclusive = startingIndexInclusive,
-                            EndingIndexExclusive = endingIndexExclusive,
-                        };
+                        DecorationByte = (byte)HtmlDecorationKind.InjectedLanguageKeyword,
+                        StartingIndexInclusive = startingIndexInclusive,
+                        EndingIndexExclusive = endingIndexExclusive,
+                    };
 
-                        injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                            ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
-                            razorKeywordTextSpan));
+                    injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentNode(
+                        ImmutableArray<IHtmlSyntax>.Empty,
+                        razorKeywordTextSpan));
 
-                        break;
-                    }
+                    break;
+                }
                 case GenericDecorationKind.CommentSingleLine:
+                {
+                    var razorCommentTextSpan = lexedTokenTextSpan with
                     {
-                        var razorCommentTextSpan = lexedTokenTextSpan with
-                        {
-                            DecorationByte = (byte)HtmlDecorationKind.Comment,
-                            StartingIndexInclusive = startingIndexInclusive,
-                            EndingIndexExclusive = endingIndexExclusive,
-                        };
+                        DecorationByte = (byte)HtmlDecorationKind.Comment,
+                        StartingIndexInclusive = startingIndexInclusive,
+                        EndingIndexExclusive = endingIndexExclusive,
+                    };
 
-                        injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                            ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
-                            razorCommentTextSpan));
+                    injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentNode(
+                        ImmutableArray<IHtmlSyntax>.Empty,
+                        razorCommentTextSpan));
 
-                        break;
-                    }
+                    break;
+                }
                 case GenericDecorationKind.CommentMultiLine:
+                {
+                    var razorCommentTextSpan = lexedTokenTextSpan with
                     {
-                        var razorCommentTextSpan = lexedTokenTextSpan with
-                        {
-                            DecorationByte = (byte)HtmlDecorationKind.Comment,
-                            StartingIndexInclusive = startingIndexInclusive,
-                            EndingIndexExclusive = endingIndexExclusive,
-                        };
+                        DecorationByte = (byte)HtmlDecorationKind.Comment,
+                        StartingIndexInclusive = startingIndexInclusive,
+                        EndingIndexExclusive = endingIndexExclusive,
+                    };
 
-                        injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentSyntax(
-                            ImmutableArray<IHtmlSyntax>.Empty,
-                            string.Empty,
-                            razorCommentTextSpan));
+                    injectedLanguageFragmentSyntaxes.Add(new InjectedLanguageFragmentNode(
+                        ImmutableArray<IHtmlSyntax>.Empty,
+                        razorCommentTextSpan));
 
-                        break;
-                    }
+                    break;
+                }
             }
         }
 

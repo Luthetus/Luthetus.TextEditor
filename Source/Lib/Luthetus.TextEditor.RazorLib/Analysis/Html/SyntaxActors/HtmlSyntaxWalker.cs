@@ -4,46 +4,52 @@ namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;
 
 public class HtmlSyntaxWalker : XmlSyntaxWalker
 {
-    public List<AttributeNameSyntax> AttributeNameSyntaxes { get; } = new();
-    public List<AttributeValueSyntax> AttributeValueSyntaxes { get; } = new();
-    public List<InjectedLanguageFragmentSyntax> InjectedLanguageFragmentSyntaxes { get; } = new();
-    public List<TagNameSyntax> TagNameSyntaxes { get; } = new();
-    public List<CommentSyntax> CommentSyntaxes { get; } = new();
-    public List<TagSyntax> TagSyntaxes { get; } = new();
+    public List<AttributeNameNode> AttributeNameNodes { get; } = new();
+    public List<AttributeValueNode> AttributeValueNodes { get; } = new();
+    public List<InjectedLanguageFragmentNode> InjectedLanguageFragmentNodes { get; } = new();
+    public List<TagNameNode> TagNameNodes { get; } = new();
+    public List<CommentNode> CommentNodes { get; } = new();
+    public List<TagNode> TagOpeningNodes { get; } = new();
+    public List<TagNode> TagClosingNodes { get; } = new();
+    public List<TagNode> TagSelfClosingNodes { get; } = new();
 
-    public override void VisitAttributeNameSyntax(AttributeNameSyntax attributeNameSyntax)
+    public override void VisitAttributeNameNode(AttributeNameNode node)
     {
-        AttributeNameSyntaxes.Add(attributeNameSyntax);
-        base.VisitAttributeNameSyntax(attributeNameSyntax);
+        AttributeNameNodes.Add(node);
     }
 
-    public override void VisitAttributeValueSyntax(AttributeValueSyntax attributeValueSyntax)
+    public override void VisitAttributeValueNode(AttributeValueNode node)
     {
-        AttributeValueSyntaxes.Add(attributeValueSyntax);
-        base.VisitAttributeValueSyntax(attributeValueSyntax);
+        AttributeValueNodes.Add(node);
     }
 
-    public override void VisitInjectedLanguageFragmentSyntax(InjectedLanguageFragmentSyntax injectedLanguageFragmentSyntax)
+    public override void VisitInjectedLanguageFragmentNode(InjectedLanguageFragmentNode node)
     {
-        InjectedLanguageFragmentSyntaxes.Add(injectedLanguageFragmentSyntax);
-        base.VisitInjectedLanguageFragmentSyntax(injectedLanguageFragmentSyntax);
+        InjectedLanguageFragmentNodes.Add(node);
     }
 
-    public override void VisitTagNameSyntax(TagNameSyntax tagNameSyntax)
+    public override void VisitTagNameNode(TagNameNode node)
     {
-        TagNameSyntaxes.Add(tagNameSyntax);
-        base.VisitTagNameSyntax(tagNameSyntax);
+        TagNameNodes.Add(node);
     }
 
-    public override void VisitCommentSyntax(CommentSyntax commentSyntax)
+    public override void VisitCommentNode(CommentNode node)
     {
-        CommentSyntaxes.Add(commentSyntax);
-        base.VisitCommentSyntax(commentSyntax);
+        CommentNodes.Add(node);
     }
 
-    public override void VisitTagSyntax(TagSyntax tagSyntax)
+    public override void VisitTagOpeningNode(TagNode node)
     {
-        TagSyntaxes.Add(tagSyntax);
-        base.VisitTagSyntax(tagSyntax);
+        TagOpeningNodes.Add(node);
+    }
+
+    public override void VisitTagClosingNode(TagNode node)
+    {
+        TagClosingNodes.Add(node);
+    }
+
+    public override void VisitTagSelfClosingNode(TagNode node)
+    {
+        TagSelfClosingNodes.Add(node);
     }
 }

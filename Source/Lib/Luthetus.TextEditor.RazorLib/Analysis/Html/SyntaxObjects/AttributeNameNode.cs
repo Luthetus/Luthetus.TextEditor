@@ -4,16 +4,18 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxObjects;
 
-public class AttributeValueSyntax : IHtmlSyntax
+public class AttributeNameNode : IHtmlSyntaxNode
 {
-    public AttributeValueSyntax(
+    public AttributeNameNode(
         TextEditorTextSpan textEditorTextSpan)
     {
         TextEditorTextSpan = textEditorTextSpan;
+
+        Children = ImmutableArray<IHtmlSyntax>.Empty;
     }
 
     public TextEditorTextSpan TextEditorTextSpan { get; }
+    public ImmutableArray<IHtmlSyntax> Children { get; }
 
-    public HtmlSyntaxKind HtmlSyntaxKind => HtmlSyntaxKind.AttributeValue;
-    public ImmutableArray<IHtmlSyntax> ChildHtmlSyntaxes { get; } = ImmutableArray<IHtmlSyntax>.Empty;
+    public HtmlSyntaxKind HtmlSyntaxKind => HtmlSyntaxKind.AttributeNameNode;
 }

@@ -7,6 +7,8 @@ using Luthetus.TextEditor.RazorLib.Analysis.Html.Facts;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.InjectedLanguage;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxEnums;
 using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxObjects;
+using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxObjects.Builders;
+using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.Decoration;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;
 
@@ -19,21 +21,20 @@ public static class HtmlSyntaxTree
     {
         var stringWalker = new StringWalker(resourceUri, content);
 
-        var rootTagSyntaxBuilder = new TagSyntax.TagSyntaxBuilder
+        var rootTagSyntaxBuilder = new TagNodeBuilder
         {
-            OpenTagNameSyntax = new TagNameSyntax(
-                "document",
+            OpenTagNameSyntax = new TagNameNode(
                 new TextEditorTextSpan(
                     0,
-                    0,
+                    8,
                     (byte)HtmlDecorationKind.None,
-                    stringWalker.ResourceUri,
-                    stringWalker.SourceText)),
+                    new ResourceUri(string.Empty),
+                    "document")),
         };
 
         var textEditorHtmlDiagnosticBag = new TextEditorHtmlDiagnosticBag();
 
-        rootTagSyntaxBuilder.ChildHtmlSyntaxes = HtmlSyntaxTreeStateMachine
+        rootTagSyntaxBuilder.Children = HtmlSyntaxTreeStateMachine
             .ParseTagChildContent(
                 stringWalker,
                 textEditorHtmlDiagnosticBag,
@@ -48,13 +49,8 @@ public static class HtmlSyntaxTree
 
     public static class HtmlSyntaxTreeStateMachine
     {
-        /// <summary>
-        ///     Invocation of this method requires the
-        ///     stringWalker to have <see cref="StringWalker.PeekCharacter" />
-        ///     of 0 be equal to
-        ///     <see cref="HtmlFacts.OPEN_TAG_BEGINNING" />
-        /// </summary>
-        public static TagSyntax ParseTag(
+        /// <summary>Invocation of this method requires the stringWalker to have <see cref="StringWalker.PeekCharacter" /> of 0 be equal to <see cref="HtmlFacts.OPEN_TAG_BEGINNING" /></summary>
+        public static IHtmlSyntaxNode ParseTag(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
@@ -70,12 +66,10 @@ public static class HtmlSyntaxTree
 
             var startingPositionIndex = stringWalker.PositionIndex;
 
-            var tagBuilder = new TagSyntax.TagSyntaxBuilder();
+            var tagBuilder = new TagNodeBuilder();
 
             // HtmlFacts.TAG_OPENING_CHARACTER
             _ = stringWalker.ReadCharacter();
-
-
 
             // Example: <!DOCTYPE html>
             if (stringWalker.PeekCharacter(0) == HtmlFacts.SPECIAL_HTML_TAG)
@@ -91,9 +85,7 @@ public static class HtmlSyntaxTree
                 textEditorHtmlDiagnosticBag,
                 injectedLanguageDefinition);
 
-            // Get all html attributes
-            // break when see End Of File or
-            // closing of the tag
+            // Get all html attributes break when see End Of File or closing of the tag
             while (true)
             {
                 // Skip Whitespace
@@ -104,7 +96,6 @@ public static class HtmlSyntaxTree
                     else
                         break;
                 }
-
 
                 // End Of File is unexpected at this point so report a diagnostic.
                 if (stringWalker.CurrentCharacter == ParserFacts.END_OF_FILE)
@@ -123,35 +114,26 @@ public static class HtmlSyntaxTree
                 if (stringWalker.CheckForSubstring(HtmlFacts.OPEN_TAG_WITH_CHILD_CONTENT_ENDING))
                 {
                     // Ending of opening tag
-                    tagBuilder.TagKind = TagKind.Opening;
+                    tagBuilder.HtmlSyntaxKind = HtmlSyntaxKind.TagOpeningNode;
 
-                    // Skip the '>' character to set stringWalker at the first
-                    // character of the child content
+                    // Skip the '>' character to set stringWalker at the first character of the child content
                     _ = stringWalker.ReadCharacter();
 
-                    tagBuilder.ChildHtmlSyntaxes = ParseTagChildContent(
+                    tagBuilder.Children = ParseTagChildContent(
                         stringWalker,
                         textEditorHtmlDiagnosticBag,
                         injectedLanguageDefinition);
-
-                    // At the closing tag now so check that the closing tag
-                    // name matches the opening tag.
-                    //
-                    // An opening tag of
-                    //     <div>
-                    // Should have a matching closing tag of
-                    //     </div>
 
                     // TODO: check that the closing tag name matches the opening tag
                 }
                 else if (stringWalker.CheckForSubstring(HtmlFacts.OPEN_TAG_SELF_CLOSING_ENDING))
                 {
                     _ = stringWalker.ReadRange(
-                        HtmlFacts.OPEN_TAG_SELF_CLOSING_ENDING
-                            .Length);
+                            HtmlFacts.OPEN_TAG_SELF_CLOSING_ENDING
+                                .Length);
 
                     // Ending of self-closing tag
-                    tagBuilder.TagKind = TagKind.SelfClosing;
+                    tagBuilder.HtmlSyntaxKind = HtmlSyntaxKind.TagSelfClosingNode;
 
                     return tagBuilder.Build();
                 }
@@ -170,8 +152,7 @@ public static class HtmlSyntaxTree
                         if (stringWalker.CheckForSubstring(
                                 HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_ENDING))
                         {
-                            tagBuilder.CloseTagNameSyntax = new TagNameSyntax(
-                                closeTagNameBuilder.ToString(),
+                            tagBuilder.CloseTagNameSyntax = new TagNameNode(
                                 new TextEditorTextSpan(
                                     closeTagNameStartingPositionIndex,
                                     stringWalker.PositionIndex,
@@ -180,8 +161,8 @@ public static class HtmlSyntaxTree
                                     stringWalker.SourceText));
 
                             _ = stringWalker.ReadRange(
-                                HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_ENDING
-                                    .Length);
+                                    HtmlFacts.CLOSE_TAG_WITH_CHILD_CONTENT_ENDING
+                                        .Length);
 
                             return true;
                         }
@@ -192,16 +173,15 @@ public static class HtmlSyntaxTree
 
                     if (tagBuilder.CloseTagNameSyntax is null)
                     {
-                        // TODO: Not sure if this can happen but I am getting a warning
-                        // about this and aim to get to this when I find time.
+                        // TODO: Not sure if this can happen but I am getting a warning about this and aim to get to this when I find time.
                         throw new NotImplementedException();
                     }
 
-                    if (tagBuilder.OpenTagNameSyntax.Value != tagBuilder.CloseTagNameSyntax.Value)
+                    if (tagBuilder.OpenTagNameSyntax.TextEditorTextSpan.GetText() != tagBuilder.CloseTagNameSyntax.TextEditorTextSpan.GetText())
                     {
                         textEditorHtmlDiagnosticBag.ReportOpenTagWithUnMatchedCloseTag(
-                            tagBuilder.OpenTagNameSyntax.Value,
-                            tagBuilder.CloseTagNameSyntax.Value,
+                            tagBuilder.OpenTagNameSyntax.TextEditorTextSpan.GetText(),
+                            tagBuilder.CloseTagNameSyntax.TextEditorTextSpan.GetText(),
                             new TextEditorTextSpan(
                                 closeTagNameStartingPositionIndex,
                                 stringWalker.PositionIndex,
@@ -225,13 +205,8 @@ public static class HtmlSyntaxTree
             }
         }
 
-        /// <summary>
-        ///     Invocation of this method requires the
-        ///     stringWalker to have <see cref="StringWalker.PeekCharacter" />
-        ///     of 0 be equal to the first
-        ///     character that is part of the tag's name
-        /// </summary>
-        public static TagNameSyntax ParseTagName(
+        /// <summary>Invocation of this method requires the stringWalker to have <see cref="StringWalker.PeekCharacter" /> of 0 be equal to the first character that is part of the tag's name</summary>
+        public static TagNameNode ParseTagName(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
@@ -277,15 +252,13 @@ public static class HtmlSyntaxTree
                             stringWalker.ResourceUri,
                             stringWalker.SourceText));
 
-                    // Fabricate a value for the string variable: 'tagName' so the
-                    // rest of the file can still be parsed.
+                    // Fabricate a value for the string variable: 'tagName' so the rest of the file can still be parsed.
                     tagName =
                         $"__{nameof(textEditorHtmlDiagnosticBag.ReportTagNameMissing)}__";
                 }
             }
 
-            return new TagNameSyntax(
-                tagName,
+            return new TagNameNode(
                 new TextEditorTextSpan(
                     startingPositionIndex,
                     stringWalker.PositionIndex,
@@ -293,15 +266,6 @@ public static class HtmlSyntaxTree
                     stringWalker.ResourceUri,
                     stringWalker.SourceText));
         }
-
-        /*
-         * <div>
-         *     TEXT NODE: THIS IS THE CHILD CONTENT
-         *     HtmlElement to parse: <HtmlElement/>
-         *
-         *     @myVariable
-         * </div>
-         */
 
         public static List<IHtmlSyntax> ParseTagChildContent(
             StringWalker stringWalker,
@@ -312,22 +276,24 @@ public static class HtmlSyntaxTree
 
             List<IHtmlSyntax> htmlSyntaxes = new();
 
-            var textNodeBuilder = new StringBuilder();
+            int? textNodeStartingPositionIndex = null;
 
-            // Make a TagTextSyntax - HTML TextNode
-            // if there was anything in the current builder
+            // Make a TagTextSyntax - HTML TextNode if there was anything in the current builder
             void AddTextNode()
             {
-                if (textNodeBuilder.Length <= 0)
+                if (textNodeStartingPositionIndex is null)
                     return;
 
-                var tagTextSyntax = new TagTextSyntax(
-                    ImmutableArray<AttributeSyntax>.Empty,
-                    ImmutableArray<IHtmlSyntax>.Empty,
-                    textNodeBuilder.ToString());
+                var tagTextSyntax = new TextNode(
+                    new TextEditorTextSpan(
+                        textNodeStartingPositionIndex.Value,
+                        stringWalker.PositionIndex,
+                        (byte)GenericDecorationKind.None,
+                        stringWalker.ResourceUri,
+                        stringWalker.SourceText));
 
                 htmlSyntaxes.Add(tagTextSyntax);
-                textNodeBuilder.Clear();
+                textNodeStartingPositionIndex = null;
             }
 
             stringWalker.WhileNotEndOfFile(() =>
@@ -339,8 +305,7 @@ public static class HtmlSyntaxTree
                 if (stringWalker.CurrentCharacter ==
                     HtmlFacts.OPEN_TAG_BEGINNING)
                 {
-                    // If there is text in textNodeBuilder
-                    // add a new TextNode to the List of TagSyntax
+                    // If there is text in textNodeBuilder add a new TextNode to the List of TagSyntax
                     AddTextNode();
 
                     if (stringWalker.CheckForSubstring(
@@ -367,8 +332,7 @@ public static class HtmlSyntaxTree
                 if (injectedLanguageDefinition is not null && stringWalker
                         .CheckForInjectedLanguageCodeBlockTag(injectedLanguageDefinition))
                 {
-                    // If there is text in textNodeBuilder
-                    // add a new TextNode to the List of TagSyntax
+                    // If there is text in textNodeBuilder add a new TextNode to the List of TagSyntax
                     AddTextNode();
 
                     htmlSyntaxes.AddRange(
@@ -380,7 +344,8 @@ public static class HtmlSyntaxTree
                     return false;
                 }
 
-                textNodeBuilder.Append(stringWalker.CurrentCharacter);
+                textNodeStartingPositionIndex ??= stringWalker.PositionIndex;
+
                 return false;
             });
 
@@ -395,27 +360,25 @@ public static class HtmlSyntaxTree
                         stringWalker.SourceText));
             }
 
-            // If there is text in textNodeBuilder
-            // add a new TextNode to the List of TagSyntax
+            // If there is text in textNodeBuilder add a new TextNode to the List of TagSyntax
             AddTextNode();
 
             return htmlSyntaxes;
         }
 
-        public static List<TagSyntax> ParseInjectedLanguageCodeBlock(
+        public static List<IHtmlSyntaxNode> ParseInjectedLanguageCodeBlock(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition injectedLanguageDefinition)
         {
-            var injectedLanguageFragmentSyntaxes = new List<TagSyntax>();
+            var injectedLanguageFragmentSyntaxes = new List<IHtmlSyntaxNode>();
 
             var injectedLanguageFragmentSyntaxStartingPositionIndex = stringWalker.PositionIndex;
 
             // Track text span of the "@" sign (example in .razor files)
             injectedLanguageFragmentSyntaxes.Add(
-                new InjectedLanguageFragmentSyntax(
+                new InjectedLanguageFragmentNode(
                     ImmutableArray<IHtmlSyntax>.Empty,
-                    string.Empty,
                     new TextEditorTextSpan(
                         injectedLanguageFragmentSyntaxStartingPositionIndex,
                         stringWalker.PositionIndex + 1,
@@ -433,7 +396,7 @@ public static class HtmlSyntaxTree
             return injectedLanguageFragmentSyntaxes;
         }
 
-        public static AttributeSyntax ParseAttribute(
+        public static AttributeNode ParseAttribute(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
@@ -449,27 +412,18 @@ public static class HtmlSyntaxTree
                     injectedLanguageDefinition,
                     out var attributeValueSyntax);
 
-            return new AttributeSyntax(
+            return new AttributeNode(
                 attributeNameSyntax,
                 attributeValueSyntax);
         }
 
-        /// <summary>
-        /// currentCharacterIn:<br/>
-        /// -Any character that can start an attribute name<br/>
-        /// currentCharacterOut:<br/>
-        /// -<see cref="WhitespaceFacts.ALL"/> (whitespace)<br/>
-        /// -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/>
-        /// -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/><br/>
-        /// </summary>
-        public static AttributeNameSyntax ParseAttributeName(
+        /// <summary>currentCharacterIn:<br/> -Any character that can start an attribute name<br/> currentCharacterOut:<br/> -<see cref="WhitespaceFacts.ALL"/> (whitespace)<br/> -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/> -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/></summary>
+        public static AttributeNameNode ParseAttributeName(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
         {
-            // When ParseAttributeName is invoked
-            // the PositionIndex
-            // is always 1 character too far
+            // When ParseAttributeName is invoked the PositionIndex is always 1 character too far
             _ = stringWalker.BacktrackCharacter();
 
             var startingPositionIndex = stringWalker.PositionIndex;
@@ -493,26 +447,15 @@ public static class HtmlSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            return new AttributeNameSyntax(attributeNameTextSpan);
+            return new AttributeNameNode(attributeNameTextSpan);
         }
 
-        /// <summary>
-        /// Returns placeholder match attribute value if
-        /// fails to read an attribute value<br/>
-        /// <br/>
-        /// currentCharacterIn:<br/>
-        /// -<see cref="WhitespaceFacts.ALL"/> (whitespace)<br/>
-        /// -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/>
-        /// -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/><br/>
-        /// currentCharacterOut:<br/>
-        /// -<see cref="HtmlFacts.ATTRIBUTE_VALUE_ENDING"/><br/>
-        /// -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/><br/>
-        /// </summary>
+        /// <summary>Returns placeholder match attribute value if fails to read an attribute value<br/> <br/> currentCharacterIn:<br/> -<see cref="WhitespaceFacts.ALL"/> (whitespace)<br/> -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/> -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/><br/> currentCharacterOut:<br/> -<see cref="HtmlFacts.ATTRIBUTE_VALUE_ENDING"/><br/> -<see cref="HtmlFacts.OPEN_TAG_ENDING_OPTIONS"/></summary>
         private static bool TryReadAttributeValue(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition,
-            out AttributeValueSyntax attributeValueSyntax)
+            out AttributeValueNode attributeValueSyntax)
         {
             if (WhitespaceFacts.ALL.Contains(stringWalker.CurrentCharacter))
             {
@@ -536,8 +479,7 @@ public static class HtmlSyntaxTree
                 return true;
             }
 
-            // Set out variable as a 'matched attribute value' so there aren't
-            // any cascading error diagnostics due to having expected an attribute value.
+            // Set out variable as a 'matched attribute value' so there aren't any cascading error diagnostics due to having expected an attribute value.
             var attributeValueTextSpan = new TextEditorTextSpan(
                 0,
                 0,
@@ -545,26 +487,20 @@ public static class HtmlSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            attributeValueSyntax = new AttributeValueSyntax(attributeValueTextSpan);
+            attributeValueSyntax = new AttributeValueNode(attributeValueTextSpan);
 
             return false;
         }
 
-        /// <summary>
-        /// currentCharacterIn:<br/>
-        /// -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/>
-        /// currentCharacterOut:<br/>
-        /// -<see cref="HtmlFacts.ATTRIBUTE_VALUE_ENDING"/><br/>
-        /// </summary>
-        public static AttributeValueSyntax ParseAttributeValue(
+        /// <summary> currentCharacterIn:<br/> -<see cref="HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE"/><br/> currentCharacterOut:<br/> -<see cref="HtmlFacts.ATTRIBUTE_VALUE_ENDING"/></summary>
+        public static AttributeValueNode ParseAttributeValue(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
         {
             var startingPositionIndex = stringWalker.PositionIndex;
 
-            // Move to the first non-whitespace which follows the
-            // HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE
+            // Move to the first non-whitespace which follows the HtmlFacts.SEPARATOR_FOR_ATTRIBUTE_NAME_AND_ATTRIBUTE_VALUE
             while (!stringWalker.IsEof)
             {
                 _ = stringWalker.ReadCharacter();
@@ -617,10 +553,10 @@ public static class HtmlSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            return new AttributeValueSyntax(attributeValueTextSpan);
+            return new AttributeValueNode(attributeValueTextSpan);
         }
 
-        public static CommentSyntax ParseComment(
+        public static CommentNode ParseComment(
             StringWalker stringWalker,
             TextEditorHtmlDiagnosticBag textEditorHtmlDiagnosticBag,
             InjectedLanguageDefinition? injectedLanguageDefinition)
@@ -645,7 +581,7 @@ public static class HtmlSyntaxTree
                 stringWalker.ResourceUri,
                 stringWalker.SourceText);
 
-            return new CommentSyntax(commentTagTextSpan);
+            return new CommentNode(commentTagTextSpan);
         }
     }
 }
