@@ -27,7 +27,7 @@ public class TextEditorHtmlDecorationMapper : IDecorationMapper
             HtmlDecorationKind.InjectedLanguageTagHelperAttribute => "luth_te_injected-language-tag-helper-attribute",
             HtmlDecorationKind.InjectedLanguageTagHelperElement => "luth_te_injected-language-tag-helper-element",
             HtmlDecorationKind.InjectedLanguageMethod => "luth_te_method",
-            HtmlDecorationKind.InjectedLanguageVariable => "luth_te_parameter",
+            HtmlDecorationKind.InjectedLanguageVariable => "luth_te_variable",
             HtmlDecorationKind.InjectedLanguageType => "luth_te_type",
             HtmlDecorationKind.InjectedLanguageStringLiteral => "luth_te_string-literal",
             _ => string.Empty,
