@@ -14,4 +14,5 @@ public enum GenericDecorationKind
     PreprocessorDirective,
     DeliminationExtended,
     Type,
+    Property,
 }
