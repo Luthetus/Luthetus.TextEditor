@@ -1,8 +1,8 @@
 ﻿namespace Luthetus.TextEditor.RazorLib.Semantics;
 
-public class SymbolDefinition
+public class TextEditorSymbolDefinition
 {
-    public SymbolDefinition(
+    public TextEditorSymbolDefinition(
         string resourceUri,
         int positionIndex)
     {
