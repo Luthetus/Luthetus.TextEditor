@@ -1,15 +1,17 @@
-﻿namespace Luthetus.TextEditor.RazorLib.Semantics;
+﻿using Luthetus.TextEditor.RazorLib.Lexing;
 
-public class SymbolDefinition
+namespace Luthetus.TextEditor.RazorLib.Semantics;
+
+public class TextEditorSymbolDefinition
 {
-    public SymbolDefinition(
-        string resourceUri,
+    public TextEditorSymbolDefinition(
+        ResourceUri resourceUri,
         int positionIndex)
     {
         ResourceUri = resourceUri;
         PositionIndex = positionIndex;
     }
 
-    public string ResourceUri { get; }
+    public ResourceUri ResourceUri { get; }
     public int PositionIndex { get; }
 }

@@ -98,7 +98,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
     private RenderStateKey _currentViewModelRenderStateKey = RenderStateKey.Empty;
     private Task _mouseStoppedMovingTask = Task.CompletedTask;
-    private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(500);
+    private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;

@@ -502,8 +502,7 @@ public partial class TextEditorModel
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
                 0,
                 ResourceUri,
-                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
-                string.Empty);
+                GetAllText());
         }
         else if (currentCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -521,8 +520,7 @@ public partial class TextEditorModel
                 wordColumnIndexEndExclusive + rowInformation.rowStartPositionIndex,
                 0,
                 ResourceUri,
-                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
-                string.Empty);
+                GetAllText());
         }
         else if (previousCharacterKind == CharacterKind.LetterOrDigit)
         {
@@ -540,8 +538,7 @@ public partial class TextEditorModel
                 columnIndex + rowInformation.rowStartPositionIndex,
                 0,
                 ResourceUri,
-                // TODO: (2023-05-27) Do not evaluate GetAllText() here because of how frequently the text editor would change?
-                string.Empty);
+                GetAllText());
         }
 
         return null;

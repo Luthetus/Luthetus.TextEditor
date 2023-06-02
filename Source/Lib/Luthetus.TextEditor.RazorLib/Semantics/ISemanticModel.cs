@@ -10,7 +10,7 @@ public interface ISemanticModel
     public ImmutableList<(TextEditorDiagnostic diagnostic, TextEditorTextSpan textSpan)> DiagnosticTextSpanTuples { get; }
     public ImmutableList<(string message, TextEditorTextSpan textSpan)> SymbolMessageTextSpanTuples { get; }
 
-    public SymbolDefinition? GoToDefinition(
+    public TextEditorSymbolDefinition? GoToDefinition(
         TextEditorModel model,
         TextEditorTextSpan textSpan);
 
