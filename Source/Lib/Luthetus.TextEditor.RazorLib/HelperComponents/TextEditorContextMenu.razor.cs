@@ -59,7 +59,8 @@ public partial class TextEditorContextMenu : ComponentBase
             TextEditorCursorSnapshot.TakeSnapshots(TextEditorViewModel.PrimaryCursor),
             ClipboardService,
             TextEditorService,
-            TextEditorViewModel);
+            TextEditorViewModel,
+            null);
     }
 
     private async Task HandleOnKeyDownAsync(KeyboardEventArgs keyboardEventArgs)

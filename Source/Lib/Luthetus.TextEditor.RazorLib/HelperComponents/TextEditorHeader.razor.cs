@@ -39,7 +39,8 @@ public partial class TextEditorHeader : TextEditorView
             TextEditorCursorSnapshot.TakeSnapshots(textEditorViewModel.PrimaryCursor),
             ClipboardService,
             TextEditorService,
-            textEditorViewModel);
+            textEditorViewModel,
+            null);
     }
 
     private void SelectRowEndingKindOnChange(ChangeEventArgs changeEventArgs)

@@ -49,6 +49,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IBackgroundTaskQueue BackgroundTaskQueue { get; set; } = null!;
 
+    [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
+    public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
+
     [Parameter, EditorRequired]
     public TextEditorViewModelKey TextEditorViewModelKey { get; set; } = null!;
     [Parameter]
@@ -358,7 +361,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         cursorSnapshots,
                         ClipboardService,
                         TextEditorService,
-                        safeRefViewModel));
+                        safeRefViewModel,
+                        HandleGotoDefinitionWithinDifferentFileAction));
             }
             else
             {

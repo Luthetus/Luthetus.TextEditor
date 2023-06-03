@@ -769,12 +769,19 @@ public static class TextEditorCommandDefaultFacts
 
             if (symbolDefinition is not null)
             {
-                var rowInformation = commandParameter.Model
-                    .FindRowInformation(symbolDefinition.PositionIndex);
+                if (symbolDefinition.ResourceUri == commandParameter.Model.ResourceUri)
+                {
+                    var rowInformation = commandParameter.Model
+                        .FindRowInformation(symbolDefinition.PositionIndex);
 
-                commandParameter.PrimaryCursorSnapshot.UserCursor.IndexCoordinates =
-                    (rowInformation.rowIndex,
-                        symbolDefinition.PositionIndex - rowInformation.rowStartPositionIndex);
+                    commandParameter.PrimaryCursorSnapshot.UserCursor.IndexCoordinates =
+                        (rowInformation.rowIndex,
+                            symbolDefinition.PositionIndex - rowInformation.rowStartPositionIndex);
+                }
+                else
+                {
+                    commandParameter.HandleGotoDefinitionWithinDifferentFileAction?.Invoke(symbolDefinition);
+                }
             }
 
             return Task.CompletedTask;
