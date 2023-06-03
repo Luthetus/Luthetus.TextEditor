@@ -5,6 +5,7 @@ using Luthetus.TextEditor.RazorLib.Store.ViewModel;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.JSInterop;
+using System.Runtime.CompilerServices;
 
 namespace Luthetus.TextEditor.RazorLib;
 
@@ -25,6 +26,10 @@ public partial interface ITextEditorService
         public Task SetGutterScrollTopAsync(string gutterElementId, double scrollTopInPixels);
         public Task SetScrollPositionAsync(string bodyElementId, string gutterElementId, double? scrollLeftInPixels, double? scrollTopInPixels);
         public void With(TextEditorViewModelKey textEditorViewModelKey, Func<TextEditorViewModel, TextEditorViewModel> withFunc);
+        public void SetCursorShouldBlink(bool cursorShouldBlink);
+
+        public bool CursorShouldBlink { get; }
+        public event Action? CursorShouldBlinkChanged;
     }
 
     public class ViewModelApi : IViewModelApi
@@ -46,6 +51,63 @@ public partial interface ITextEditorService
             _luthetusTextEditorOptions = luthetusTextEditorOptions;
             _jsRuntime = jsRuntime;
             _textEditorService = textEditorService;
+        }
+
+        private Task _cursorShouldBlinkTask = Task.CompletedTask;
+
+        private CancellationTokenSource _cursorShouldBlinkCancellationTokenSource = new();
+        private TimeSpan _blinkingCursorTaskDelay = TimeSpan.FromMilliseconds(1000);
+
+        public bool CursorShouldBlink { get; private set; }
+        public event Action? CursorShouldBlinkChanged;
+
+        /// <summary>(2023-06-03) Previously this logic was in the TextEditorCursorDisplay itself. The Task.Run() would get re-executed upon each cancellation. With this version, the Task.Run() session is re-used with the while loop. As well, all the text editor cursors are blinking in sync.</summary>
+        public void SetCursorShouldBlink(bool cursorShouldBlink)
+        {
+            if (!cursorShouldBlink)
+            {
+                if (CursorShouldBlink)
+                {
+                    // Change true -> false THEREFORE: notify subscribers
+                    CursorShouldBlink = cursorShouldBlink;
+                    CursorShouldBlinkChanged?.Invoke();
+                }
+
+                // Single Threaded Applications flicker every "_blinkingCursorTaskDelay" event while holding a key down if this line is not included
+                _cursorShouldBlinkCancellationTokenSource.Cancel();
+
+                if (_cursorShouldBlinkTask.IsCompleted)
+                {
+                    // Considering that just before entering this if block we cancel the cancellation token source. I want to ensure we get a new one if a new Task session beings.
+                    _cursorShouldBlinkCancellationTokenSource = new();
+
+                    _cursorShouldBlinkTask = Task.Run(async () =>
+                    {
+                        while (true)
+                        {
+                            try
+                            {
+                                var cancellationToken = _cursorShouldBlinkCancellationTokenSource.Token;
+
+                                await Task
+                                    .Delay(_blinkingCursorTaskDelay, cancellationToken)
+                                    .ConfigureAwait(false);
+
+                                // Change false -> true THEREFORE: notify subscribers
+                                CursorShouldBlink = true;
+                                CursorShouldBlinkChanged?.Invoke();
+                                break;
+                            }
+                            catch (TaskCanceledException)
+                            {
+                                // Single Threaded Applications cannot exit the while loop unless they cancel the token themselves.
+                                _cursorShouldBlinkCancellationTokenSource.Cancel();
+                                _cursorShouldBlinkCancellationTokenSource = new();
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         public void With(
