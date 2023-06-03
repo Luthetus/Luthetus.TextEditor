@@ -52,7 +52,8 @@ public static partial class TextEditorCommandVimFacts
                     TextEditorCursorSnapshot.TakeSnapshots(textEditorCursorForMotion),
                     textEditorCommandParameter.ClipboardService,
                     textEditorCommandParameter.TextEditorService,
-                    textEditorCommandParameter.ViewModel);
+                    textEditorCommandParameter.ViewModel,
+                    null);
 
                 var motionResult = await VimMotionResult
                     .GetResultAsync(

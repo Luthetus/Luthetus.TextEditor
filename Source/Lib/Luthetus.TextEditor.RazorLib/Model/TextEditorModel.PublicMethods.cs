@@ -380,9 +380,12 @@ public partial class TextEditorModel
         {
             SemanticModel.Parse(this);
 
-            textEditorTextSpans = textEditorTextSpans
-                .AddRange(SemanticModel.SymbolMessageTextSpanTuples
+            if (SemanticModel.SemanticResult is not null)
+            {
+                textEditorTextSpans = textEditorTextSpans
+                .AddRange(SemanticModel.SemanticResult.SymbolMessageTextSpanTuples
                     .Select(x => x.textSpan));
+            }
         }
 
         ApplyDecorationRange(textEditorTextSpans);

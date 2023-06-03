@@ -39,7 +39,8 @@ public partial class TextEditorHeader : TextEditorView
             TextEditorCursorSnapshot.TakeSnapshots(textEditorViewModel.PrimaryCursor),
             ClipboardService,
             TextEditorService,
-            textEditorViewModel);
+            textEditorViewModel,
+            null);
     }
 
     private void SelectRowEndingKindOnChange(ChangeEventArgs changeEventArgs)
@@ -390,7 +391,7 @@ public partial class TextEditorHeader : TextEditorView
 
                 var outPresentationModel = inPresentationModel with
                 {
-                    TextEditorTextSpans = model?.SemanticModel?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
+                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
                         ?? ImmutableList<TextEditorTextSpan>.Empty
                 };
 

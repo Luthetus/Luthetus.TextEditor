@@ -49,6 +49,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IBackgroundTaskQueue BackgroundTaskQueue { get; set; } = null!;
 
+    [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
+    public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
+
     [Parameter, EditorRequired]
     public TextEditorViewModelKey TextEditorViewModelKey { get; set; } = null!;
     [Parameter]
@@ -358,7 +361,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         cursorSnapshots,
                         ClipboardService,
                         TextEditorService,
-                        safeRefViewModel));
+                        safeRefViewModel,
+                        HandleGotoDefinitionWithinDifferentFileAction));
             }
             else
             {
@@ -912,9 +916,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         var foundMatch = false;
 
-        if (model.SemanticModel is not null)
+        if (model.SemanticModel is not null && 
+            model.SemanticModel.SemanticResult is not null)
         {
-            foreach (var diagnosticTextSpanTuple in model.SemanticModel.DiagnosticTextSpanTuples)
+            foreach (var diagnosticTextSpanTuple in model.SemanticModel.SemanticResult.DiagnosticTextSpanTuples)
             {
                 if (cursorPositionIndex >= diagnosticTextSpanTuple.textSpan.StartingIndexInclusive &&
                     cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
@@ -927,7 +932,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 }
             }
             
-            foreach (var symbolMessageTextSpanTuple in model.SemanticModel.SymbolMessageTextSpanTuples)
+            foreach (var symbolMessageTextSpanTuple in model.SemanticModel.SemanticResult.SymbolMessageTextSpanTuples)
             {
                 if (cursorPositionIndex >= symbolMessageTextSpanTuple.textSpan.StartingIndexInclusive &&
                     cursorPositionIndex < symbolMessageTextSpanTuple.textSpan.EndingIndexExclusive)
@@ -1163,7 +1168,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
                 var outPresentationModel = inPresentationModel with
                 {
-                    TextEditorTextSpans = model?.SemanticModel?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
+                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
                         ?? ImmutableList<TextEditorTextSpan>.Empty
                 };
 

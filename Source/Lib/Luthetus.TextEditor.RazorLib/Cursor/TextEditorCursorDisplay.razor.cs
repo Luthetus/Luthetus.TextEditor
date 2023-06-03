@@ -13,6 +13,8 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
 {
     [Inject]
     private IJSRuntime JsRuntime { get; set; } = null!;
+    [Inject]
+    private ITextEditorService TextEditorService { get; set; } = null!;
 
     [CascadingParameter]
     public TextEditorModel TextEditorModel { get; set; } = null!;
@@ -38,13 +40,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
     [Parameter]
     public RenderFragment AutoCompleteMenuRenderFragment { get; set; } = null!;
 
-    public const string BLINK_CURSOR_BACKGROUND_TASK_NAME = "BlinkCursor";
-    public const string BLINK_CURSOR_BACKGROUND_TASK_DESCRIPTION = "This task blinks the cursor within the text editor.";
     private readonly Guid _intersectionObserverMapKey = Guid.NewGuid();
-
-    private CancellationTokenSource _blinkingCursorCancellationTokenSource = new();
-    private TimeSpan _blinkingCursorTaskDelay = TimeSpan.FromMilliseconds(1000);
-    private bool _hasBlinkAnimation = true;
 
     private ElementReference? _textEditorCursorDisplayElementReference;
     private TextEditorMenuKind _textEditorMenuKind;
@@ -60,11 +56,23 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
     public string CursorStyleCss => GetCursorStyleCss();
     public string CaretRowStyleCss => GetCaretRowStyleCss();
     public string MenuStyleCss => GetMenuStyleCss();
-    public string BlinkAnimationCssClass => _hasBlinkAnimation
+    public string BlinkAnimationCssClass => TextEditorService.ViewModel.CursorShouldBlink
         ? "luth_te_blink"
         : string.Empty;
 
     public TextEditorMenuKind TextEditorMenuKind => _textEditorMenuKind;
+
+    protected override void OnInitialized()
+    {
+        TextEditorService.ViewModel.CursorShouldBlinkChanged += ViewModel_CursorShouldBlinkChanged;
+
+        base.OnInitialized();
+    }
+
+    private async void ViewModel_CursorShouldBlinkChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -302,47 +310,12 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
 
     public void PauseBlinkAnimation()
     {
-        _hasBlinkAnimation = false;
-
-        var cancellationToken = CancelBlinkingCursorSourceAndCreateNewThenReturnToken();
-
-        // IBackgroundTaskQueue does not work well here because
-        // of how often this Task is started and stopped.
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await Task.Delay(_blinkingCursorTaskDelay, cancellationToken);
-
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    _hasBlinkAnimation = true;
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                // This exception will constantly be raised so ignore it
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }, cancellationToken);
+        TextEditorService.ViewModel.SetCursorShouldBlink(false);
     }
 
     private void HandleOnKeyDown()
     {
         PauseBlinkAnimation();
-    }
-
-    private CancellationToken CancelBlinkingCursorSourceAndCreateNewThenReturnToken()
-    {
-        _blinkingCursorCancellationTokenSource.Cancel();
-        _blinkingCursorCancellationTokenSource = new CancellationTokenSource();
-
-        return _blinkingCursorCancellationTokenSource.Token;
     }
 
     public async Task SetShouldDisplayMenuAsync(
@@ -388,7 +361,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        _blinkingCursorCancellationTokenSource.Cancel();
+        TextEditorService.ViewModel.CursorShouldBlinkChanged -= ViewModel_CursorShouldBlinkChanged;
 
         if (IsFocusTarget)
         {

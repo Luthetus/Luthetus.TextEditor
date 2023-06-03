@@ -3,6 +3,7 @@ using Luthetus.Common.RazorLib.Clipboard;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.ViewModel;
+using Luthetus.TextEditor.RazorLib.Semantics;
 
 namespace Luthetus.TextEditor.RazorLib.Commands;
 
@@ -14,4 +15,5 @@ public interface ITextEditorCommandParameter
     public IClipboardService ClipboardService { get; }
     public ITextEditorService TextEditorService { get; }
     public TextEditorViewModel ViewModel { get; }
+    public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; }
 }
