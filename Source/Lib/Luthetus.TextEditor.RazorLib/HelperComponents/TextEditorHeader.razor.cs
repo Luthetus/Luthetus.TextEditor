@@ -390,7 +390,7 @@ public partial class TextEditorHeader : TextEditorView
 
                 var outPresentationModel = inPresentationModel with
                 {
-                    TextEditorTextSpans = model?.SemanticModel?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
+                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
                         ?? ImmutableList<TextEditorTextSpan>.Empty
                 };
 

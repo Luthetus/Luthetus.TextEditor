@@ -376,12 +376,13 @@ public partial class TextEditorModel
             GetAllText(),
             RenderStateKey);
 
-        if (SemanticModel is not null)
+        if (SemanticModel is not null && 
+            SemanticModel.SemanticResult is not null)
         {
             SemanticModel.Parse(this);
 
             textEditorTextSpans = textEditorTextSpans
-                .AddRange(SemanticModel.SymbolMessageTextSpanTuples
+                .AddRange(SemanticModel.SemanticResult.SymbolMessageTextSpanTuples
                     .Select(x => x.textSpan));
         }
 
