@@ -5,7 +5,6 @@ using Luthetus.TextEditor.RazorLib.Store.ViewModel;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.JSInterop;
-using System.Runtime.CompilerServices;
 
 namespace Luthetus.TextEditor.RazorLib;
 
