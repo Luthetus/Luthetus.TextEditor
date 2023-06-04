@@ -659,7 +659,7 @@
     --luth_te_string-literal-foreground-color: #E06C75;
     --luth_te_string-literal-escape-character-foreground-color: #ffd68f;
     --luth_te_keyword-foreground-color: #E09C6C;
-    --luth_te_keyword-control-foreground-color: rgb(255, 140, 210);
+    --luth_te_keyword-control-foreground-color: rgb(255, 145, 205);
     --luth_te_comment-foreground-color: #96968C;
     --luth_te_tag-name-foreground-color: #E09C6C;
     --luth_te_injected-language-fragment-color: rgb(78 195 200);
