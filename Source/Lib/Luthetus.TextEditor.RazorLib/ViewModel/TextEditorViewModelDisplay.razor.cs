@@ -919,19 +919,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (model.SemanticModel is not null && 
             model.SemanticModel.SemanticResult is not null)
         {
-            foreach (var diagnosticTextSpanTuple in model.SemanticModel.SemanticResult.DiagnosticTextSpanTuples)
-            {
-                if (cursorPositionIndex >= diagnosticTextSpanTuple.textSpan.StartingIndexInclusive &&
-                    cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
-                {
-                    foundMatch = true;
-
-                    _mouseStoppedEventMostRecentResult = (
-                        diagnosticTextSpanTuple.diagnostic.Message,
-                        relativeCoordinatesOnClick);
-                }
-            }
-            
             foreach (var symbolMessageTextSpanTuple in model.SemanticModel.SemanticResult.SymbolMessageTextSpanTuples)
             {
                 if (cursorPositionIndex >= symbolMessageTextSpanTuple.textSpan.StartingIndexInclusive &&
@@ -944,10 +931,30 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         relativeCoordinatesOnClick);
                 }
             }
+
+            foreach (var diagnosticTextSpanTuple in model.SemanticModel.SemanticResult.DiagnosticTextSpanTuples)
+            {
+                if (cursorPositionIndex >= diagnosticTextSpanTuple.textSpan.StartingIndexInclusive &&
+                    cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
+                {
+                    foundMatch = true;
+
+                    _mouseStoppedEventMostRecentResult = (
+                        diagnosticTextSpanTuple.diagnostic.Message,
+                        relativeCoordinatesOnClick);
+                }
+            }
         }
      
         if (!foundMatch)
+        {
+            if (_mouseStoppedEventMostRecentResult is null)
+                return; // Avoid the re-render if nothing changed
+
             _mouseStoppedEventMostRecentResult = null;
+        }
+
+        // TODO: Measure the overlay and reposition if it would go offscreen.
 
         await InvokeAsync(StateHasChanged);
     }
