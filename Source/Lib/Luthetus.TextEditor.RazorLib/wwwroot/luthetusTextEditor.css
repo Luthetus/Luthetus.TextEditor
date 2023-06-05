@@ -721,7 +721,7 @@
    */
     --luth_te_primary-font-color: #000000;
     --luth_te_text-editor-cursor-foreground-color: #404040;
-    --luth_te_text-selection-background-color: rgb(110, 210, 255);
+    --luth_te_text-selection-background-color: rgb(173, 214, 255);
     --luth_te_diff-longest-common-subsequence-background-color: #ffb3f1;
     --luth_te_diff-insertion-background-color: green;
     --luth_te_diff-deletion-background-color: blue;
