@@ -5,4 +5,4 @@ namespace Luthetus.TextEditor.RazorLib.Analysis;
 public record TextEditorDiagnostic(
     TextEditorDiagnosticLevel DiagnosticLevel,
     string Message,
-    TextEditorTextSpan TextEditorTextSpan);
+    TextEditorTextSpan TextSpan);
