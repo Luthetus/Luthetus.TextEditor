@@ -121,13 +121,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (currentViewModel is not null &&
             _activeViewModelKeyTuple.viewModelKey != currentViewModel.ViewModelKey)
         {
-            _activeViewModelKeyTuple = (currentViewModel.ViewModelKey, currentViewModel.RenderStateKey);
-
-            currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
-        }
-        else
-        {
             _activeViewModelKeyTuple = (TextEditorViewModelKey.Empty, RenderStateKey.Empty);
+            currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
         }
 
         await base.OnParametersSetAsync();
@@ -144,13 +139,25 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Console.WriteLine($"OnAfterRenderAsync: {++_counter}");
-
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
                 "luthetusTextEditor.preventDefaultOnWheelEvents",
                 ContentElementId);
+        }
+
+        var viewModel = GetViewModel();
+
+        if (viewModel is not null &&
+            _activeViewModelKeyTuple.viewModelKey == TextEditorViewModelKey.Empty)
+        {
+            _activeViewModelKeyTuple = (viewModel.ViewModelKey, RenderStateKey.Empty);
+            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+        }
+        else if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
+        {
+            viewModel.ShouldSetFocusAfterNextRender = false;
+            await FocusTextEditorAsync();
         }
 
         await base.OnAfterRenderAsync(firstRender);
@@ -166,10 +173,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        Console.WriteLine($"GeneralOnStateChangedEventHandler: {_counter}");
-        
-        await InvokeAsync(StateHasChanged);
-
         var renderBatch = new TextEditorRenderBatch(
             GetModel(),
             GetViewModel(),
@@ -184,7 +187,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             return;
         }
 
-        if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
             if (renderBatch.Options is not null)
             {
@@ -193,28 +197,20 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
             }
-
-            return;
         }
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        else if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
                 null,
                 CancellationToken.None);
-
-            return;
         }
-        else if (_activeViewModelKeyTuple.viewModelRenderStateKey != renderBatch.ViewModel.RenderStateKey)
+        else if (renderBatch.ViewModel is not null &&
+            _activeViewModelKeyTuple.viewModelRenderStateKey != renderBatch.ViewModel.RenderStateKey)
         {
-            _activeViewModelKeyTuple = (renderBatch.ViewModel.ViewModelKey, renderBatch.ViewModel.RenderStateKey);
+            _activeViewModelKeyTuple = (_activeViewModelKeyTuple.viewModelKey, renderBatch.ViewModel.RenderStateKey);
             await InvokeAsync(StateHasChanged);
-
-            if (renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
-            {
-                renderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
-                await FocusTextEditorAsync();
-            }
         }
     }
 
