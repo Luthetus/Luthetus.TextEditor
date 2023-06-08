@@ -8,6 +8,7 @@ using Luthetus.TextEditor.RazorLib.Options;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.Virtualization;
+using Microsoft.Extensions.Options;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -35,7 +36,7 @@ public record TextEditorViewModel
 
     private ElementMeasurementsInPixels _mostRecentBodyMeasurementsInPixels = new(0, 0, 0, 0, 0, 0, 0, CancellationToken.None);
 
-    private readonly IThrottle<byte> _generalOperationThrottle = new Throttle<byte>(TimeSpan.FromMilliseconds(300));
+    private readonly IThrottle<(TextEditorOptions options, string measureCharacterWidthAndRowHeightElementId, int countOfTestCharacters)> _generalOperationThrottle = new Throttle<(TextEditorOptions options, string measureCharacterWidthAndRowHeightElementId, int countOfTestCharacters)>(TimeSpan.FromMilliseconds(300));
 
     public TextEditorCursor PrimaryCursor { get; } = new(true);
 
@@ -143,13 +144,16 @@ public record TextEditorViewModel
         string measureCharacterWidthAndRowHeightElementId,
         int countOfTestCharacters)
     {
-        var throttledRemeasureEvent =
-            await _generalOperationThrottle.FireAsync(
-                0,
-                CancellationToken.None);
+        var throttledRemeasureEvent = await _generalOperationThrottle.FireAsync(
+            (options, measureCharacterWidthAndRowHeightElementId, countOfTestCharacters),
+            CancellationToken.None);
 
         if (throttledRemeasureEvent.isCancellationRequested)
             return;
+
+        options = throttledRemeasureEvent.tEventArgs.options;
+        measureCharacterWidthAndRowHeightElementId = throttledRemeasureEvent.tEventArgs.measureCharacterWidthAndRowHeightElementId;
+        countOfTestCharacters = throttledRemeasureEvent.tEventArgs.countOfTestCharacters;
 
         try
         {
