@@ -138,27 +138,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         base.OnInitialized();
     }
 
-    /// <summary>Is ShouldRender() guaranteed to result in a render if I return true?</summary>
-    protected override bool ShouldRender()
-    {
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
-
-        if (renderBatch.ViewModel is null)
-            return true;
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
-            return true;
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
-            return true;
-        else if (renderBatch.ViewModel.RenderStateKey != _currentViewModelRenderStateKey)
-            return true;
-
-        // TODO: Perhaps "return false" should be changed to "return base.ShouldRender();" for the sake of MouseEvents? Meaning to say, does "return false" break anything?
-        return base.ShouldRender();
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
