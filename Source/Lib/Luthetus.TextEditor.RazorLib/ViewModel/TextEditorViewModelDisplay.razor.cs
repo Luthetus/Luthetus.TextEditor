@@ -173,7 +173,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
                 null,
-                false,
                 CancellationToken.None);
 
             goto finalize;
