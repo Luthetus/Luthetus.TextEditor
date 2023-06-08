@@ -509,19 +509,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     /// <summary>OnMouseUp is unnecessary</summary>
     private async Task HandleContentOnMouseMoveAsync(MouseEventArgs mouseEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            // TODO: Temporarily commenting out this render tracking. It happens so much that I pretty much cannot see anything other than it.
-            //var renderTrackerEntry = new RenderTrackerEntry(
-            //                    DateTime.UtcNow.Ticks,
-            //                    "HandleContentOnMouseMoveAsync");
-
-            //Dispatcher.Dispatch(
-            //    new RenderTrackerState.AddEntryAction(
-            //        RenderTrackerDisplayName,
-            //        renderTrackerEntry));
-        }
-
         _userMouseIsInside = true;
 
         var localThinksLeftMouseButtonIsDown = _thinksLeftMouseButtonIsDown;
