@@ -25,6 +25,7 @@ using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.Components.RenderTree;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -90,7 +91,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
-    private TextEditorViewModelKey _activeTextEditorViewModelKey = TextEditorViewModelKey.Empty;
+    private (TextEditorViewModelKey viewModelKey, RenderStateKey viewModelRenderStateKey) _activeViewModelKeyTuple = (TextEditorViewModelKey.Empty, RenderStateKey.Empty);
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
     private bool _thinksLeftMouseButtonIsDown;
     private bool _thinksTouchIsOccurring;
@@ -98,12 +99,15 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private DateTime? _touchStartDateTime = null;
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
-    private RenderStateKey _currentViewModelRenderStateKey = RenderStateKey.Empty;
+    private RenderStateKey _activeModelRenderStateKey = RenderStateKey.Empty;
+    private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
+    private RenderStateKey _activeOptionsRenderStateKey = RenderStateKey.Empty;
     private Task _mouseStoppedMovingTask = Task.CompletedTask;
     private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
+    private int _counter;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -115,15 +119,15 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
-            _activeTextEditorViewModelKey != currentViewModel.ViewModelKey)
+            _activeViewModelKeyTuple.viewModelKey != currentViewModel.ViewModelKey)
         {
-            _activeTextEditorViewModelKey = currentViewModel.ViewModelKey;
+            _activeViewModelKeyTuple = (currentViewModel.ViewModelKey, currentViewModel.RenderStateKey);
 
             currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
         }
         else
         {
-            _activeTextEditorViewModelKey = TextEditorViewModelKey.Empty;
+            _activeViewModelKeyTuple = (TextEditorViewModelKey.Empty, RenderStateKey.Empty);
         }
 
         await base.OnParametersSetAsync();
@@ -140,6 +144,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        Console.WriteLine($"OnAfterRenderAsync: {++_counter}");
+
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
@@ -147,49 +153,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 ContentElementId);
         }
 
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
-
-        if (renderBatch?.ViewModel is null)
-        {
-            goto finalize;
-        }
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
-        {
-            if (renderBatch.Options is not null)
-            {
-                await renderBatch.ViewModel.RemeasureAsync(
-                    renderBatch.Options,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
-            }
-
-            goto finalize;
-        }
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
-        {
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                CancellationToken.None);
-
-            goto finalize;
-        }
-        else
-        {
-            if (renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
-            {
-                renderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
-                await FocusTextEditorAsync();
-            }
-
-            goto finalize;
-        }
-
-        finalize:
-        _currentViewModelRenderStateKey = renderBatch?.ViewModel?.RenderStateKey ?? RenderStateKey.Empty;
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -203,7 +166,56 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
+        Console.WriteLine($"GeneralOnStateChangedEventHandler: {_counter}");
+        
         await InvokeAsync(StateHasChanged);
+
+        var renderBatch = new TextEditorRenderBatch(
+            GetModel(),
+            GetViewModel(),
+            GetOptions());
+
+        if (renderBatch.ViewModel is null)
+            return;
+
+        if (_activeViewModelKeyTuple.viewModelKey != renderBatch.ViewModel.ViewModelKey)
+        {
+            // OnParametersSetAsync will handle a changed ViewModelKey
+            return;
+        }
+
+        if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        {
+            if (renderBatch.Options is not null)
+            {
+                await renderBatch.ViewModel.RemeasureAsync(
+                    renderBatch.Options,
+                    MeasureCharacterWidthAndRowHeightElementId,
+                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+            }
+
+            return;
+        }
+        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        {
+            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                renderBatch.Model,
+                null,
+                CancellationToken.None);
+
+            return;
+        }
+        else if (_activeViewModelKeyTuple.viewModelRenderStateKey != renderBatch.ViewModel.RenderStateKey)
+        {
+            _activeViewModelKeyTuple = (renderBatch.ViewModel.ViewModelKey, renderBatch.ViewModel.RenderStateKey);
+            await InvokeAsync(StateHasChanged);
+
+            if (renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
+            {
+                renderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
+                await FocusTextEditorAsync();
+            }
+        }
     }
 
     public async Task FocusTextEditorAsync()
