@@ -183,20 +183,8 @@ public record TextEditorViewModel
     public async Task CalculateVirtualizationResultAsync(
         TextEditorModel? model,
         ElementMeasurementsInPixels? bodyMeasurementsInPixels,
-        bool useThrottling,
         CancellationToken cancellationToken)
     {
-        if (useThrottling)
-        {
-            var throttledCalculateVirtualizationResultEvent =
-                await _generalOperationThrottle.FireAsync(
-                    0,
-                    CancellationToken.None);
-
-            if (throttledCalculateVirtualizationResultEvent.isCancellationRequested)
-                return;
-        }
-
         try
         {
             await GeneralOperationSemaphoreSlim.WaitAsync();

@@ -115,7 +115,6 @@ public partial class RowSection : ComponentBase
                 calculateVirtualizationResultTask = TextEditorViewModel.CalculateVirtualizationResultAsync(
                     TextEditorModel,
                     null,
-                    false,
                     virtualizationRequest.CancellationToken);
 
                 await calculateVirtualizationResultTask;
