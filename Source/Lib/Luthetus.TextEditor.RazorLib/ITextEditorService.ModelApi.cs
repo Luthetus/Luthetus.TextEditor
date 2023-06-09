@@ -168,6 +168,7 @@ public partial interface ITextEditorService
                 decorationMapper,
                 null,
                 null,
+                new(),
                 textEditorModelKey);
 
             // ICommonBackgroundTaskQueue does not work well here because

@@ -18,7 +18,8 @@ public partial class TextEditorModel
         ITextEditorLexer? lexer,
         IDecorationMapper? decorationMapper,
         ISemanticModel? semanticModel,
-        ITextEditorKeymap? textEditorKeymap)
+        ITextEditorKeymap? textEditorKeymap,
+        TextEditorSaveFileHelper textEditorSaveFileHelper)
     {
         ResourceUri = resourceUri;
         ResourceLastWriteTime = resourceLastWriteTime;
@@ -27,6 +28,7 @@ public partial class TextEditorModel
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
         SemanticModel = semanticModel ?? new SemanticModelDefault();
         TextEditorKeymap = textEditorKeymap ?? new TextEditorKeymapDefault();
+        TextEditorSaveFileHelper = textEditorSaveFileHelper;
         
         SetContent(content);
     }
@@ -40,6 +42,7 @@ public partial class TextEditorModel
         IDecorationMapper? decorationMapper,
         ISemanticModel? semanticModel,
         ITextEditorKeymap? textEditorKeymap,
+        TextEditorSaveFileHelper textEditorSaveFileHelper,
         TextEditorModelKey modelKey)
         : this(
             resourceUri,
@@ -49,7 +52,8 @@ public partial class TextEditorModel
             lexer,
             decorationMapper,
             semanticModel,
-            textEditorKeymap)
+            textEditorKeymap,
+            textEditorSaveFileHelper)
     {
         ModelKey = modelKey;
     }
@@ -72,6 +76,7 @@ public partial class TextEditorModel
         Lexer = original.Lexer;
         DecorationMapper = original.DecorationMapper;
         TextEditorKeymap = original.TextEditorKeymap;
+        TextEditorSaveFileHelper = original.TextEditorSaveFileHelper;
         EditBlockIndex = original.EditBlockIndex;
         MostCharactersOnASingleRowTuple = original.MostCharactersOnASingleRowTuple;
         TextEditorOptions = original.TextEditorOptions;
