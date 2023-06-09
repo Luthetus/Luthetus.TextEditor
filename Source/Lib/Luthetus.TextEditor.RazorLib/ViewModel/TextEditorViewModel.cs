@@ -60,6 +60,11 @@ public record TextEditorViewModel
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
+    /// <summary>
+    /// (2023-06-09) If I set IsOutOfDate to true after either re-measuring or re-calculating then the infinite render loop couldn't possibly occur?
+    /// </summary>
+    public bool IsOutOfDate { get; set; }
+
     public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
     public string PrimaryCursorContentId => $"luth_te_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
     public string GutterElementId => $"luth_te_text-editor-gutter_{ViewModelKey.Guid}";
@@ -143,6 +148,9 @@ public record TextEditorViewModel
         string measureCharacterWidthAndRowHeightElementId,
         int countOfTestCharacters)
     {
+        if (IsOutOfDate)
+            return;
+
         var throttledRemeasureEvent = await _generalOperationThrottle.FireAsync(
             (options, measureCharacterWidthAndRowHeightElementId, countOfTestCharacters),
             CancellationToken.None);
@@ -164,6 +172,9 @@ public record TextEditorViewModel
 
             VirtualizationResult.CharacterWidthAndRowHeight = characterWidthAndRowHeight;
 
+            // Don't ever re-measure or re-calculate with this ViewModel
+            IsOutOfDate = true;
+
             TextEditorService.ViewModel.With(
                     ViewModelKey,
                     previousViewModel => previousViewModel with
@@ -174,7 +185,8 @@ public record TextEditorViewModel
                         {
                             CharacterWidthAndRowHeight = characterWidthAndRowHeight
                         },
-                        RenderStateKey = RenderStateKey.NewRenderStateKey()
+                        RenderStateKey = RenderStateKey.NewRenderStateKey(),
+                        IsOutOfDate = false
                     });
         }
         finally
@@ -188,6 +200,9 @@ public record TextEditorViewModel
         ElementMeasurementsInPixels? bodyMeasurementsInPixels,
         CancellationToken cancellationToken)
     {
+        if (IsOutOfDate)
+            return;
+
         try
         {
             await GeneralOperationSemaphoreSlim.WaitAsync();
@@ -395,6 +410,9 @@ public record TextEditorViewModel
                     MarginScrollHeight = marginScrollHeight
                 },
                 localCharacterWidthAndRowHeight);
+            
+            // Don't ever re-measure or re-calculate with this ViewModel
+            IsOutOfDate = true;
 
             TextEditorService.ViewModel.With(
                     ViewModelKey,
@@ -402,7 +420,8 @@ public record TextEditorViewModel
                     {
                         ModelRenderStateKey = model.RenderStateKey,
                         VirtualizationResult = virtualizationResult,
-                        RenderStateKey = RenderStateKey.NewRenderStateKey()
+                        RenderStateKey = RenderStateKey.NewRenderStateKey(),
+                        IsOutOfDate = false
                     });
         }
         finally

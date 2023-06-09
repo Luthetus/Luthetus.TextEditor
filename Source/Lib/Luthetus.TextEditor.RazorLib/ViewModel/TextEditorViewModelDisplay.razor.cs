@@ -88,7 +88,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
-    private (TextEditorViewModelKey viewModelKey, RenderStateKey viewModelRenderStateKey) _activeViewModelKeyTuple = (TextEditorViewModelKey.Empty, RenderStateKey.Empty);
+    private readonly object _viewModelKeyParameterHasChangedLock = new();
+
+    private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
+    private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
     private bool _thinksLeftMouseButtonIsDown;
     private bool _thinksTouchIsOccurring;
@@ -96,15 +99,13 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private DateTime? _touchStartDateTime = null;
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
-    private RenderStateKey _activeModelRenderStateKey = RenderStateKey.Empty;
-    private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
-    private RenderStateKey _activeOptionsRenderStateKey = RenderStateKey.Empty;
     private Task _mouseStoppedMovingTask = Task.CompletedTask;
     private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
     private int _counter;
+    private bool _viewModelKeyParameterHasChanged;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -116,10 +117,15 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
-            _activeViewModelKeyTuple.viewModelKey != currentViewModel.ViewModelKey)
+            currentViewModel.ViewModelKey != _activeViewModelKey)
         {
-            _activeViewModelKeyTuple = (TextEditorViewModelKey.Empty, RenderStateKey.Empty);
+            _activeViewModelKey = currentViewModel.ViewModelKey;
             currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
+
+            lock (_viewModelKeyParameterHasChangedLock)
+            {
+                _viewModelKeyParameterHasChanged = true;
+            }
         }
 
         await base.OnParametersSetAsync();
@@ -143,15 +149,23 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 ContentElementId);
         }
 
+        bool localViewModelKeyParameterHasChanged;
+
+        lock (_viewModelKeyParameterHasChangedLock)
+        {
+            localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
+            _viewModelKeyParameterHasChanged = false;
+        }
+
+        if (localViewModelKeyParameterHasChanged)
+        {
+            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+            return;
+        }
+
         var viewModel = GetViewModel();
 
-        if (viewModel is not null &&
-            _activeViewModelKeyTuple.viewModelKey == TextEditorViewModelKey.Empty)
-        {
-            _activeViewModelKeyTuple = (viewModel.ViewModelKey, RenderStateKey.Empty);
-            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
-        }
-        else if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
+        if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
         {
             viewModel.ShouldSetFocusAfterNextRender = false;
             await FocusTextEditorAsync();
@@ -175,12 +189,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             GetViewModel(),
             GetOptions());
 
-        if (renderBatch.ViewModel is null)
-            return;
-
-        if (_activeViewModelKeyTuple.viewModelKey != renderBatch.ViewModel.ViewModelKey)
-        {
-            // OnParametersSetAsync will handle a changed ViewModelKey
+        if (renderBatch.ViewModel is null ||
+            renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
+        { 
             return;
         }
 
@@ -196,7 +207,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             }
         }
         else if (renderBatch.ViewModel is not null &&
-            renderBatch.ViewModel.IsDirty(renderBatch.Model))
+                 renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
@@ -204,9 +215,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 CancellationToken.None);
         }
         else if (renderBatch.ViewModel is not null &&
-            _activeViewModelKeyTuple.viewModelRenderStateKey != renderBatch.ViewModel.RenderStateKey)
+                 renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
         {
-            _activeViewModelKeyTuple = (_activeViewModelKeyTuple.viewModelKey, renderBatch.ViewModel.RenderStateKey);
+            _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
             await InvokeAsync(StateHasChanged);
         }
     }
