@@ -7,8 +7,6 @@ using Luthetus.Common.RazorLib.JavaScriptObjects;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.Common.RazorLib.Misc;
 using Luthetus.Common.RazorLib.Reactive;
-using Luthetus.Common.RazorLib.RenderTracker;
-using Luthetus.Common.RazorLib.Store.RenderTrackerCase;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
@@ -25,7 +23,6 @@ using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using Microsoft.AspNetCore.Components.RenderTree;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
