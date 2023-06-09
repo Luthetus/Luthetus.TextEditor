@@ -105,7 +105,7 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     {
         _scrollEventCancellationTokenSource.Cancel();
 
-        // IBackgroundTaskQueue does not work well here because
+        // ICommonBackgroundTaskQueue does not work well here because
         // this Task does not need to be tracked.
         _ = Task.Run(async () =>
         {

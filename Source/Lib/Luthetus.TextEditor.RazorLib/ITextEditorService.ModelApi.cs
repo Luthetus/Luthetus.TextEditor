@@ -170,7 +170,7 @@ public partial interface ITextEditorService
                 null,
                 textEditorModelKey);
 
-            // IBackgroundTaskQueue does not work well here because
+            // ICommonBackgroundTaskQueue does not work well here because
             // this Task does not need to be tracked.
             _ = Task.Run(async () =>
             {

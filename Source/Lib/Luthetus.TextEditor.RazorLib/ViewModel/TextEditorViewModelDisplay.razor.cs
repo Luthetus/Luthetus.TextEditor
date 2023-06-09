@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Fluxor;
-using Luthetus.Common.RazorLib.BackgroundTaskCase;
 using Luthetus.Common.RazorLib.Clipboard;
 using Luthetus.Common.RazorLib.Dimensions;
 using Luthetus.Common.RazorLib.JavaScriptObjects;
@@ -23,6 +22,7 @@ using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -45,7 +45,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
-    private IBackgroundTaskQueue BackgroundTaskQueue { get; set; } = null!;
+    private ICommonBackgroundTaskQueue CommonBackgroundTaskQueue { get; set; } = null!;
 
     [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
     public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
@@ -327,7 +327,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             var textEditor = safeRefModel;
 
-            // IBackgroundTaskQueue does not work well here because
+            // ICommonBackgroundTaskQueue does not work well here because
             // this Task does not need to be tracked.
             _ = Task.Run(async () =>
             {

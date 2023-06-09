@@ -104,7 +104,7 @@ public partial class RowSection : ComponentBase
     private void VirtualizationDisplayItemsProviderFunc(
         VirtualizationRequest virtualizationRequest)
     {
-        // IBackgroundTaskQueue does not work well here because
+        // ICommonBackgroundTaskQueue does not work well here because
         // this Task does not need to be tracked.
         _ = Task.Run(async () =>
         {
