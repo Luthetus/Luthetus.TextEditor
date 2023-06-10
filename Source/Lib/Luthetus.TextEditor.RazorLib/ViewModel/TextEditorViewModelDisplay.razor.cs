@@ -5,7 +5,6 @@ using Luthetus.Common.RazorLib.Dimensions;
 using Luthetus.Common.RazorLib.JavaScriptObjects;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.Common.RazorLib.Misc;
-using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
@@ -81,10 +80,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     public bool IncludeFooterHelperComponent { get; set; } = true;
     [Parameter]
     public bool IncludeContextMenuHelperComponent { get; set; } = true;
-
-    private readonly IThrottle<byte> _afterOnKeyDownSyntaxHighlightingThrottle = new Throttle<byte>(TimeSpan.FromMilliseconds(750));
-    private readonly IThrottle<(MouseEventArgs, bool thinksLeftMouseButtonIsDown)> _onMouseMoveThrottle = new Throttle<(MouseEventArgs, bool thinksLeftMouseButtonIsDown)>(TimeSpan.FromMilliseconds(30));
-    private readonly IThrottle<(TouchEventArgs, bool thinksLeftMouseButtonIsDown)> _onTouchMoveThrottle = new Throttle<(TouchEventArgs, bool thinksLeftMouseButtonIsDown)>(TimeSpan.FromMilliseconds(30));
 
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
@@ -521,16 +516,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         var localThinksLeftMouseButtonIsDown = _thinksLeftMouseButtonIsDown;
 
-        var mostRecentEventArgs = await _onMouseMoveThrottle.FireAsync(
-            (mouseEventArgs, localThinksLeftMouseButtonIsDown),
-            CancellationToken.None);
-
-        if (mostRecentEventArgs.isCancellationRequested)
-            return;
-
-        localThinksLeftMouseButtonIsDown = mostRecentEventArgs.tEventArgs.thinksLeftMouseButtonIsDown;
-        mouseEventArgs = mostRecentEventArgs.tEventArgs.Item1;
-
         // MouseStoppedMovingEvent
         {
             _mouseStoppedMovingCancellationTokenSource.Cancel();
@@ -730,14 +715,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
         else if (IsSyntaxHighlightingInvoker(keyboardEventArgs))
         {
-            var mostRecentEventArgs = await _afterOnKeyDownSyntaxHighlightingThrottle
-                .FireAsync(
-                    0,
-                    CancellationToken.None);
-
-            if (mostRecentEventArgs.isCancellationRequested)
-                return;
-
             // The TextEditorModel may have been changed by the time this logic is ran and
             // thus the local variable must be updated accordingly.
             var temporaryTextEditor = GetModel();
@@ -905,16 +882,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (!_thinksTouchIsOccurring)
             return;
-
-        var mostRecentEventArgs = await _onTouchMoveThrottle.FireAsync(
-            (touchEventArgs, localThinksTouchIsOccurring),
-            CancellationToken.None);
-
-        if (mostRecentEventArgs.isCancellationRequested)
-            return;
-
-        localThinksTouchIsOccurring = mostRecentEventArgs.tEventArgs.thinksLeftMouseButtonIsDown;
-        touchEventArgs = mostRecentEventArgs.tEventArgs.Item1;
 
         var previousTouchPoint = _previousTouchEventArgs?.ChangedTouches
             .FirstOrDefault(x => x.Identifier == 0);
