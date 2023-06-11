@@ -5,6 +5,7 @@ using Luthetus.TextEditor.RazorLib.Character;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Virtualization;
 using Microsoft.AspNetCore.Components;
+using Luthetus.Common.RazorLib.Reactive;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 
@@ -34,6 +35,8 @@ public partial class RowSection : ComponentBase
     public bool IncludeContextMenuHelperComponent { get; set; }
 
     public TextEditorCursorDisplay? TextEditorCursorDisplayComponent { get; private set; }
+    
+    private IThrottle _throttleVirtualizationDisplayItemsProviderFunc = new Throttle(IThrottle.DefaultThrottleTimeSpan);
 
     private string GetRowStyleCss(int index, double? virtualizedRowLeftInPixels)
     {
@@ -104,9 +107,7 @@ public partial class RowSection : ComponentBase
     private void VirtualizationDisplayItemsProviderFunc(
         VirtualizationRequest virtualizationRequest)
     {
-        // ICommonBackgroundTaskQueue does not work well here because
-        // this Task does not need to be tracked.
-        _ = Task.Run(async () =>
+        _throttleVirtualizationDisplayItemsProviderFunc.FireAsync(async () =>
         {
             Task calculateVirtualizationResultTask = Task.CompletedTask;
 
@@ -124,6 +125,6 @@ public partial class RowSection : ComponentBase
                 if (!calculateVirtualizationResultTask.IsCanceled)
                     throw;
             }
-        }, CancellationToken.None);
+        });
     }
 }

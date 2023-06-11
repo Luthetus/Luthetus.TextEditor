@@ -26,8 +26,6 @@ public partial class TextEditorViewModelsCollection
                 registerAction.TextEditorModelKey,
                 registerAction.TextEditorService,
                 VirtualizationResult<List<RichCharacter>>.GetEmptyRichCharacters(),
-                true,
-                false,
                 false)
             {
                 RenderStateKey = RenderStateKey.NewRenderStateKey()

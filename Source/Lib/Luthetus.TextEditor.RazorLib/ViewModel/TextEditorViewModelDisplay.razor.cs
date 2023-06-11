@@ -22,6 +22,10 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
+using Luthetus.Common.RazorLib.Reactive;
+using Microsoft.AspNetCore.Components.RenderTree;
+using Luthetus.TextEditor.RazorLib.HostedServiceCase;
+using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -44,7 +48,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
-    private ICommonBackgroundTaskQueue CommonBackgroundTaskQueue { get; set; } = null!;
+    private ITextEditorBackgroundTaskQueue TextEditorBackgroundTaskQueue { get; set; } = null!;
 
     [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
     public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
@@ -85,6 +89,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private readonly object _viewModelKeyParameterHasChangedLock = new();
 
+    private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
+
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
@@ -99,9 +105,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
-    private int _counter;
     private bool _viewModelKeyParameterHasChanged;
-
+    
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
     private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
@@ -109,6 +114,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
+        Console.WriteLine("OnParametersSetAsync");
+
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
@@ -128,6 +135,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
+        Console.WriteLine("OnInitialized");
+
         ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
@@ -154,6 +163,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (localViewModelKeyParameterHasChanged)
         {
+            Console.WriteLine("localViewModelKeyParameterHasChanged");
             GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
             return;
         }
@@ -184,12 +194,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             GetViewModel(),
             GetOptions());
 
-        if (renderBatch.ViewModel is null ||
-            renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
-        { 
-            return;
-        }
-
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
@@ -199,21 +203,37 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     renderBatch.Options,
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+
+                await InvokeAsync(StateHasChanged);
+            }
+
+            {
+                return;
             }
         }
-        else if (renderBatch.ViewModel is not null &&
-                 renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
                 null,
                 CancellationToken.None);
+
+            {
+                return;
+            }
         }
-        else if (renderBatch.ViewModel is not null &&
-                 renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
+
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
         {
             _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
             await InvokeAsync(StateHasChanged);
+
+            {
+                return;
+            }
         }
     }
 
@@ -225,16 +245,24 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnKeyDownAsync(KeyboardEventArgs keyboardEventArgs)
     {
-        var safeRefModel = GetModel();
-        var safeRefViewModel = GetViewModel();
-
-        if (safeRefModel is null ||
-            safeRefViewModel is null)
+        if (keyboardEventArgs.Key == "Shift" ||
+            keyboardEventArgs.Key == "Control" ||
+            keyboardEventArgs.Key == "Alt" ||
+            keyboardEventArgs.Key == "Meta")
         {
             return;
         }
 
-        var primaryCursorSnapshot = new TextEditorCursorSnapshot(safeRefViewModel.PrimaryCursor);
+        var model = GetModel();
+        var viewModel = GetViewModel();
+
+        if (model is null ||
+            viewModel is null)
+        {
+            return;
+        }
+
+        var primaryCursorSnapshot = new TextEditorCursorSnapshot(viewModel.PrimaryCursor);
 
         var cursorSnapshots = new TextEditorCursorSnapshot[]
         {
@@ -242,8 +270,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }.ToImmutableArray();
 
         var hasSelection = TextEditorSelectionHelper
-                .HasSelectedText(
-                    primaryCursorSnapshot.ImmutableCursor.ImmutableSelection);
+            .HasSelectedText(
+                primaryCursorSnapshot.ImmutableCursor.ImmutableSelection);
 
         var command = TextEditorService
             .OptionsWrap.Value.Options.KeymapDefinition!.Keymap.Map(
@@ -272,7 +300,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 TextEditorCursor.MoveCursor(
                     keyboardEventArgs,
                     primaryCursorSnapshot.UserCursor,
-                    safeRefModel);
+                    model);
 
                 TextEditorCursorDisplay?.SetShouldDisplayMenuAsync(TextEditorMenuKind.None);
             }
@@ -287,11 +315,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             {
                 await command.DoAsyncFunc.Invoke(
                     new TextEditorCommandParameter(
-                        safeRefModel,
+                        model,
                         cursorSnapshots,
                         ClipboardService,
                         TextEditorService,
-                        safeRefViewModel,
+                        viewModel,
                         HandleGotoDefinitionWithinDifferentFileAction));
             }
             else
@@ -307,12 +335,28 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     }
                 }
 
-                Dispatcher.Dispatch(
-                    new TextEditorModelsCollection.KeyboardEventAction(
-                        safeRefViewModel.ModelKey,
-                        cursorSnapshots,
-                        keyboardEventArgs,
-                        CancellationToken.None));
+                _mouseStoppedEventMostRecentResult = null;
+
+                var backgroundTask = new BackgroundTask(
+                    cancellationToken =>
+                    {
+                        Dispatcher.Dispatch(
+                            new TextEditorModelsCollection.KeyboardEventAction(
+                            viewModel.ModelKey,
+                            cursorSnapshots,
+                            keyboardEventArgs,
+                            CancellationToken.None));
+
+                        return Task.CompletedTask;
+                    },
+                    "HandleOnKeyDownAsync",
+                    "TODO: Describe this task",
+                    false,
+                    _ => Task.CompletedTask,
+                    Dispatcher,
+                    CancellationToken.None);
+
+                TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
             }
         }
 
@@ -331,26 +375,13 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (cursorDisplay is not null)
         {
-            var textEditor = safeRefModel;
+            var textEditor = model;
 
-            // ICommonBackgroundTaskQueue does not work well here because
-            // this Task does not need to be tracked.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await afterOnKeyDownAsync.Invoke(
-                        textEditor,
-                        cursorSnapshots,
-                        keyboardEventArgs,
-                        cursorDisplay.SetShouldDisplayMenuAsync);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }, CancellationToken.None);
+            await afterOnKeyDownAsync.Invoke(
+                textEditor,
+                cursorSnapshots,
+                keyboardEventArgs,
+                cursorDisplay.SetShouldDisplayMenuAsync);
         }
     }
 
@@ -715,18 +746,21 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
         else if (IsSyntaxHighlightingInvoker(keyboardEventArgs))
         {
-            // The TextEditorModel may have been changed by the time this logic is ran and
-            // thus the local variable must be updated accordingly.
-            var temporaryTextEditor = GetModel();
-
-            if (temporaryTextEditor is not null)
+            await _throttleApplySyntaxHighlighting.FireAsync(async () =>
             {
-                textEditor = temporaryTextEditor;
+                // The TextEditorModel may have been changed by the time this logic is ran and
+                // thus the local variable must be updated accordingly.
+                var temporaryTextEditor = GetModel();
 
-                await textEditor.ApplySyntaxHighlightingAsync();
+                if (temporaryTextEditor is not null)
+                {
+                    textEditor = temporaryTextEditor;
 
-                ChangeLastPresentationLayer();
-            }
+                    await textEditor.ApplySyntaxHighlightingAsync();
+
+                    ChangeLastPresentationLayer();
+                }
+            });
         }
     }
 
