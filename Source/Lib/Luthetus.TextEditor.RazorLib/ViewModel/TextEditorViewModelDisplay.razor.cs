@@ -114,8 +114,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        Console.WriteLine("OnParametersSetAsync");
-
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
@@ -135,8 +133,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        Console.WriteLine("OnInitialized");
-
         ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
@@ -163,8 +159,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (localViewModelKeyParameterHasChanged)
         {
-            Console.WriteLine("localViewModelKeyParameterHasChanged");
-            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+            _ = Task.Run(() =>
+            {
+                GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+            });
+
             return;
         }
 
