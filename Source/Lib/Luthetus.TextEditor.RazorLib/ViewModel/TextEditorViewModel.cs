@@ -199,6 +199,9 @@ public record TextEditorViewModel
 
         await ThrottleCalculateVirtualizationResult.FireAsync(async () =>
         {
+            // Don't ever re-calculate with this ViewModel
+            IsOutOfDate = true;
+
             var localCharacterWidthAndRowHeight = VirtualizationResult.CharacterWidthAndRowHeight;
 
             if (bodyMeasurementsInPixels is null)
@@ -398,9 +401,6 @@ public record TextEditorViewModel
                     MarginScrollHeight = marginScrollHeight
                 },
                 localCharacterWidthAndRowHeight);
-
-            // Don't ever re-calculate with this ViewModel
-            IsOutOfDate = true;
 
             TextEditorService.ViewModel.With(
                 ViewModelKey,

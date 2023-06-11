@@ -23,6 +23,9 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
 using Luthetus.Common.RazorLib.Reactive;
+using Microsoft.AspNetCore.Components.RenderTree;
+using Luthetus.TextEditor.RazorLib.HostedServiceCase;
+using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -45,7 +48,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
-    private ICommonBackgroundTaskQueue CommonBackgroundTaskQueue { get; set; } = null!;
+    private ITextEditorBackgroundTaskQueue TextEditorBackgroundTaskQueue { get; set; } = null!;
 
     [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
     public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
@@ -103,7 +106,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
-    private int _counter;
     private bool _viewModelKeyParameterHasChanged;
     
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
@@ -188,42 +190,48 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        await InvokeAsync(StateHasChanged);
+        var renderBatch = new TextEditorRenderBatch(
+            GetModel(),
+            GetViewModel(),
+            GetOptions());
 
-        // Re-measure
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
-            var renderBatch = new TextEditorRenderBatch(
-                GetModel(),
-                GetViewModel(),
-                GetOptions());
-
-            if (renderBatch.ViewModel is not null &&
-                renderBatch.ViewModel.IsDirty(renderBatch.Options))
+            if (renderBatch.Options is not null)
             {
-                if (renderBatch.Options is not null)
-                {
-                    await renderBatch.ViewModel.RemeasureAsync(
-                        renderBatch.Options,
-                        MeasureCharacterWidthAndRowHeightElementId,
-                        _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
-                }
+                await renderBatch.ViewModel.RemeasureAsync(
+                    renderBatch.Options,
+                    MeasureCharacterWidthAndRowHeightElementId,
+                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+            }
+
+            {
+                return;
             }
         }
-
-        // Re-calculate
+        
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
-            var renderBatch = new TextEditorRenderBatch(
-                GetModel(),
-                GetViewModel(),
-                GetOptions());
+            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                renderBatch.Model,
+                null,
+                CancellationToken.None);
 
-            if (renderBatch.ViewModel is not null &&
-                renderBatch.ViewModel.IsDirty(renderBatch.Model))
             {
-                await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                    renderBatch.Model,
-                    null,
-                    CancellationToken.None);
+                return;
+            }
+        }
+        
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
+        {
+            _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
+            
+            {
+                await InvokeAsync(StateHasChanged);
+                return;
             }
         }
     }
@@ -244,16 +252,16 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             return;
         }
 
-        var safeRefModel = GetModel();
-        var safeRefViewModel = GetViewModel();
+        var model = GetModel();
+        var viewModel = GetViewModel();
 
-        if (safeRefModel is null ||
-            safeRefViewModel is null)
+        if (model is null ||
+            viewModel is null)
         {
             return;
         }
 
-        var primaryCursorSnapshot = new TextEditorCursorSnapshot(safeRefViewModel.PrimaryCursor);
+        var primaryCursorSnapshot = new TextEditorCursorSnapshot(viewModel.PrimaryCursor);
 
         var cursorSnapshots = new TextEditorCursorSnapshot[]
         {
@@ -261,8 +269,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }.ToImmutableArray();
 
         var hasSelection = TextEditorSelectionHelper
-                .HasSelectedText(
-                    primaryCursorSnapshot.ImmutableCursor.ImmutableSelection);
+            .HasSelectedText(
+                primaryCursorSnapshot.ImmutableCursor.ImmutableSelection);
 
         var command = TextEditorService
             .OptionsWrap.Value.Options.KeymapDefinition!.Keymap.Map(
@@ -291,7 +299,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 TextEditorCursor.MoveCursor(
                     keyboardEventArgs,
                     primaryCursorSnapshot.UserCursor,
-                    safeRefModel);
+                    model);
 
                 TextEditorCursorDisplay?.SetShouldDisplayMenuAsync(TextEditorMenuKind.None);
             }
@@ -306,11 +314,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             {
                 await command.DoAsyncFunc.Invoke(
                     new TextEditorCommandParameter(
-                        safeRefModel,
+                        model,
                         cursorSnapshots,
                         ClipboardService,
                         TextEditorService,
-                        safeRefViewModel,
+                        viewModel,
                         HandleGotoDefinitionWithinDifferentFileAction));
             }
             else
@@ -326,12 +334,26 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     }
                 }
 
-                Dispatcher.Dispatch(
-                    new TextEditorModelsCollection.KeyboardEventAction(
-                        safeRefViewModel.ModelKey,
-                        cursorSnapshots,
-                        keyboardEventArgs,
-                        CancellationToken.None));
+                var backgroundTask = new BackgroundTask(
+                    cancellationToken =>
+                    {
+                        Dispatcher.Dispatch(
+                            new TextEditorModelsCollection.KeyboardEventAction(
+                            viewModel.ModelKey,
+                            cursorSnapshots,
+                            keyboardEventArgs,
+                            CancellationToken.None));
+
+                        return Task.CompletedTask;
+                    },
+                    "HandleOnKeyDownAsync",
+                    "TODO: Describe this task",
+                    false,
+                    _ => Task.CompletedTask,
+                    Dispatcher,
+                    CancellationToken.None);
+
+                TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
             }
         }
 
@@ -350,7 +372,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (cursorDisplay is not null)
         {
-            var textEditor = safeRefModel;
+            var textEditor = model;
 
             await afterOnKeyDownAsync.Invoke(
                 textEditor,
