@@ -92,6 +92,7 @@ public class LuthetusTextEditorTestingBase
             null,
             null,
             null,
+            new(),
             TextEditorModelKey);
 
         TextEditorService.Model.RegisterCustom(textEditor);

@@ -168,9 +168,10 @@ public partial interface ITextEditorService
                 decorationMapper,
                 null,
                 null,
+                new(),
                 textEditorModelKey);
 
-            // IBackgroundTaskQueue does not work well here because
+            // ICommonBackgroundTaskQueue does not work well here because
             // this Task does not need to be tracked.
             _ = Task.Run(async () =>
             {

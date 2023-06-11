@@ -104,22 +104,25 @@ public partial class RowSection : ComponentBase
     private void VirtualizationDisplayItemsProviderFunc(
         VirtualizationRequest virtualizationRequest)
     {
-        // IBackgroundTaskQueue does not work well here because
+        // ICommonBackgroundTaskQueue does not work well here because
         // this Task does not need to be tracked.
         _ = Task.Run(async () =>
         {
+            Task calculateVirtualizationResultTask = Task.CompletedTask;
+
             try
             {
-                await TextEditorViewModel.CalculateVirtualizationResultAsync(
+                calculateVirtualizationResultTask = TextEditorViewModel.CalculateVirtualizationResultAsync(
                     TextEditorModel,
                     null,
-                    false,
                     virtualizationRequest.CancellationToken);
+
+                await calculateVirtualizationResultTask;
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine(e);
-                throw;
+                if (!calculateVirtualizationResultTask.IsCanceled)
+                    throw;
             }
         }, CancellationToken.None);
     }

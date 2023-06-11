@@ -51,5 +51,6 @@ public partial class TextEditorModel
     public RenderStateKey RenderStateKey { get; } = RenderStateKey.NewRenderStateKey();
     public ISemanticModel? SemanticModel { get; }
     public ITextEditorKeymap TextEditorKeymap { get; }
+    public TextEditorSaveFileHelper TextEditorSaveFileHelper { get; } = new();
     public TextEditorOptions? TextEditorOptions { get; }
 }

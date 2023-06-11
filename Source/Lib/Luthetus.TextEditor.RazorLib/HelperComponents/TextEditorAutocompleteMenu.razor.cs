@@ -118,7 +118,7 @@ public partial class TextEditorAutocompleteMenu : ComponentBase
 
     private void SelectMenuOption(Func<Task> menuOptionAction)
     {
-        // IBackgroundTaskQueue does not work well here because
+        // ICommonBackgroundTaskQueue does not work well here because
         // this Task does not need to be tracked.
         _ = Task.Run(async () =>
         {

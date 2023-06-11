@@ -105,22 +105,14 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     {
         _scrollEventCancellationTokenSource.Cancel();
 
-        // IBackgroundTaskQueue does not work well here because
+        // ICommonBackgroundTaskQueue does not work well here because
         // this Task does not need to be tracked.
         _ = Task.Run(async () =>
         {
-            try
-            {
-                await JsRuntime.InvokeVoidAsync(
-                    "luthetusTextEditor.disposeVirtualizationIntersectionObserver",
-                    CancellationToken.None,
-                    _virtualizationDisplayGuid.ToString());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            await JsRuntime.InvokeVoidAsync(
+                "luthetusTextEditor.disposeVirtualizationIntersectionObserver",
+                CancellationToken.None,
+                _virtualizationDisplayGuid.ToString());
         }, CancellationToken.None);
     }
 }

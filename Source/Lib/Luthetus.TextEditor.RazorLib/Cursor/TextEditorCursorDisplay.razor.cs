@@ -365,7 +365,7 @@ public partial class TextEditorCursorDisplay : ComponentBase, IDisposable
 
         if (IsFocusTarget)
         {
-            // IBackgroundTaskQueue does not work well here because
+            // ICommonBackgroundTaskQueue does not work well here because
             // this Task does not need to be tracked.
             _ = Task.Run(async () =>
             {

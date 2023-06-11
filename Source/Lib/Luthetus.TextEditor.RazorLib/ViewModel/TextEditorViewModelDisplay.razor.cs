@@ -1,14 +1,10 @@
 ﻿using System.Collections.Immutable;
 using Fluxor;
-using Luthetus.Common.RazorLib.BackgroundTaskCase;
 using Luthetus.Common.RazorLib.Clipboard;
 using Luthetus.Common.RazorLib.Dimensions;
 using Luthetus.Common.RazorLib.JavaScriptObjects;
 using Luthetus.Common.RazorLib.Keyboard;
 using Luthetus.Common.RazorLib.Misc;
-using Luthetus.Common.RazorLib.Reactive;
-using Luthetus.Common.RazorLib.RenderTracker;
-using Luthetus.Common.RazorLib.Store.RenderTrackerCase;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
@@ -25,6 +21,7 @@ using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -47,7 +44,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Inject]
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
-    private IBackgroundTaskQueue BackgroundTaskQueue { get; set; } = null!;
+    private ICommonBackgroundTaskQueue CommonBackgroundTaskQueue { get; set; } = null!;
 
     [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
     public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
@@ -84,14 +81,12 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     [Parameter]
     public bool IncludeContextMenuHelperComponent { get; set; } = true;
 
-
-    private readonly IThrottle<byte> _afterOnKeyDownSyntaxHighlightingThrottle = new Throttle<byte>(TimeSpan.FromMilliseconds(750));
-    private readonly IThrottle<(MouseEventArgs, bool thinksLeftMouseButtonIsDown)> _onMouseMoveThrottle = new Throttle<(MouseEventArgs, bool thinksLeftMouseButtonIsDown)>(TimeSpan.FromMilliseconds(30));
-    private readonly IThrottle<(TouchEventArgs, bool thinksLeftMouseButtonIsDown)> _onTouchMoveThrottle = new Throttle<(TouchEventArgs, bool thinksLeftMouseButtonIsDown)>(TimeSpan.FromMilliseconds(30));
-
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
-    private TextEditorViewModelKey _activeTextEditorViewModelKey = TextEditorViewModelKey.Empty;
+    private readonly object _viewModelKeyParameterHasChangedLock = new();
+
+    private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
+    private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
     private bool _thinksLeftMouseButtonIsDown;
     private bool _thinksTouchIsOccurring;
@@ -99,33 +94,33 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private DateTime? _touchStartDateTime = null;
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
-    private RenderStateKey _currentViewModelRenderStateKey = RenderStateKey.Empty;
     private Task _mouseStoppedMovingTask = Task.CompletedTask;
     private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
+    private int _counter;
+    private bool _viewModelKeyParameterHasChanged;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
     private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
     private string ProportionalFontMeasurementsContainerElementId => $"luth_te_text-editor-proportional-font-measurement-container_{_textEditorHtmlElementId}";
-    private string RenderTrackerDisplayName => $"{nameof(TextEditorViewModelDisplay)}_{_textEditorHtmlElementId}";
 
     protected override async Task OnParametersSetAsync()
     {
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
-            _activeTextEditorViewModelKey != currentViewModel.ViewModelKey)
+            currentViewModel.ViewModelKey != _activeViewModelKey)
         {
-            _activeTextEditorViewModelKey = currentViewModel.ViewModelKey;
-
+            _activeViewModelKey = currentViewModel.ViewModelKey;
             currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
-        }
-        else
-        {
-            _activeTextEditorViewModelKey = TextEditorViewModelKey.Empty;
+
+            lock (_viewModelKeyParameterHasChangedLock)
+            {
+                _viewModelKeyParameterHasChanged = true;
+            }
         }
 
         await base.OnParametersSetAsync();
@@ -133,41 +128,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        var renderTrackerObject = new RenderTrackerObject(
-            RenderTrackerDisplayName,
-            DateTime.UtcNow.Ticks,
-            "Show a text editor");
-
-        Dispatcher.Dispatch(
-            new RenderTrackerState.RegisterAction(
-                renderTrackerObject));
-
         ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
 
         base.OnInitialized();
-    }
-
-    /// <summary>Is ShouldRender() guaranteed to result in a render if I return true?</summary>
-    protected override bool ShouldRender()
-    {
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
-
-        if (renderBatch.ViewModel is null)
-            return true;
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
-            return true;
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
-            return true;
-        else if (renderBatch.ViewModel.RenderStateKey != _currentViewModelRenderStateKey)
-            return true;
-
-        // TODO: Perhaps "return false" should be changed to "return base.ShouldRender();" for the sake of MouseEvents? Meaning to say, does "return false" break anything?
-        return base.ShouldRender();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -179,74 +144,28 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 ContentElementId);
         }
 
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
+        bool localViewModelKeyParameterHasChanged;
 
-        if (renderBatch?.ViewModel is null)
+        lock (_viewModelKeyParameterHasChangedLock)
         {
-            goto finalize;
-        }
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Options))
-        {
-            if (renderBatch.Options is not null)
-            {
-                // Tracking renders while working to fix a infinite render loop bug.
-                {
-                    var renderTrackerEntry = new RenderTrackerEntry(
-                                        DateTime.UtcNow.Ticks,
-                                        "RemeasureAsync");
-
-                    Dispatcher.Dispatch(
-                        new RenderTrackerState.AddEntryAction(
-                            RenderTrackerDisplayName,
-                            renderTrackerEntry));
-                }
-
-                await renderBatch.ViewModel.RemeasureAsync(
-                    renderBatch.Options,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
-            }
-
-            goto finalize;
-        }
-        else if (renderBatch.ViewModel.IsDirty(renderBatch.Model))
-        {
-            // Tracking renders while working to fix a infinite render loop bug.
-            {
-                var renderTrackerEntry = new RenderTrackerEntry(
-                                    DateTime.UtcNow.Ticks,
-                                    "CalculateVirtualizationResultAsync");
-
-                Dispatcher.Dispatch(
-                    new RenderTrackerState.AddEntryAction(
-                        RenderTrackerDisplayName,
-                        renderTrackerEntry));
-            }
-
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                false,
-                CancellationToken.None);
-
-            goto finalize;
-        }
-        else
-        {
-            if (renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
-            {
-                renderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
-                await FocusTextEditorAsync();
-            }
-
-            goto finalize;
+            localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
+            _viewModelKeyParameterHasChanged = false;
         }
 
-        finalize:
-        _currentViewModelRenderStateKey = renderBatch?.ViewModel?.RenderStateKey ?? RenderStateKey.Empty;
+        if (localViewModelKeyParameterHasChanged)
+        {
+            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+            return;
+        }
+
+        var viewModel = GetViewModel();
+
+        if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
+        {
+            viewModel.ShouldSetFocusAfterNextRender = false;
+            await FocusTextEditorAsync();
+        }
+
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -260,19 +179,42 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "GeneralOnStateChangedEventHandler");
+        var renderBatch = new TextEditorRenderBatch(
+            GetModel(),
+            GetViewModel(),
+            GetOptions());
 
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
+        if (renderBatch.ViewModel is null ||
+            renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
+        { 
+            return;
         }
 
-        await InvokeAsync(StateHasChanged);
+        if (renderBatch.ViewModel is not null &&
+            renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        {
+            if (renderBatch.Options is not null)
+            {
+                await renderBatch.ViewModel.RemeasureAsync(
+                    renderBatch.Options,
+                    MeasureCharacterWidthAndRowHeightElementId,
+                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+            }
+        }
+        else if (renderBatch.ViewModel is not null &&
+                 renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        {
+            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                renderBatch.Model,
+                null,
+                CancellationToken.None);
+        }
+        else if (renderBatch.ViewModel is not null &&
+                 renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
+        {
+            _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     public async Task FocusTextEditorAsync()
@@ -283,18 +225,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnKeyDownAsync(KeyboardEventArgs keyboardEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleOnKeyDownAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var safeRefModel = GetModel();
         var safeRefViewModel = GetViewModel();
 
@@ -377,18 +307,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     }
                 }
 
-                // Tracking renders while working to fix a infinite render loop bug.
-                {
-                    var renderTrackerEntry = new RenderTrackerEntry(
-                                        DateTime.UtcNow.Ticks,
-                                        "KeyboardEventAction");
-
-                    Dispatcher.Dispatch(
-                        new RenderTrackerState.AddEntryAction(
-                            RenderTrackerDisplayName,
-                            renderTrackerEntry));
-                }
-
                 Dispatcher.Dispatch(
                     new TextEditorModelsCollection.KeyboardEventAction(
                         safeRefViewModel.ModelKey,
@@ -415,7 +333,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             var textEditor = safeRefModel;
 
-            // IBackgroundTaskQueue does not work well here because
+            // ICommonBackgroundTaskQueue does not work well here because
             // this Task does not need to be tracked.
             _ = Task.Run(async () =>
             {
@@ -443,18 +361,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleContentOnDoubleClickAsync(MouseEventArgs mouseEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleContentOnDoubleClickAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var safeRefModel = GetModel();
         var safeRefViewModel = GetViewModel();
 
@@ -537,18 +443,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleContentOnMouseDownAsync(MouseEventArgs mouseEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleContentOnMouseDownAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var safeRefModel = GetModel();
         var safeRefViewModel = GetViewModel();
 
@@ -618,32 +512,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     /// <summary>OnMouseUp is unnecessary</summary>
     private async Task HandleContentOnMouseMoveAsync(MouseEventArgs mouseEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            // TODO: Temporarily commenting out this render tracking. It happens so much that I pretty much cannot see anything other than it.
-            //var renderTrackerEntry = new RenderTrackerEntry(
-            //                    DateTime.UtcNow.Ticks,
-            //                    "HandleContentOnMouseMoveAsync");
-
-            //Dispatcher.Dispatch(
-            //    new RenderTrackerState.AddEntryAction(
-            //        RenderTrackerDisplayName,
-            //        renderTrackerEntry));
-        }
-
         _userMouseIsInside = true;
 
         var localThinksLeftMouseButtonIsDown = _thinksLeftMouseButtonIsDown;
-
-        var mostRecentEventArgs = await _onMouseMoveThrottle.FireAsync(
-            (mouseEventArgs, localThinksLeftMouseButtonIsDown),
-            CancellationToken.None);
-
-        if (mostRecentEventArgs.isCancellationRequested)
-            return;
-
-        localThinksLeftMouseButtonIsDown = mostRecentEventArgs.tEventArgs.thinksLeftMouseButtonIsDown;
-        mouseEventArgs = mostRecentEventArgs.tEventArgs.Item1;
 
         // MouseStoppedMovingEvent
         {
@@ -813,18 +684,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         KeyboardEventArgs keyboardEventArgs,
         Func<TextEditorMenuKind, bool, Task> setTextEditorMenuKind)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleAfterOnKeyDownAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var primaryCursorSnapshot = cursorSnapshots
             .First(x =>
                 x.UserCursor.IsPrimaryCursor);
@@ -856,14 +715,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
         else if (IsSyntaxHighlightingInvoker(keyboardEventArgs))
         {
-            var mostRecentEventArgs = await _afterOnKeyDownSyntaxHighlightingThrottle
-                .FireAsync(
-                    0,
-                    CancellationToken.None);
-
-            if (mostRecentEventArgs.isCancellationRequested)
-                return;
-
             // The TextEditorModel may have been changed by the time this logic is ran and
             // thus the local variable must be updated accordingly.
             var temporaryTextEditor = GetModel();
@@ -875,18 +726,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 await textEditor.ApplySyntaxHighlightingAsync();
 
                 ChangeLastPresentationLayer();
-
-                // Tracking renders while working to fix a infinite render loop bug.
-                {
-                    var renderTrackerEntry = new RenderTrackerEntry(
-                                        DateTime.UtcNow.Ticks,
-                                        "ApplySyntaxHighlightingAsync");
-
-                    Dispatcher.Dispatch(
-                        new RenderTrackerState.AddEntryAction(
-                            RenderTrackerDisplayName,
-                            renderTrackerEntry));
-                }
             }
         }
     }
@@ -993,18 +832,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnWheelAsync(WheelEventArgs wheelEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleOnWheelAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var textEditorViewModel = GetViewModel();
 
         if (textEditorViewModel is null)
@@ -1041,18 +868,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private Task HandleOnTouchStartAsync(TouchEventArgs touchEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleOnTouchStartAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         _touchStartDateTime = DateTime.UtcNow;
 
         _previousTouchEventArgs = touchEventArgs;
@@ -1063,32 +878,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnTouchMoveAsync(TouchEventArgs touchEventArgs)
     {
-        // Tracking renders while working to fix a infinite render loop bug.
-        {
-            var renderTrackerEntry = new RenderTrackerEntry(
-                                DateTime.UtcNow.Ticks,
-                                "HandleOnTouchMoveAsync");
-
-            Dispatcher.Dispatch(
-                new RenderTrackerState.AddEntryAction(
-                    RenderTrackerDisplayName,
-                    renderTrackerEntry));
-        }
-
         var localThinksTouchIsOccurring = _thinksTouchIsOccurring;
 
         if (!_thinksTouchIsOccurring)
             return;
-
-        var mostRecentEventArgs = await _onTouchMoveThrottle.FireAsync(
-            (touchEventArgs, localThinksTouchIsOccurring),
-            CancellationToken.None);
-
-        if (mostRecentEventArgs.isCancellationRequested)
-            return;
-
-        localThinksTouchIsOccurring = mostRecentEventArgs.tEventArgs.thinksLeftMouseButtonIsDown;
-        touchEventArgs = mostRecentEventArgs.tEventArgs.Item1;
 
         var previousTouchPoint = _previousTouchEventArgs?.ChangedTouches
             .FirstOrDefault(x => x.Identifier == 0);
@@ -1196,10 +989,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         ModelsCollectionWrap.StateChanged -= GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged -= GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged -= GeneralOnStateChangedEventHandler;
-
-        Dispatcher.Dispatch(
-            new RenderTrackerState.DisposeAction(
-                RenderTrackerDisplayName));
 
         _mouseStoppedMovingCancellationTokenSource.Cancel();
     }
