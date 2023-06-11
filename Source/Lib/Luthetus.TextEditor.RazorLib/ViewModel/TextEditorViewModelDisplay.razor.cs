@@ -203,6 +203,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     renderBatch.Options,
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+
+                await InvokeAsync(StateHasChanged);
             }
 
             {
@@ -222,14 +224,14 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 return;
             }
         }
-        
+
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
         {
             _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-            
+            await InvokeAsync(StateHasChanged);
+
             {
-                await InvokeAsync(StateHasChanged);
                 return;
             }
         }
