@@ -90,7 +90,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private readonly object _viewModelKeyParameterHasChangedLock = new();
 
     private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
-    private readonly IThrottle _throttleHandleOnWheel = new Throttle(IThrottle.DefaultThrottleTimeSpan);
 
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
@@ -333,6 +332,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         TextEditorCursorDisplay?.SetShouldDisplayMenuAsync(TextEditorMenuKind.None);
                     }
                 }
+
+                _mouseStoppedEventMostRecentResult = null;
 
                 var backgroundTask = new BackgroundTask(
                     cancellationToken =>
@@ -863,24 +864,21 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnWheelAsync(WheelEventArgs wheelEventArgs)
     {
-        await _throttleHandleOnWheel.FireAsync(async () =>
+        var textEditorViewModel = GetViewModel();
+
+        if (textEditorViewModel is null)
+            return;
+
+        if (wheelEventArgs.ShiftKey)
         {
-            var textEditorViewModel = GetViewModel();
-
-            if (textEditorViewModel is null)
-                return;
-
-            if (wheelEventArgs.ShiftKey)
-            {
-                await textEditorViewModel.MutateScrollHorizontalPositionByPixelsAsync(
-                    wheelEventArgs.DeltaY);
-            }
-            else
-            {
-                await textEditorViewModel.MutateScrollVerticalPositionByPixelsAsync(
-                    wheelEventArgs.DeltaY);
-            }
-        });
+            await textEditorViewModel.MutateScrollHorizontalPositionByPixelsAsync(
+                wheelEventArgs.DeltaY);
+        }
+        else
+        {
+            await textEditorViewModel.MutateScrollVerticalPositionByPixelsAsync(
+                wheelEventArgs.DeltaY);
+        }
     }
 
     private string GetGlobalHeightInPixelsStyling()
