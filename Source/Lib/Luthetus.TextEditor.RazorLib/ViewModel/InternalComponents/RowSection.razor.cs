@@ -35,8 +35,6 @@ public partial class RowSection : ComponentBase
     public bool IncludeContextMenuHelperComponent { get; set; }
 
     public TextEditorCursorDisplay? TextEditorCursorDisplayComponent { get; private set; }
-    
-    private IThrottle _throttleVirtualizationDisplayItemsProviderFunc = new Throttle(IThrottle.DefaultThrottleTimeSpan);
 
     private string GetRowStyleCss(int index, double? virtualizedRowLeftInPixels)
     {
@@ -107,7 +105,9 @@ public partial class RowSection : ComponentBase
     private void VirtualizationDisplayItemsProviderFunc(
         VirtualizationRequest virtualizationRequest)
     {
-        _throttleVirtualizationDisplayItemsProviderFunc.FireAsync(async () =>
+        // IBackgroundTaskQueue does not work well here because
+        // this Task does not need to be tracked.
+        _ = Task.Run(async () =>
         {
             Task calculateVirtualizationResultTask = Task.CompletedTask;
 
@@ -125,6 +125,6 @@ public partial class RowSection : ComponentBase
                 if (!calculateVirtualizationResultTask.IsCanceled)
                     throw;
             }
-        });
+        }, CancellationToken.None);
     }
 }
