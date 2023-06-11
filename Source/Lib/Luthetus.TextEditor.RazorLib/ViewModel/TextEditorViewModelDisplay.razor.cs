@@ -86,6 +86,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private readonly object _viewModelKeyParameterHasChangedLock = new();
 
+    private readonly IThrottle _throttleGeneralOnStateChangedEvent = new Throttle(IThrottle.DefaultThrottleTimeSpan);
+    private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(IThrottle.DefaultThrottleTimeSpan);
+    private readonly IThrottle _throttleHandleOnWheel = new Throttle(IThrottle.DefaultThrottleTimeSpan);
+    private readonly IThrottle _throttleFocusTextEditor = new Throttle(IThrottle.DefaultThrottleTimeSpan);
+
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
@@ -102,8 +107,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private bool _userMouseIsInside;
     private int _counter;
     private bool _viewModelKeyParameterHasChanged;
-    private IThrottle _throttle = new Throttle(TimeSpan.FromMilliseconds(30));
-
+    
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
     private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
@@ -188,7 +192,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        // Always re-measure if necessary? The throttle was stopping measurements.
+        await InvokeAsync(StateHasChanged);
+
+        // Re-measure
         {
             var renderBatch = new TextEditorRenderBatch(
                 GetModel(),
@@ -196,10 +202,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 GetOptions());
 
             if (renderBatch.ViewModel is not null &&
-                            renderBatch.ViewModel.IsDirty(renderBatch.Options))
+                renderBatch.ViewModel.IsDirty(renderBatch.Options))
             {
-                Console.Write("O");
-
                 if (renderBatch.Options is not null)
                 {
                     await renderBatch.ViewModel.RemeasureAsync(
@@ -210,40 +214,22 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             }
         }
 
-        await _throttle.FireAsync(async () =>
+        // Re-calculate
         {
-            Console.Write("G");
-
             var renderBatch = new TextEditorRenderBatch(
                 GetModel(),
                 GetViewModel(),
                 GetOptions());
 
-            if (renderBatch.ViewModel is null ||
-                renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
-            {
-                return;
-            }
-
             if (renderBatch.ViewModel is not null &&
-                     renderBatch.ViewModel.IsDirty(renderBatch.Model))
+                renderBatch.ViewModel.IsDirty(renderBatch.Model))
             {
-                Console.Write("M");
-
                 await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                     renderBatch.Model,
                     null,
                     CancellationToken.None);
             }
-            else if (renderBatch.ViewModel is not null &&
-                     renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
-            {
-                Console.Write("R");
-
-                _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-                await InvokeAsync(StateHasChanged);
-            }
-        });
+        }
     }
 
     public async Task FocusTextEditorAsync()
@@ -254,6 +240,14 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnKeyDownAsync(KeyboardEventArgs keyboardEventArgs)
     {
+        if (keyboardEventArgs.Key == "Shift" ||
+            keyboardEventArgs.Key == "Control" ||
+            keyboardEventArgs.Key == "Alt" ||
+            keyboardEventArgs.Key == "Meta")
+        {
+            return;
+        }
+
         var safeRefModel = GetModel();
         var safeRefViewModel = GetViewModel();
 
@@ -362,24 +356,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             var textEditor = safeRefModel;
 
-            // ICommonBackgroundTaskQueue does not work well here because
-            // this Task does not need to be tracked.
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await afterOnKeyDownAsync.Invoke(
-                        textEditor,
-                        cursorSnapshots,
-                        keyboardEventArgs,
-                        cursorDisplay.SetShouldDisplayMenuAsync);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }, CancellationToken.None);
+            await afterOnKeyDownAsync.Invoke(
+                textEditor,
+                cursorSnapshots,
+                keyboardEventArgs,
+                cursorDisplay.SetShouldDisplayMenuAsync);
         }
     }
 
@@ -744,18 +725,21 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
         else if (IsSyntaxHighlightingInvoker(keyboardEventArgs))
         {
-            // The TextEditorModel may have been changed by the time this logic is ran and
-            // thus the local variable must be updated accordingly.
-            var temporaryTextEditor = GetModel();
-
-            if (temporaryTextEditor is not null)
+            await _throttleApplySyntaxHighlighting.FireAsync(async () =>
             {
-                textEditor = temporaryTextEditor;
+                // The TextEditorModel may have been changed by the time this logic is ran and
+                // thus the local variable must be updated accordingly.
+                var temporaryTextEditor = GetModel();
 
-                await textEditor.ApplySyntaxHighlightingAsync();
+                if (temporaryTextEditor is not null)
+                {
+                    textEditor = temporaryTextEditor;
 
-                ChangeLastPresentationLayer();
-            }
+                    await textEditor.ApplySyntaxHighlightingAsync();
+
+                    ChangeLastPresentationLayer();
+                }
+            });
         }
     }
 
@@ -861,21 +845,24 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async Task HandleOnWheelAsync(WheelEventArgs wheelEventArgs)
     {
-        var textEditorViewModel = GetViewModel();
-
-        if (textEditorViewModel is null)
-            return;
-
-        if (wheelEventArgs.ShiftKey)
+        await _throttleHandleOnWheel.FireAsync(async () =>
         {
-            await textEditorViewModel.MutateScrollHorizontalPositionByPixelsAsync(
-                wheelEventArgs.DeltaY);
-        }
-        else
-        {
-            await textEditorViewModel.MutateScrollVerticalPositionByPixelsAsync(
-                wheelEventArgs.DeltaY);
-        }
+            var textEditorViewModel = GetViewModel();
+
+            if (textEditorViewModel is null)
+                return;
+
+            if (wheelEventArgs.ShiftKey)
+            {
+                await textEditorViewModel.MutateScrollHorizontalPositionByPixelsAsync(
+                    wheelEventArgs.DeltaY);
+            }
+            else
+            {
+                await textEditorViewModel.MutateScrollVerticalPositionByPixelsAsync(
+                    wheelEventArgs.DeltaY);
+            }
+        });
     }
 
     private string GetGlobalHeightInPixelsStyling()
