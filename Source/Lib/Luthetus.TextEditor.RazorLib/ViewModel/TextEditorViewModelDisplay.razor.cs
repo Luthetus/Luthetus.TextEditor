@@ -86,10 +86,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private readonly object _viewModelKeyParameterHasChangedLock = new();
 
-    private readonly IThrottle _throttleGeneralOnStateChangedEvent = new Throttle(IThrottle.DefaultThrottleTimeSpan);
-    private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(IThrottle.DefaultThrottleTimeSpan);
+    private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
     private readonly IThrottle _throttleHandleOnWheel = new Throttle(IThrottle.DefaultThrottleTimeSpan);
-    private readonly IThrottle _throttleFocusTextEditor = new Throttle(IThrottle.DefaultThrottleTimeSpan);
 
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
@@ -147,8 +145,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Console.Write(".");
-
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
