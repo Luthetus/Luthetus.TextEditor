@@ -197,6 +197,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
+            await InvokeAsync(StateHasChanged);
+
             if (renderBatch.Options is not null)
             {
                 await renderBatch.ViewModel.RemeasureAsync(
@@ -204,11 +206,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
 
-                await InvokeAsync(StateHasChanged);
-            }
-
-            {
-                return;
+                // Refresh render batch
+                renderBatch = new TextEditorRenderBatch(
+                    GetModel(),
+                    GetViewModel(),
+                    GetOptions());
             }
         }
         
@@ -220,9 +222,11 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 null,
                 CancellationToken.None);
 
-            {
-                return;
-            }
+            // Refresh render batch
+            renderBatch = new TextEditorRenderBatch(
+                GetModel(),
+                GetViewModel(),
+                GetOptions());
         }
 
         if (renderBatch.ViewModel is not null &&
