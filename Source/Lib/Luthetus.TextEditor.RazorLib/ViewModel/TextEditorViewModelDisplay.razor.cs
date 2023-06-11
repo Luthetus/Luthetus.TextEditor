@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
+using Luthetus.Common.RazorLib.Reactive;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -101,6 +102,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private bool _userMouseIsInside;
     private int _counter;
     private bool _viewModelKeyParameterHasChanged;
+    private IThrottle _throttle = new Throttle(TimeSpan.FromMilliseconds(30));
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -109,6 +111,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
+        Console.WriteLine("OnParametersSetAsync");
+
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
@@ -128,6 +132,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
+        Console.WriteLine("OnInitialized");
+
         ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
@@ -137,6 +143,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        Console.Write(".");
+
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
@@ -154,6 +162,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         if (localViewModelKeyParameterHasChanged)
         {
+            Console.WriteLine("localViewModelKeyParameterHasChanged");
             GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
             return;
         }
@@ -179,42 +188,62 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
-
-        if (renderBatch.ViewModel is null ||
-            renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
-        { 
-            return;
-        }
-
-        if (renderBatch.ViewModel is not null &&
-            renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        // Always re-measure if necessary? The throttle was stopping measurements.
         {
-            if (renderBatch.Options is not null)
+            var renderBatch = new TextEditorRenderBatch(
+                GetModel(),
+                GetViewModel(),
+                GetOptions());
+
+            if (renderBatch.ViewModel is not null &&
+                            renderBatch.ViewModel.IsDirty(renderBatch.Options))
             {
-                await renderBatch.ViewModel.RemeasureAsync(
-                    renderBatch.Options,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                Console.Write("O");
+
+                if (renderBatch.Options is not null)
+                {
+                    await renderBatch.ViewModel.RemeasureAsync(
+                        renderBatch.Options,
+                        MeasureCharacterWidthAndRowHeightElementId,
+                        _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                }
             }
         }
-        else if (renderBatch.ViewModel is not null &&
-                 renderBatch.ViewModel.IsDirty(renderBatch.Model))
+
+        await _throttle.FireAsync(async () =>
         {
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                CancellationToken.None);
-        }
-        else if (renderBatch.ViewModel is not null &&
-                 renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
-        {
-            _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-            await InvokeAsync(StateHasChanged);
-        }
+            Console.Write("G");
+
+            var renderBatch = new TextEditorRenderBatch(
+                GetModel(),
+                GetViewModel(),
+                GetOptions());
+
+            if (renderBatch.ViewModel is null ||
+                renderBatch.ViewModel.ViewModelKey != _activeViewModelKey)
+            {
+                return;
+            }
+
+            if (renderBatch.ViewModel is not null &&
+                     renderBatch.ViewModel.IsDirty(renderBatch.Model))
+            {
+                Console.Write("M");
+
+                await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                    renderBatch.Model,
+                    null,
+                    CancellationToken.None);
+            }
+            else if (renderBatch.ViewModel is not null &&
+                     renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
+            {
+                Console.Write("R");
+
+                _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
+                await InvokeAsync(StateHasChanged);
+            }
+        });
     }
 
     public async Task FocusTextEditorAsync()

@@ -17,6 +17,11 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     public bool UseHorizontalVirtualization { get; set; } = true;
     [Parameter]
     public bool UseVerticalVirtualization { get; set; } = true;
+    /// <summary>
+    /// The Gutter for the TextEditor uses the VirtualizationDisplay. I am going to see if adding this property allows me to have the gutter be given 'vertical padding' by means of the virtualization boundaries. Yet, not any intersection observer logic.
+    /// </summary>
+    [Parameter]
+    public bool UseIntersectionObserver { get; set; } = true;
 
     private readonly Guid _virtualizationDisplayGuid = Guid.NewGuid();
 
@@ -54,32 +59,35 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     {
         if (firstRender)
         {
-            var boundaryIds = new List<object>();
-
-            if (UseHorizontalVirtualization)
+            if (UseIntersectionObserver)
             {
-                boundaryIds.AddRange(new[]
-                {
-                    LeftBoundaryElementId,
-                    RightBoundaryElementId,
-                });
-            }
+                var boundaryIds = new List<object>();
 
-            if (UseVerticalVirtualization)
-            {
-                boundaryIds.AddRange(new[]
+                if (UseHorizontalVirtualization)
                 {
-                    TopBoundaryElementId,
-                    BottomBoundaryElementId,
-                });
-            }
+                    boundaryIds.AddRange(new[]
+                    {
+                        LeftBoundaryElementId,
+                        RightBoundaryElementId,
+                    });
+                }
 
-            await JsRuntime.InvokeVoidAsync(
-                "luthetusTextEditor.initializeVirtualizationIntersectionObserver",
-                _virtualizationDisplayGuid.ToString(),
-                DotNetObjectReference.Create(this),
-                _scrollableParentFinder,
-                boundaryIds);
+                if (UseVerticalVirtualization)
+                {
+                    boundaryIds.AddRange(new[]
+                    {
+                        TopBoundaryElementId,
+                        BottomBoundaryElementId,
+                    });
+                }
+
+                await JsRuntime.InvokeVoidAsync(
+                    "luthetusTextEditor.initializeVirtualizationIntersectionObserver",
+                    _virtualizationDisplayGuid.ToString(),
+                    DotNetObjectReference.Create(this),
+                    _scrollableParentFinder,
+                    boundaryIds);
+            }
         }
 
         await base.OnAfterRenderAsync(firstRender);
@@ -105,14 +113,17 @@ public partial class VirtualizationDisplay : ComponentBase, IDisposable
     {
         _scrollEventCancellationTokenSource.Cancel();
 
-        // ICommonBackgroundTaskQueue does not work well here because
-        // this Task does not need to be tracked.
-        _ = Task.Run(async () =>
+        if (UseIntersectionObserver)
         {
-            await JsRuntime.InvokeVoidAsync(
-                "luthetusTextEditor.disposeVirtualizationIntersectionObserver",
-                CancellationToken.None,
-                _virtualizationDisplayGuid.ToString());
-        }, CancellationToken.None);
+            // ICommonBackgroundTaskQueue does not work well here because
+            // this Task does not need to be tracked.
+            _ = Task.Run(async () =>
+            {
+                await JsRuntime.InvokeVoidAsync(
+                    "luthetusTextEditor.disposeVirtualizationIntersectionObserver",
+                    CancellationToken.None,
+                    _virtualizationDisplayGuid.ToString());
+            }, CancellationToken.None);
+        }
     }
 }

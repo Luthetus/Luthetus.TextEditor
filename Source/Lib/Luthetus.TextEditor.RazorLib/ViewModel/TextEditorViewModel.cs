@@ -7,6 +7,7 @@ using Luthetus.TextEditor.RazorLib.Options;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.Virtualization;
+using Luthetus.Common.RazorLib.Reactive;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -18,8 +19,6 @@ public record TextEditorViewModel
         TextEditorModelKey modelKey,
         ITextEditorService textEditorService,
         VirtualizationResult<List<RichCharacter>> virtualizationResult,
-        bool shouldMeasureDimensions,
-        bool shouldCalculateVirtualizationResult,
         bool displayCommandBar)
     {
         ViewModelKey = viewModelKey;
@@ -192,8 +191,7 @@ public record TextEditorViewModel
             MeasurementsExpiredCancellationToken = cancellationToken
         };
 
-        if (model is null ||
-            bodyMeasurementsInPixels.MeasurementsExpiredCancellationToken.IsCancellationRequested)
+        if (model is null)
         {
             return;
         }
@@ -220,7 +218,7 @@ public record TextEditorViewModel
                 model.RowEndingPositions.Length)
             {
                 verticalTake = model.RowEndingPositions.Length -
-                               verticalStartingIndex;
+                                verticalStartingIndex;
             }
 
             verticalTake = Math.Max(0, verticalTake);
@@ -309,7 +307,7 @@ public record TextEditorViewModel
             var percentOfMarginScrollHeightByPageUnit = 0.4;
 
             marginScrollHeight = bodyMeasurementsInPixels.Height *
-                                 percentOfMarginScrollHeightByPageUnit;
+                                    percentOfMarginScrollHeightByPageUnit;
 
             totalHeight += marginScrollHeight;
         }
