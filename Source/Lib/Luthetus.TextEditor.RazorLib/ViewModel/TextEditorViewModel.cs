@@ -181,7 +181,7 @@ public record TextEditorViewModel
                 countOfTestCharacters);
 
             VirtualizationResult.CharacterWidthAndRowHeight = characterWidthAndRowHeight;
-
+            
             TextEditorService.ViewModel.With(
                 ViewModelKey,
                 previousViewModel => previousViewModel with
