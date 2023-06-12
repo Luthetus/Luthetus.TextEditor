@@ -194,7 +194,7 @@ public record TextEditorViewModel
                         CharacterWidthAndRowHeight = characterWidthAndRowHeight
                     },
                     RenderStateKey = RenderStateKey.NewRenderStateKey(),
-                    AlreadyCalculatedVirtualizationResult = false
+                    AlreadyRemeasured = false,
                 });
         });
     }
