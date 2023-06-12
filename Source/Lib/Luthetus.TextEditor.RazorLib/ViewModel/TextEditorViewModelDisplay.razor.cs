@@ -150,18 +150,42 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
 
         bool localViewModelKeyParameterHasChanged;
+        TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
 
         lock (_viewModelKeyParameterHasChangedLock)
         {
+            localActiveViewModelKey = _activeViewModelKey;
             localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
             _viewModelKeyParameterHasChanged = false;
         }
 
         if (localViewModelKeyParameterHasChanged)
         {
+            var backgroundTask = new BackgroundTask(
+                cancellationToken =>
+                {
+                    Dispatcher.Dispatch(
+                        new TextEditorViewModelsCollection.SetViewModelWithAction(
+                            localActiveViewModelKey,
+                            inTextEditorViewModel => inTextEditorViewModel with
+                            {
+                                RenderStateKey = RenderStateKey.NewRenderStateKey()
+                            }));
+
+                    return Task.CompletedTask;
+                },
+                "HandleOnKeyDownAsync",
+                "TODO: Describe this task",
+                false,
+                _ => Task.CompletedTask,
+                Dispatcher,
+                CancellationToken.None);
+
+            TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+
             _ = Task.Run(() =>
             {
-                GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+                
             });
 
             return;
@@ -196,8 +220,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
-            await InvokeAsync(StateHasChanged);
-
             if (renderBatch.Options is not null)
             {
                 await renderBatch.ViewModel.RemeasureAsync(
@@ -205,11 +227,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
 
-                // Refresh render batch
-                renderBatch = new TextEditorRenderBatch(
-                    GetModel(),
-                    GetViewModel(),
-                    GetOptions());
+                return;
             }
         }
         
@@ -221,11 +239,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 null,
                 CancellationToken.None);
 
-            // Refresh render batch
-            renderBatch = new TextEditorRenderBatch(
-                GetModel(),
-                GetViewModel(),
-                GetOptions());
+            return;
         }
 
         if (renderBatch.ViewModel is not null &&
@@ -234,9 +248,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
             await InvokeAsync(StateHasChanged);
 
-            {
-                return;
-            }
+            return;
         }
     }
 
