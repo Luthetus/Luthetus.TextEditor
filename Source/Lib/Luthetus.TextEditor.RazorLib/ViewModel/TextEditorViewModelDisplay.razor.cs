@@ -163,16 +163,27 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (localViewModelKeyParameterHasChanged)
         {
             var backgroundTask = new BackgroundTask(
-                cancellationToken =>
+                async cancellationToken =>
                 {
                     Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
                         localActiveViewModelKey,
                         inViewModel => inViewModel with
                         {
-                            AlreadyCalculatedVirtualizationResult = false
+                            AlreadyCalculatedVirtualizationResult = false,
+                            AlreadyRemeasured = false,
+                            RenderStateKey = RenderStateKey.NewRenderStateKey()
                         }));
 
-                    return Task.CompletedTask;
+                    await InvokeAsync(StateHasChanged);
+
+                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
+                        localActiveViewModelKey,
+                        inViewModel => inViewModel with
+                        {
+                            AlreadyCalculatedVirtualizationResult = false,
+                            AlreadyRemeasured = false,
+                            RenderStateKey = RenderStateKey.NewRenderStateKey()
+                        }));
                 },
                 "TextEditor localViewModelKeyParameterHasChanged",
                 "TODO: Describe this task",
@@ -245,8 +256,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     renderBatch.Model,
                     null,
                     CancellationToken.None);
-
-                await InvokeAsync(StateHasChanged);
 
                 renderBatch = new TextEditorRenderBatch(
                         GetModel(),
