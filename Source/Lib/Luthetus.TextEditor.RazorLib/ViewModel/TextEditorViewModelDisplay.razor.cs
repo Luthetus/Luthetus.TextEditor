@@ -174,7 +174,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
                     return Task.CompletedTask;
                 },
-                "HandleOnKeyDownAsync",
+                "TextEditor localViewModelKeyParameterHasChanged",
                 "TODO: Describe this task",
                 false,
                 _ => Task.CompletedTask,
@@ -182,11 +182,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 CancellationToken.None);
 
             TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
-
-            _ = Task.Run(() =>
-            {
-                
-            });
 
             return;
         }
@@ -222,10 +217,28 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             if (renderBatch.Options is not null)
             {
-                await renderBatch.ViewModel.RemeasureAsync(
-                    renderBatch.Options,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                await InvokeAsync(() => 
+                {
+                    StateHasChanged();
+
+                    var backgroundTask = new BackgroundTask(
+                        async cancellationToken =>
+                        {
+                            await renderBatch.ViewModel.RemeasureAsync(
+                                renderBatch.Options,
+                                MeasureCharacterWidthAndRowHeightElementId,
+                                _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                        },
+                        "TextEditor Options changed",
+                        "TODO: Describe this task",
+                        false,
+                        _ => Task.CompletedTask,
+                        Dispatcher,
+                        CancellationToken.None);
+
+                    TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+                })
+                .ConfigureAwait(false);
 
                 return;
             }
@@ -246,7 +259,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
         {
             _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-            await InvokeAsync(StateHasChanged);
+
+            await InvokeAsync(StateHasChanged)
+                .ConfigureAwait(false);
 
             return;
         }
