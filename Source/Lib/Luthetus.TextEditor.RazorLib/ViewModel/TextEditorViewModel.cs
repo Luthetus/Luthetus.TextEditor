@@ -195,6 +195,7 @@ public record TextEditorViewModel
                     },
                     RenderStateKey = RenderStateKey.NewRenderStateKey(),
                     AlreadyRemeasured = false,
+                    AlreadyCalculatedVirtualizationResult = false,
                 });
         });
     }

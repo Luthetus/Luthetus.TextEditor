@@ -165,7 +165,13 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             var backgroundTask = new BackgroundTask(
                 cancellationToken =>
                 {
-                    GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
+                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
+                        localActiveViewModelKey,
+                        inViewModel => inViewModel with
+                        {
+                            AlreadyCalculatedVirtualizationResult = false
+                        }));
+
                     return Task.CompletedTask;
                 },
                 "TextEditor localViewModelKeyParameterHasChanged",
@@ -213,8 +219,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             if (renderBatch.ViewModel is null)
                 return;
 
-            var initialRenderBatchViewModelKey = renderBatch.ViewModel.ViewModelKey;
-
             if (renderBatch.ViewModel is not null &&
                 renderBatch.ViewModel.IsDirty(renderBatch.Options))
             {
@@ -231,12 +235,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         GetModel(),
                         GetViewModel(),
                         GetOptions());
-
-                    if (renderBatch.ViewModel is null ||
-                        initialRenderBatchViewModelKey != renderBatch.ViewModel.ViewModelKey)
-                    {
-                        return;
-                    }
                 }
             }
 
@@ -248,16 +246,12 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     null,
                     CancellationToken.None);
 
+                await InvokeAsync(StateHasChanged);
+
                 renderBatch = new TextEditorRenderBatch(
                         GetModel(),
                         GetViewModel(),
                         GetOptions());
-
-                if (renderBatch.ViewModel is null ||
-                    initialRenderBatchViewModelKey != renderBatch.ViewModel.ViewModelKey)
-                {
-                    return;
-                }
             }
 
             if (renderBatch.ViewModel is not null &&
