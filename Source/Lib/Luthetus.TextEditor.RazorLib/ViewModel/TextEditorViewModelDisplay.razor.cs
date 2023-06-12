@@ -90,6 +90,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private readonly object _viewModelKeyParameterHasChangedLock = new();
 
     private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
+    public readonly SemaphoreSlim _generalOnStateChangedEventHandlerSemaphoreSlim = new(1, 1);
 
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
@@ -207,63 +208,72 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
-
-        if (renderBatch.ViewModel is not null &&
-            renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        try
         {
-            if (renderBatch.Options is not null)
+            await _generalOnStateChangedEventHandlerSemaphoreSlim.WaitAsync();
+
+            var renderBatch = new TextEditorRenderBatch(
+                GetModel(),
+                GetViewModel(),
+                GetOptions());
+
+            if (renderBatch.ViewModel is not null &&
+                renderBatch.ViewModel.IsDirty(renderBatch.Options))
             {
-                await InvokeAsync(() => 
+                if (renderBatch.Options is not null)
                 {
-                    StateHasChanged();
+                    await InvokeAsync(() =>
+                    {
+                        StateHasChanged();
 
-                    var backgroundTask = new BackgroundTask(
-                        async cancellationToken =>
-                        {
-                            await renderBatch.ViewModel.RemeasureAsync(
-                                renderBatch.Options,
-                                MeasureCharacterWidthAndRowHeightElementId,
-                                _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
-                        },
-                        "TextEditor Options changed",
-                        "TODO: Describe this task",
-                        false,
-                        _ => Task.CompletedTask,
-                        Dispatcher,
-                        CancellationToken.None);
+                        var backgroundTask = new BackgroundTask(
+                            async cancellationToken =>
+                            {
+                                await renderBatch.ViewModel.RemeasureAsync(
+                                    renderBatch.Options,
+                                    MeasureCharacterWidthAndRowHeightElementId,
+                                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                            },
+                            "TextEditor Options changed",
+                            "TODO: Describe this task",
+                            false,
+                            _ => Task.CompletedTask,
+                            Dispatcher,
+                            CancellationToken.None);
 
-                    TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
-                })
-                .ConfigureAwait(false);
+                        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+                    })
+                    .ConfigureAwait(false);
+
+                    return;
+                }
+            }
+
+            if (renderBatch.ViewModel is not null &&
+                renderBatch.ViewModel.IsDirty(renderBatch.Model))
+            {
+                await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                    renderBatch.Model,
+                    null,
+                    CancellationToken.None);
+
+                return;
+            }
+
+            if (renderBatch.ViewModel is not null &&
+                renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
+            {
+                _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
+
+                await InvokeAsync(StateHasChanged)
+                    .ConfigureAwait(false);
 
                 return;
             }
         }
-        
-        if (renderBatch.ViewModel is not null &&
-            renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        finally
         {
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                CancellationToken.None);
-
-            return;
-        }
-
-        if (renderBatch.ViewModel is not null &&
-            renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
-        {
-            _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-
-            await InvokeAsync(StateHasChanged)
-                .ConfigureAwait(false);
-
-            return;
+            _generalOnStateChangedEventHandlerSemaphoreSlim.Release();
         }
     }
 
