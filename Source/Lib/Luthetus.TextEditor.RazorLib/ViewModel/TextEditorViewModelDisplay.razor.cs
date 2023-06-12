@@ -88,6 +88,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
     private readonly object _viewModelKeyParameterHasChangedLock = new();
+    private readonly object _activeOptionsRenderStateKeyHasChangedLock = new();
 
     private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
     private readonly SemaphoreSlim _generalOnStateChangedEventHandlerSemaphoreSlim = new(1, 1);
@@ -107,7 +108,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
     private bool _viewModelKeyParameterHasChanged;
-    
+    private RenderStateKey _activeOptionsRenderStateKey = RenderStateKey.Empty;
+    private bool _activeOptionsRenderStateKeyHasChanged;
+
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
     private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
@@ -150,34 +153,69 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 ContentElementId);
         }
 
-        bool localViewModelKeyParameterHasChanged;
-        TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
-
-        lock (_viewModelKeyParameterHasChangedLock)
+        // _viewModelKeyParameterHasChangedLock
         {
-            localActiveViewModelKey = _activeViewModelKey;
-            localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
-            _viewModelKeyParameterHasChanged = false;
+            bool localViewModelKeyParameterHasChanged;
+            TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
+
+            lock (_viewModelKeyParameterHasChangedLock)
+            {
+                localActiveViewModelKey = _activeViewModelKey;
+                localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
+                _viewModelKeyParameterHasChanged = false;
+            }
+
+            if (localViewModelKeyParameterHasChanged)
+            {
+                // TODO: Don't invalidate state back to back.
+                InvalidateViewModelState(localActiveViewModelKey);
+
+                InvalidateViewModelState(localActiveViewModelKey);
+
+                return;
+            }
         }
 
-        if (localViewModelKeyParameterHasChanged)
+        // _activeOptionsRenderStateKeyHasChangedLock
+        {
+            bool localActiveOptionsRenderStateKeyHasChanged;
+            TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
+
+            var options = GetOptions();
+
+            lock (_activeOptionsRenderStateKeyHasChangedLock)
+            {
+                localActiveViewModelKey = _activeViewModelKey;
+                localActiveOptionsRenderStateKeyHasChanged = _activeOptionsRenderStateKeyHasChanged;
+                
+                _activeOptionsRenderStateKey = options?.RenderStateKey ?? RenderStateKey.Empty;
+                _activeOptionsRenderStateKeyHasChanged = false;
+            }
+
+            if (localActiveOptionsRenderStateKeyHasChanged)
+            {
+                InvalidateViewModelState(localActiveViewModelKey);
+                return;
+            }
+        }
+
+        var viewModel = GetViewModel();
+
+        if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
+        {
+            viewModel.ShouldSetFocusAfterNextRender = false;
+            await FocusTextEditorAsync();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+
+        void InvalidateViewModelState(TextEditorViewModelKey backgroundTaskViewModelKey)
         {
             var backgroundTask = new BackgroundTask(
                 cancellationToken =>
                 {
-                    // TODO: (2023-06-12) I'm not a fan of this double Dispatch for TextEditorViewModelsCollection.SetViewModelWithAction. But, without this logic only every other file which was opened would render the text initially. Otherwise the user had to manually cause a state has changed for any text editors opened on an odd count.
-
                     Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
-                        localActiveViewModelKey,
-                        inViewModel => inViewModel with
-                        {
-                            AlreadyCalculatedVirtualizationResult = false,
-                            AlreadyRemeasured = false,
-                            RenderStateKey = RenderStateKey.NewRenderStateKey()
-                        }));
-
-                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
-                        localActiveViewModelKey,
+                        backgroundTaskViewModelKey,
                         inViewModel => inViewModel with
                         {
                             AlreadyCalculatedVirtualizationResult = false,
@@ -195,19 +233,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 CancellationToken.None);
 
             TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
-
-            return;
         }
-
-        var viewModel = GetViewModel();
-
-        if (viewModel is not null && viewModel.ShouldSetFocusAfterNextRender)
-        {
-            viewModel.ShouldSetFocusAfterNextRender = false;
-            await FocusTextEditorAsync();
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     public TextEditorModel? GetModel() => TextEditorService.ViewModel
@@ -237,12 +263,22 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             {
                 if (renderBatch.Options is not null)
                 {
-                    await InvokeAsync(StateHasChanged);
+                    if (_activeOptionsRenderStateKey != renderBatch.Options.RenderStateKey)
+                    {
+                        // The new font-size, or other options, need to be rendered before a measurement can occur.
+                        lock (_activeOptionsRenderStateKeyHasChangedLock)
+                        {
+                            _activeOptionsRenderStateKeyHasChanged = true;
+                        }
+
+                        await InvokeAsync(StateHasChanged);
+                        return;
+                    }
 
                     await renderBatch.ViewModel.RemeasureAsync(
-                        renderBatch.Options,
-                        MeasureCharacterWidthAndRowHeightElementId,
-                        _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                            renderBatch.Options,
+                            MeasureCharacterWidthAndRowHeightElementId,
+                            _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
 
                     renderBatch = new TextEditorRenderBatch(
                         GetModel(),
@@ -269,8 +305,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
             {
                 _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
+                
                 await InvokeAsync(StateHasChanged);
-
                 return;
             }
         }
