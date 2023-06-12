@@ -163,18 +163,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (localViewModelKeyParameterHasChanged)
         {
             var backgroundTask = new BackgroundTask(
-                async cancellationToken =>
+                cancellationToken =>
                 {
-                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
-                        localActiveViewModelKey,
-                        inViewModel => inViewModel with
-                        {
-                            AlreadyCalculatedVirtualizationResult = false,
-                            AlreadyRemeasured = false,
-                            RenderStateKey = RenderStateKey.NewRenderStateKey()
-                        }));
-
-                    await InvokeAsync(StateHasChanged);
+                    // TODO: (2023-06-12) I'm not a fan of this double Dispatch for TextEditorViewModelsCollection.SetViewModelWithAction. But, without this logic only every other file which was opened would render the text initially. Otherwise the user had to manually cause a state has changed for any text editors opened on an odd count.
 
                     Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
                         localActiveViewModelKey,
@@ -184,6 +175,17 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                             AlreadyRemeasured = false,
                             RenderStateKey = RenderStateKey.NewRenderStateKey()
                         }));
+
+                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
+                        localActiveViewModelKey,
+                        inViewModel => inViewModel with
+                        {
+                            AlreadyCalculatedVirtualizationResult = false,
+                            AlreadyRemeasured = false,
+                            RenderStateKey = RenderStateKey.NewRenderStateKey()
+                        }));
+
+                    return Task.CompletedTask;
                 },
                 "TextEditor localViewModelKeyParameterHasChanged",
                 "TODO: Describe this task",
