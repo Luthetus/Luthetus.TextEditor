@@ -8,7 +8,6 @@ using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
-using System.Threading;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
