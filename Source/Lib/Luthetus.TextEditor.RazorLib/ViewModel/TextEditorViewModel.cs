@@ -58,10 +58,10 @@ public record TextEditorViewModel
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
-    /// <summary>
-    /// (2023-06-09) If I set IsOutOfDate to true after either re-measuring or re-calculating then the infinite render loop couldn't possibly occur?
-    /// </summary>
-    public bool IsOutOfDate { get; set; }
+    /// <summary><see cref="AlreadyCalculatedVirtualizationResult"/> is set to true once work begins in the method: <see cref="CalculateVirtualizationResultAsync"/>. Further invocations of <see cref="CalculateVirtualizationResultAsync"/> would then use <see cref="AlreadyCalculatedVirtualizationResult"/> to return without performing any work, because it is already being done, or has completed entirely.</summary>
+    public bool AlreadyCalculatedVirtualizationResult { get; set; }
+    /// <summary><see cref="AlreadyRemeasured"/> is set to true once work begins in the method: <see cref="RemeasureAsync"/>. Further invocations of <see cref="RemeasureAsync"/> would then use <see cref="AlreadyRemeasured"/> to return without performing any work, because it is already being done, or has completed entirely.</summary>
+    public bool AlreadyRemeasured { get; set; }
 
     public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
     public string PrimaryCursorContentId => $"luth_te_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
@@ -165,14 +165,23 @@ public record TextEditorViewModel
         string measureCharacterWidthAndRowHeightElementId,
         int countOfTestCharacters)
     {
+        if (AlreadyRemeasured)
+            return;
+
         await ThrottleRemeasure.FireAsync(async () =>
         {
+            if (AlreadyRemeasured)
+                return;
+
+            // Don't re-measure redundantly with this ViewModel in the future
+            AlreadyRemeasured = true;
+
             var characterWidthAndRowHeight = await TextEditorService.ViewModel.MeasureCharacterWidthAndRowHeightAsync(
                 measureCharacterWidthAndRowHeightElementId,
                 countOfTestCharacters);
 
             VirtualizationResult.CharacterWidthAndRowHeight = characterWidthAndRowHeight;
-
+            
             TextEditorService.ViewModel.With(
                 ViewModelKey,
                 previousViewModel => previousViewModel with
@@ -184,7 +193,8 @@ public record TextEditorViewModel
                         CharacterWidthAndRowHeight = characterWidthAndRowHeight
                     },
                     RenderStateKey = RenderStateKey.NewRenderStateKey(),
-                    IsOutOfDate = false
+                    AlreadyRemeasured = false,
+                    AlreadyCalculatedVirtualizationResult = false,
                 });
         });
     }
@@ -194,13 +204,16 @@ public record TextEditorViewModel
         ElementMeasurementsInPixels? bodyMeasurementsInPixels,
         CancellationToken cancellationToken)
     {
-        if (IsOutOfDate || cancellationToken.IsCancellationRequested)
+        if (AlreadyCalculatedVirtualizationResult || cancellationToken.IsCancellationRequested)
             return;
 
         await ThrottleCalculateVirtualizationResult.FireAsync(async () =>
         {
-            // Don't ever re-calculate with this ViewModel
-            IsOutOfDate = true;
+            if (AlreadyCalculatedVirtualizationResult)
+                return;
+
+            // Don't re-calculate redundantly with this ViewModel in the future
+            AlreadyCalculatedVirtualizationResult = true;
 
             var localCharacterWidthAndRowHeight = VirtualizationResult.CharacterWidthAndRowHeight;
 
@@ -409,7 +422,7 @@ public record TextEditorViewModel
                     ModelRenderStateKey = model.RenderStateKey,
                     VirtualizationResult = virtualizationResult,
                     RenderStateKey = RenderStateKey.NewRenderStateKey(),
-                    IsOutOfDate = false
+                    AlreadyCalculatedVirtualizationResult = false
                 });
         });
     }

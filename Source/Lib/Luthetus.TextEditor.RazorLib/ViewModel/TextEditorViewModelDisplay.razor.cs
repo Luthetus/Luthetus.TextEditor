@@ -21,9 +21,7 @@ using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
-using Luthetus.Common.RazorLib.BackgroundTaskCase.Usage;
 using Luthetus.Common.RazorLib.Reactive;
-using Microsoft.AspNetCore.Components.RenderTree;
 using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 
@@ -88,8 +86,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
 
     private readonly object _viewModelKeyParameterHasChangedLock = new();
+    private readonly object _activeOptionsRenderStateKeyHasChangedLock = new();
 
     private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
+    private readonly SemaphoreSlim _generalOnStateChangedEventHandlerSemaphoreSlim = new(1, 1);
 
     private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
     private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
@@ -106,7 +106,9 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
     private bool _viewModelKeyParameterHasChanged;
-    
+    private RenderStateKey _activeOptionsRenderStateKey = RenderStateKey.Empty;
+    private bool _activeOptionsRenderStateKeyHasChanged;
+
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
     private string ContentElementId => $"luth_te_text-editor-content_{_textEditorHtmlElementId}";
@@ -114,8 +116,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        Console.WriteLine("OnParametersSetAsync");
-
         var currentViewModel = GetViewModel();
 
         if (currentViewModel is not null &&
@@ -135,8 +135,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        Console.WriteLine("OnInitialized");
-
         ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
@@ -153,19 +151,50 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 ContentElementId);
         }
 
-        bool localViewModelKeyParameterHasChanged;
-
-        lock (_viewModelKeyParameterHasChangedLock)
+        // _viewModelKeyParameterHasChangedLock
         {
-            localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
-            _viewModelKeyParameterHasChanged = false;
+            bool localViewModelKeyParameterHasChanged;
+            TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
+
+            lock (_viewModelKeyParameterHasChangedLock)
+            {
+                localActiveViewModelKey = _activeViewModelKey;
+                localViewModelKeyParameterHasChanged = _viewModelKeyParameterHasChanged;
+                _viewModelKeyParameterHasChanged = false;
+            }
+
+            if (localViewModelKeyParameterHasChanged)
+            {
+                // TODO: Don't invalidate state back to back.
+                InvalidateViewModelState(localActiveViewModelKey);
+
+                InvalidateViewModelState(localActiveViewModelKey);
+
+                return;
+            }
         }
 
-        if (localViewModelKeyParameterHasChanged)
+        // _activeOptionsRenderStateKeyHasChangedLock
         {
-            Console.WriteLine("localViewModelKeyParameterHasChanged");
-            GeneralOnStateChangedEventHandler(null, EventArgs.Empty);
-            return;
+            bool localActiveOptionsRenderStateKeyHasChanged;
+            TextEditorViewModelKey localActiveViewModelKey = TextEditorViewModelKey.Empty;
+
+            var options = GetOptions();
+
+            lock (_activeOptionsRenderStateKeyHasChangedLock)
+            {
+                localActiveViewModelKey = _activeViewModelKey;
+                localActiveOptionsRenderStateKeyHasChanged = _activeOptionsRenderStateKeyHasChanged;
+                
+                _activeOptionsRenderStateKey = options?.RenderStateKey ?? RenderStateKey.Empty;
+                _activeOptionsRenderStateKeyHasChanged = false;
+            }
+
+            if (localActiveOptionsRenderStateKeyHasChanged)
+            {
+                InvalidateViewModelState(localActiveViewModelKey);
+                return;
+            }
         }
 
         var viewModel = GetViewModel();
@@ -177,6 +206,32 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
 
         await base.OnAfterRenderAsync(firstRender);
+
+        void InvalidateViewModelState(TextEditorViewModelKey backgroundTaskViewModelKey)
+        {
+            var backgroundTask = new BackgroundTask(
+                cancellationToken =>
+                {
+                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
+                        backgroundTaskViewModelKey,
+                        inViewModel => inViewModel with
+                        {
+                            AlreadyCalculatedVirtualizationResult = false,
+                            AlreadyRemeasured = false,
+                            RenderStateKey = RenderStateKey.NewRenderStateKey()
+                        }));
+
+                    return Task.CompletedTask;
+                },
+                "TextEditor InvalidateViewModelState",
+                "TODO: Describe this task",
+                false,
+                _ => Task.CompletedTask,
+                Dispatcher,
+                CancellationToken.None);
+
+            TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+        }
     }
 
     public TextEditorModel? GetModel() => TextEditorService.ViewModel
@@ -187,57 +242,66 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     public TextEditorOptions? GetOptions() => GlobalOptionsWrap.Value.Options;
 
-    private async void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
+    private void GeneralOnStateChangedEventHandler(object? sender, EventArgs e)
     {
         var renderBatch = new TextEditorRenderBatch(
             GetModel(),
             GetViewModel(),
             GetOptions());
 
+        if (renderBatch.ViewModel is null)
+            return;
+
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.IsDirty(renderBatch.Options))
         {
-            await InvokeAsync(StateHasChanged);
-
             if (renderBatch.Options is not null)
             {
-                await renderBatch.ViewModel.RemeasureAsync(
-                    renderBatch.Options,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                if (_activeOptionsRenderStateKey != renderBatch.Options.RenderStateKey)
+                {
+                    // The new font-size, or other options, need to be rendered before a measurement can occur.
+                    lock (_activeOptionsRenderStateKeyHasChangedLock)
+                    {
+                        _activeOptionsRenderStateKeyHasChanged = true;
+                    }
 
-                // Refresh render batch
-                renderBatch = new TextEditorRenderBatch(
-                    GetModel(),
-                    GetViewModel(),
-                    GetOptions());
+                    _ = Task.Run(async () => await InvokeAsync(StateHasChanged));
+                    return;
+                }
+
+                _ = Task.Run(async () =>
+                {
+                    await renderBatch.ViewModel.RemeasureAsync(
+                        renderBatch.Options,
+                        MeasureCharacterWidthAndRowHeightElementId,
+                        _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0);
+                });
+
+                return;
             }
         }
-        
+
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                CancellationToken.None);
-
-            // Refresh render batch
-            renderBatch = new TextEditorRenderBatch(
-                GetModel(),
-                GetViewModel(),
-                GetOptions());
+            _ = Task.Run(async () =>
+            {
+                await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                    renderBatch.Model,
+                    null,
+                    CancellationToken.None);
+            });
+            
+            return;
         }
 
         if (renderBatch.ViewModel is not null &&
             renderBatch.ViewModel.RenderStateKey != _activeViewModelRenderStateKey)
         {
             _activeViewModelRenderStateKey = renderBatch.ViewModel.RenderStateKey;
-            await InvokeAsync(StateHasChanged);
 
-            {
-                return;
-            }
+            _ = Task.Run(async () => await InvokeAsync(StateHasChanged));
+            return;
         }
     }
 

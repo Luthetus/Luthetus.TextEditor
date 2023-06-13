@@ -247,9 +247,6 @@ public static partial class TextEditorCommandVimFacts
                     
                     var nextEndingPositionIndex = textEditorCommandParameter
                         .PrimaryCursorSnapshot.UserCursor.Selection.EndingPositionIndex;
-                    
-                    Console.WriteLine($"previousEndingPositionIndex: {previousEndingPositionIndex}");
-                    Console.WriteLine($"nextEndingPositionIndex: {nextEndingPositionIndex}");
 
                     if (nextEndingPositionIndex < textEditorCommandParameter
                             .PrimaryCursorSnapshot.UserCursor.Selection.AnchorPositionIndex)

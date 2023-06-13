@@ -5,7 +5,6 @@ using Luthetus.TextEditor.RazorLib.Character;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Virtualization;
 using Microsoft.AspNetCore.Components;
-using Luthetus.Common.RazorLib.Reactive;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 
