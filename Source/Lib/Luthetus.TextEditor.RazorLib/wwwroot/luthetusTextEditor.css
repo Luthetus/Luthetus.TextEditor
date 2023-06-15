@@ -480,7 +480,7 @@
         Light Theme found in Visual Studio.
     */
     --luth_te_primary-font-color: #000000;
-    --luth_te_text-editor-cursor-foreground-color: #404040;
+    --luth_te_text-editor-cursor-foreground-color: #000000;
     --luth_te_text-selection-background-color: #ADD6FF;
     --luth_te_diff-longest-common-subsequence-background-color: #ffb3f1;
     --luth_te_diff-insertion-background-color: green;
@@ -488,7 +488,7 @@
     --luth_te_diff-modification-background-color: yellow;
     --luth_te_semantic-diagnostic-error-background-color: red;
     --luth_te_semantic-diagnostic-hint-background-color: purple;
-    --luth_te_body-background-color: #fdfdfd;
+    --luth_te_body-background-color: rgb(254, 254, 254);
     --luth_te_text-editor-caret-row-border-color-no-focus-within-editor: var(--luth_te_text-editor-cursor-foreground-color);
     --luth_te_text-editor-caret-row-border-color-editor-focus-within: #28ae0c;
     --luth_te_newline-foreground-color: #007F00;
@@ -720,7 +720,7 @@
        light themed so the Text Editor has its own theme
    */
     --luth_te_primary-font-color: #000000;
-    --luth_te_text-editor-cursor-foreground-color: #404040;
+    --luth_te_text-editor-cursor-foreground-color: #000000;
     --luth_te_text-selection-background-color: rgb(188, 217, 255);
     --luth_te_diff-longest-common-subsequence-background-color: #ffb3f1;
     --luth_te_diff-insertion-background-color: green;
@@ -728,28 +728,28 @@
     --luth_te_diff-modification-background-color: yellow;
     --luth_te_semantic-diagnostic-error-background-color: red;
     --luth_te_semantic-diagnostic-hint-background-color: purple;
-    --luth_te_body-background-color: #FCFCFC;
+    --luth_te_body-background-color: rgb(254, 254, 254);
     --luth_te_text-editor-caret-row-border-color-no-focus-within-editor: var(--luth_te_text-editor-cursor-foreground-color);
     --luth_te_text-editor-caret-row-border-color-editor-focus-within: #28ae0c;
     --luth_te_newline-foreground-color: #007F00;
     --luth_te_newline-background-color: #faeee2;
-    --luth_te_method-foreground-color: rgb(0, 160, 0);
+    --luth_te_method-foreground-color: rgb(0, 165, 0);
     --luth_te_type-foreground-color: rgb(30, 130, 220);
-    --luth_te_variable-foreground-color: rgb(110, 40, 170);
-    --luth_te_string-literal-foreground-color: rgb(163, 21, 21);
-    --luth_te_string-literal-escape-character-foreground-color: rgb(0, 90, 245);
+    --luth_te_variable-foreground-color: rgb(128, 68, 60);
+    --luth_te_string-literal-foreground-color: rgb(190, 0, 0);
+    --luth_te_string-literal-escape-character-foreground-color: rgb(120, 60, 250);
     --luth_te_keyword-foreground-color: rgb(215, 115, 0);
-    --luth_te_keyword-control-foreground-color: rgb(210, 50, 210);
+    --luth_te_keyword-control-foreground-color: rgb(210, 10, 210);
     --luth_te_comment-foreground-color: rgb(124, 124, 124);
-    --luth_te_tag-name-foreground-color: rgb(215, 113, 0);
-    --luth_te_injected-language-fragment-color: rgb(225, 50, 205);
-    --luth_te_css-property-name-color: rgb(155, 103, 0);
-    --luth_te_css-property-value-color: rgb(180, 0, 0);
-    --luth_te_css-identifier-color: rgb(215, 113, 0);
-    --luth_te_attribute-name-color: rgb(155, 103, 0);
-    --luth_te_attribute-value-color: rgb(180, 0, 0);
-    --luth_te_json-property-key-color: rgb(155, 103, 0);
-    --luth_te_json-property-value-color: rgb(180, 0, 0);
+    --luth_te_tag-name-foreground-color: var(--luth_te_keyword-foreground-color);
+    --luth_te_injected-language-fragment-color: rgb(0, 0, 255);
+    --luth_te_css-property-name-color: rgb(20, 130, 180);
+    --luth_te_css-property-value-color: var(--luth_te_string-literal-foreground-color);
+    --luth_te_css-identifier-color: var(--luth_te_keyword-foreground-color);
+    --luth_te_attribute-name-color: rgb(20, 130, 180);
+    --luth_te_attribute-value-color: var(--luth_te_string-literal-foreground-color);
+    --luth_te_json-property-key-color: rgb(20, 130, 180);
+    --luth_te_json-property-value-color: var(--luth_te_string-literal-foreground-color);
     --luth_te_text-editor-gutter-border-color: #28ae0c;
     --luth_te_text-editor-gutter-background-color: #F8F8EE;
     --luth_te_secondary-font-color: var(--luth_te_primary-font-color);
