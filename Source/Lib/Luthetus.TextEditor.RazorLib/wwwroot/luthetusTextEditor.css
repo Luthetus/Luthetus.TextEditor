@@ -719,8 +719,8 @@
        The colors are custom
        light themed so the Text Editor has its own theme
    */
-    --luth_te_primary-font-color: #000000;
-    --luth_te_text-editor-cursor-foreground-color: #000000;
+    --luth_te_primary-font-color: rgb(0, 0, 0);
+    --luth_te_text-editor-cursor-foreground-color: rgb(0, 0, 0);
     --luth_te_text-selection-background-color: rgb(188, 217, 255);
     --luth_te_diff-longest-common-subsequence-background-color: #ffb3f1;
     --luth_te_diff-insertion-background-color: green;
@@ -733,22 +733,22 @@
     --luth_te_text-editor-caret-row-border-color-editor-focus-within: #28ae0c;
     --luth_te_newline-foreground-color: #007F00;
     --luth_te_newline-background-color: #faeee2;
-    --luth_te_method-foreground-color: rgb(0, 165, 0);
-    --luth_te_type-foreground-color: rgb(30, 130, 220);
-    --luth_te_variable-foreground-color: rgb(128, 68, 60);
-    --luth_te_string-literal-foreground-color: rgb(190, 0, 0);
+    --luth_te_method-foreground-color: rgb(0, 142, 0);
+    --luth_te_type-foreground-color: rgb(30, 110, 235);
+    --luth_te_variable-foreground-color: rgb(130, 50, 200);
+    --luth_te_string-literal-foreground-color: rgb(128, 68, 32);
     --luth_te_string-literal-escape-character-foreground-color: rgb(120, 60, 250);
-    --luth_te_keyword-foreground-color: rgb(215, 115, 0);
-    --luth_te_keyword-control-foreground-color: rgb(210, 10, 210);
-    --luth_te_comment-foreground-color: rgb(124, 124, 124);
+    --luth_te_keyword-foreground-color: rgb(205, 40, 40);
+    --luth_te_keyword-control-foreground-color: rgb(240, 45, 215);
+    --luth_te_comment-foreground-color: rgb(116, 116, 116);
     --luth_te_tag-name-foreground-color: var(--luth_te_keyword-foreground-color);
     --luth_te_injected-language-fragment-color: rgb(0, 0, 255);
-    --luth_te_css-property-name-color: rgb(20, 130, 180);
+    --luth_te_css-property-name-color: rgb(31, 55, 127);
     --luth_te_css-property-value-color: var(--luth_te_string-literal-foreground-color);
     --luth_te_css-identifier-color: var(--luth_te_keyword-foreground-color);
-    --luth_te_attribute-name-color: rgb(20, 130, 180);
+    --luth_te_attribute-name-color: rgb(31, 55, 127);
     --luth_te_attribute-value-color: var(--luth_te_string-literal-foreground-color);
-    --luth_te_json-property-key-color: rgb(20, 130, 180);
+    --luth_te_json-property-key-color: rgb(31, 55, 127);
     --luth_te_json-property-value-color: var(--luth_te_string-literal-foreground-color);
     --luth_te_text-editor-gutter-border-color: #28ae0c;
     --luth_te_text-editor-gutter-background-color: #F8F8EE;
