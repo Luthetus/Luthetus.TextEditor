@@ -27,8 +27,7 @@ public partial class TextEditorModel
         return (0, RowEndingKind.StartOfFile);
     }
 
-    /// <summary>Returns the Length of a row however it does not include the line ending characters by default. To include line ending characters the parameter <see cref="includeLineEndingCharacters" /> must be true.
-    /// </summary>
+    /// <summary>Returns the Length of a row however it does not include the line ending characters by default. To include line ending characters the parameter <see cref="includeLineEndingCharacters" /> must be true.</summary>
     public int GetLengthOfRow(
         int rowIndex,
         bool includeLineEndingCharacters = false)
@@ -383,8 +382,8 @@ public partial class TextEditorModel
             if (SemanticModel.SemanticResult is not null)
             {
                 textEditorTextSpans = textEditorTextSpans
-                .AddRange(SemanticModel.SemanticResult.SymbolMessageTextSpanTuples
-                    .Select(x => x.textSpan));
+                    .AddRange(SemanticModel.SemanticResult.SymbolMessageTextSpanTuples
+                        .Select(x => x.textSpan));
             }
         }
 

@@ -24,6 +24,7 @@ using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
+using Microsoft.AspNetCore.Components.RenderTree;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -165,9 +166,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
             if (localViewModelKeyParameterHasChanged)
             {
+                QueueBackgroundTaskUpdateSemanticPresentationModel(localActiveViewModelKey);
+
                 // TODO: Don't invalidate state back to back.
                 InvalidateViewModelState(localActiveViewModelKey);
-
                 InvalidateViewModelState(localActiveViewModelKey);
 
                 return;
@@ -206,32 +208,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
 
         await base.OnAfterRenderAsync(firstRender);
-
-        void InvalidateViewModelState(TextEditorViewModelKey backgroundTaskViewModelKey)
-        {
-            var backgroundTask = new BackgroundTask(
-                cancellationToken =>
-                {
-                    Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
-                        backgroundTaskViewModelKey,
-                        inViewModel => inViewModel with
-                        {
-                            AlreadyCalculatedVirtualizationResult = false,
-                            AlreadyRemeasured = false,
-                            RenderStateKey = RenderStateKey.NewRenderStateKey()
-                        }));
-
-                    return Task.CompletedTask;
-                },
-                "TextEditor InvalidateViewModelState",
-                "TODO: Describe this task",
-                false,
-                _ => Task.CompletedTask,
-                Dispatcher,
-                CancellationToken.None);
-
-            TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
-        }
     }
 
     public TextEditorModel? GetModel() => TextEditorService.ViewModel
@@ -818,15 +794,18 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
             {
                 // The TextEditorModel may have been changed by the time this logic is ran and
                 // thus the local variable must be updated accordingly.
-                var temporaryTextEditor = GetModel();
+                var model = GetModel();
+                
+                var viewModel = GetViewModel();
 
-                if (temporaryTextEditor is not null)
+                if (model is not null)
                 {
-                    textEditor = temporaryTextEditor;
+                    textEditor = model;
 
                     await textEditor.ApplySyntaxHighlightingAsync();
 
-                    ChangeLastPresentationLayer();
+                    if (viewModel is not null && model.SemanticModel is not null)
+                        _ = Task.Run(viewModel.UpdateSemanticPresentationModel);
                 }
             });
         }
@@ -1040,50 +1019,56 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
     }
 
-    private void ChangeLastPresentationLayer()
+    private void InvalidateViewModelState(TextEditorViewModelKey backgroundTaskViewModelKey)
     {
-        var viewModel = GetViewModel();
-
-        if (viewModel is null)
-            return;
-
-        TextEditorService.ViewModel.With(
-            viewModel.ViewModelKey,
-            inViewModel =>
+        var backgroundTask = new BackgroundTask(
+            cancellationToken =>
             {
-                var outPresentationLayer = inViewModel.FirstPresentationLayer;
+                Dispatcher.Dispatch(new TextEditorViewModelsCollection.SetViewModelWithAction(
+                    backgroundTaskViewModelKey,
+                    inViewModel => inViewModel with
+                    {
+                        AlreadyCalculatedVirtualizationResult = false,
+                        AlreadyRemeasured = false,
+                        RenderStateKey = RenderStateKey.NewRenderStateKey()
+                    }));
 
-                var inPresentationModel = outPresentationLayer
-                    .FirstOrDefault(x =>
-                        x.TextEditorPresentationKey == SemanticFacts.PresentationKey);
+                return Task.CompletedTask;
+            },
+            "TextEditor InvalidateViewModelState",
+            "TODO: Describe this task",
+            false,
+            _ => Task.CompletedTask,
+            Dispatcher,
+            CancellationToken.None);
 
-                if (inPresentationModel is null)
-                {
-                    inPresentationModel = SemanticFacts.EmptyPresentationModel;
+        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+    }
+    
+    private void QueueBackgroundTaskUpdateSemanticPresentationModel(TextEditorViewModelKey backgroundTaskViewModelKey)
+    {
+        var viewModel = TextEditorService.ViewModel
+            .FindOrDefault(backgroundTaskViewModelKey);
 
-                    outPresentationLayer = outPresentationLayer.Add(
-                        inPresentationModel);
-                }
+        var model = TextEditorService.ViewModel
+            .FindBackingModelOrDefault(TextEditorViewModelKey);
 
-                var model = TextEditorService.ViewModel
-                    .FindBackingModelOrDefault(viewModel.ViewModelKey);
+        var backgroundTask = new BackgroundTask(
+            cancellationToken =>
+            {
+                if (viewModel is not null && model?.SemanticModel is not null)
+                    viewModel.UpdateSemanticPresentationModel();
 
-                var outPresentationModel = inPresentationModel with
-                {
-                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
-                        ?? ImmutableList<TextEditorTextSpan>.Empty
-                };
+                return Task.CompletedTask;
+            },
+            "TextEditor UpdateSemanticPresentationModel",
+            "TODO: Describe this task",
+            false,
+            _ => Task.CompletedTask,
+            Dispatcher,
+            CancellationToken.None);
 
-                outPresentationLayer = outPresentationLayer.Replace(
-                    inPresentationModel,
-                    outPresentationModel);
-
-                return inViewModel with
-                {
-                    FirstPresentationLayer = outPresentationLayer,
-                    RenderStateKey = RenderStateKey.NewRenderStateKey()
-                };
-            });
+        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
     }
 
     public void Dispose()
