@@ -28,7 +28,6 @@ public partial class TextEditorViewModelsCollection
                 VirtualizationResult<List<RichCharacter>>.GetEmptyRichCharacters(),
                 false)
             {
-                RenderStateKey = RenderStateKey.NewRenderStateKey()
             };
 
             var nextViewModelsList = inViewModelsCollection.ViewModelsList

@@ -154,7 +154,6 @@ public partial interface ITextEditorService
                         return inViewModel with
                         {
                             FirstPresentationLayer = outPresentationLayer,
-                            RenderStateKey = RenderStateKey.NewRenderStateKey()
                         };
                     }));
         }

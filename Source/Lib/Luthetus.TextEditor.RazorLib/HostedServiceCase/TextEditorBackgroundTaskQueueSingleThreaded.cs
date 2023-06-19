@@ -7,9 +7,11 @@ public class TextEditorBackgroundTaskQueueSingleThreaded : ITextEditorBackground
     public void QueueBackgroundWorkItem(
         IBackgroundTask backgroundTask)
     {
-        backgroundTask
-            .InvokeWorkItem(CancellationToken.None)
-            .Wait();
+        _ = Task.Run(async () =>
+        {
+            await backgroundTask
+                .InvokeWorkItem(CancellationToken.None);
+        });
     }
 
     public Task<IBackgroundTask?> DequeueAsync(
