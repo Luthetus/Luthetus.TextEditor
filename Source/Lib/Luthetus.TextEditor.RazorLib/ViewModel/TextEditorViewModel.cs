@@ -30,7 +30,7 @@ public record TextEditorViewModel
         DisplayCommandBar = displayCommandBar;
     }
 
-    private readonly object _isDirtyLock = new();
+    private readonly object _validateRenderLock = new();
 
     private ElementMeasurementsInPixels _mostRecentBodyMeasurementsInPixels = new(0, 0, 0, 0, 0, 0, 0, CancellationToken.None);
 
@@ -62,13 +62,6 @@ public record TextEditorViewModel
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
-    /// <summary>In order to prevent an infinite loop in the OnAfterRender logic for the TextEditorViewModelDisplay this gets set true to guarantee code is only ran once.</summary>
-    public bool SeenInvalidModel { get; set; }
-    /// <summary>In order to prevent an infinite loop in the OnAfterRender logic for the TextEditorViewModelDisplay this gets set true to guarantee code is only ran once.</summary>
-    public bool SeenInvalidViewModel { get; set; }
-    /// <summary>In order to prevent an infinite loop in the OnAfterRender logic for the TextEditorViewModelDisplay this gets set true to guarantee code is only ran once.</summary>
-    public bool SeenInvalidOptions { get; set; }
-    /// <summary>In order to prevent an infinite loop in the OnAfterRender logic for the TextEditorViewModelDisplay this gets set true to guarantee code is only ran once.</summary>
     public bool ShouldUpdateSemanticPresentationModel { get; set; } = true;
 
     public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
@@ -171,7 +164,8 @@ public record TextEditorViewModel
     public async Task RemeasureAsync(
         TextEditorOptions options,
         string measureCharacterWidthAndRowHeightElementId,
-        int countOfTestCharacters)
+        int countOfTestCharacters,
+        CancellationToken cancellationToken)
     {
         await ThrottleRemeasure.FireAsync(async () =>
         {
@@ -192,8 +186,6 @@ public record TextEditorViewModel
                         CharacterWidthAndRowHeight = characterWidthAndRowHeight
                     },
                     RenderStateKey = RenderStateKey.NewRenderStateKey(),
-                    SeenInvalidOptions = false,
-                    SeenInvalidModel = false,
                 });
         });
     }
@@ -414,8 +406,7 @@ public record TextEditorViewModel
                 {
                     ModelRenderStateKey = model.RenderStateKey,
                     VirtualizationResult = virtualizationResult,
-                    RenderStateKey = RenderStateKey.NewRenderStateKey(),
-                    SeenInvalidModel = false
+                    RenderStateKey = RenderStateKey.NewRenderStateKey()
                 });
         });
     }
@@ -461,43 +452,37 @@ public record TextEditorViewModel
             });
     }
 
-    public bool IsDirty(TextEditorOptions? options)
+    public bool ShouldRemeasure(TextEditorOptions? options)
     {
-        var isDirty = false;
+        var shouldRemeasure = false;
 
-        lock (_isDirtyLock)
+        lock (_validateRenderLock)
         {
             if (options is not null)
-                isDirty = OptionsRenderStateKey != options.RenderStateKey;
-            else if (SeenInvalidOptions)
-                isDirty = false;
-
-            if (isDirty)
-                SeenInvalidOptions = true;
+            {
+                shouldRemeasure = OptionsRenderStateKey != options.RenderStateKey;
+            }
         }
 
-        return isDirty;
+        return shouldRemeasure;
     }
 
-    public bool IsDirty(TextEditorModel? model)
+    public bool ShouldCalculateVirtualizationResult(TextEditorModel? model)
     {
-        var isDirty = false;
+        var shouldCalculateVirtualizationResult = false;
 
-        lock (_isDirtyLock)
+        lock (_validateRenderLock)
         {
             if (model is not null)
-                isDirty = ModelRenderStateKey != model.RenderStateKey;
-            else if (SeenInvalidModel)
-                isDirty = false;
-
-            if (isDirty)
-                SeenInvalidOptions = true;
+            {
+                shouldCalculateVirtualizationResult = ModelRenderStateKey != model.RenderStateKey;
+            }
         }
 
-        return isDirty;
+        return shouldCalculateVirtualizationResult;
     }
     
-    public static async Task AaaAsync(
+    public static async Task ValidateRender(
         TextEditorRenderBatch renderBatch,
         string measureCharacterWidthAndRowHeightElementId,
         int countOfTestCharacters,
@@ -506,23 +491,22 @@ public record TextEditorViewModel
         if (renderBatch.ViewModel is null)
             return;
 
-        if (!renderBatch.ViewModel.SeenInvalidOptions && 
-            renderBatch.Options is not null && 
-            renderBatch.ViewModel.IsDirty(renderBatch.Options))
+        if (renderBatch.Options is not null && renderBatch.ViewModel.ShouldRemeasure(renderBatch.Options))
         {
             await renderBatch.ViewModel.RemeasureAsync(
                 renderBatch.Options,
                 measureCharacterWidthAndRowHeightElementId,
-                countOfTestCharacters);
+                countOfTestCharacters,
+                cancellationToken);
 
             return;
         }
-        else if (!renderBatch.ViewModel.SeenInvalidModel && renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        else if (renderBatch.ViewModel.ShouldCalculateVirtualizationResult(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
                 null,
-                CancellationToken.None);
+                cancellationToken);
 
             return;
         }

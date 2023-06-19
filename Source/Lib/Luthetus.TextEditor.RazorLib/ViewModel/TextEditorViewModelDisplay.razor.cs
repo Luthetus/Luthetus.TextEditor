@@ -162,12 +162,14 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (renderBatch.ViewModel is not null)
         {
             var backgroundTask = new BackgroundTask(
-                async cancellationToken => 
-                    await TextEditorViewModel.AaaAsync(
+                async cancellationToken =>
+                {
+                    await TextEditorViewModel.ValidateRender(
                         renderBatch,
                         MeasureCharacterWidthAndRowHeightElementId,
                         _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
-                        cancellationToken),
+                        cancellationToken);
+                },
                 "TextEditor OnAfterRender",
                 "TODO: Describe this task",
                 false,
