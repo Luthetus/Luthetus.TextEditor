@@ -10,6 +10,7 @@ using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Semantics;
+using Microsoft.Extensions.Options;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -30,10 +31,12 @@ public record TextEditorViewModel
         DisplayCommandBar = displayCommandBar;
     }
 
+    private const int _clearTrackingOfUniqueIdentifiersWhenCountIs = 250;
+
     private readonly object _validateRenderLock = new();
+    private readonly object _trackingOfUniqueIdentifiersLock = new();
 
     private ElementMeasurementsInPixels _mostRecentBodyMeasurementsInPixels = new(0, 0, 0, 0, 0, 0, 0, CancellationToken.None);
-
     private BatchScrollEvents _batchScrollEvents = new();
 
     public IThrottle ThrottleRemeasure { get; } = new Throttle(IThrottle.DefaultThrottleTimeSpan);
@@ -53,16 +56,15 @@ public record TextEditorViewModel
     /// <summary><see cref="LastPresentationLayer"/> is painted after any internal workings of the text editor.<br/><br/>Therefore the selected text background is rendered before anything in the <see cref="LastPresentationLayer"/>.<br/><br/>When using the <see cref="LastPresentationLayer"/> one might find the selected text background not being rendered with the text selection css if it were overriden by something in the <see cref="LastPresentationLayer"/>.</summary>
     public ImmutableList<TextEditorPresentationModel> LastPresentationLayer { get; init; } = ImmutableList<TextEditorPresentationModel>.Empty;
 
-    /// <summary>If the <see cref="RenderStateKey"/> value changes, then the <see cref="TextEditorViewModel"/> needs to be re-rendered.</summary>
-    public RenderStateKey RenderStateKey { get; set; } = RenderStateKey.Empty;
-    /// <summary>If the <see cref="ModelRenderStateKey"/> value changes, then the <see cref="TextEditorViewModel"/> needs to have its <see cref="VirtualizationResult{T}"/> re-calculated.<br/><br/>The value is mutated in the Blazor 'OnAfterRender(...)' lifecycle method.</summary>
-    public RenderStateKey ModelRenderStateKey { get; set; } = RenderStateKey.Empty;
-    /// <summary>If the <see cref="OptionsRenderStateKey"/> value changes, then the <see cref="TextEditorViewModel"/> needs to be re-measured.<br/><br/>The value is mutated in the Blazor 'OnAfterRender(...)' lifecycle method.</summary>
-    public RenderStateKey OptionsRenderStateKey { get; set; } = RenderStateKey.Empty;
+    /// <summary>In order to prevent infinite loops, track the unique identifiers. Note, this HashSet is cleared when the options change or the count >= <see cref="_clearTrackingOfUniqueIdentifiersWhenCountIs"/>.</summary>
+    public HashSet<RenderStateKey> SeenModelRenderStateKeys { get; init; } = new();
+    /// <summary>In order to prevent infinite loops, track the unique identifiers. Note, this HashSet is cleared when the count is >= <see cref="_clearTrackingOfUniqueIdentifiersWhenCountIs"/>.</summary>
+    public HashSet<RenderStateKey> SeenOptionsRenderStateKeys { get; init; } = new();
+
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
-    public bool ShouldUpdateSemanticPresentationModel { get; set; } = true;
+    public DisplayTracker DisplayTracker { get; set; } = new();
 
     public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
     public string PrimaryCursorContentId => $"luth_te_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
@@ -169,23 +171,36 @@ public record TextEditorViewModel
     {
         await ThrottleRemeasure.FireAsync(async () =>
         {
+            lock (_trackingOfUniqueIdentifiersLock)
+            {
+                if (SeenOptionsRenderStateKeys.Contains(options.RenderStateKey))
+                    return;
+            }
+
             var characterWidthAndRowHeight = await TextEditorService.ViewModel.MeasureCharacterWidthAndRowHeightAsync(
                 measureCharacterWidthAndRowHeightElementId,
                 countOfTestCharacters);
 
             VirtualizationResult.CharacterWidthAndRowHeight = characterWidthAndRowHeight;
-            
+
+            lock (_trackingOfUniqueIdentifiersLock)
+            {
+                if (SeenOptionsRenderStateKeys.Count > _clearTrackingOfUniqueIdentifiersWhenCountIs)
+                    SeenOptionsRenderStateKeys.Clear();
+
+                SeenOptionsRenderStateKeys.Add(options.RenderStateKey);
+            }
+
             TextEditorService.ViewModel.With(
                 ViewModelKey,
                 previousViewModel => previousViewModel with
                 {
-                    OptionsRenderStateKey = options.RenderStateKey,
-                    ModelRenderStateKey = RenderStateKey.Empty,
+                    // Clear the SeenModelRenderStateKeys because one needs to recalculate the virtualization result now that the options have changed.
+                    SeenModelRenderStateKeys = new(), 
                     VirtualizationResult = previousViewModel.VirtualizationResult with
                     {
                         CharacterWidthAndRowHeight = characterWidthAndRowHeight
-                    },
-                    RenderStateKey = RenderStateKey.NewRenderStateKey(),
+                    }
                 });
         });
     }
@@ -200,6 +215,15 @@ public record TextEditorViewModel
 
         await ThrottleCalculateVirtualizationResult.FireAsync(async () =>
         {
+            if (model is null)
+                return;
+
+            lock (_trackingOfUniqueIdentifiersLock)
+            {
+                if (SeenModelRenderStateKeys.Contains(model.RenderStateKey))
+                    return;
+            }
+
             var localCharacterWidthAndRowHeight = VirtualizationResult.CharacterWidthAndRowHeight;
 
             if (bodyMeasurementsInPixels is null)
@@ -214,11 +238,6 @@ public record TextEditorViewModel
             {
                 MeasurementsExpiredCancellationToken = cancellationToken
             };
-
-            if (model is null)
-            {
-                return;
-            }
 
             var verticalStartingIndex = (int)Math.Floor(
                 bodyMeasurementsInPixels.ScrollTop /
@@ -400,13 +419,19 @@ public record TextEditorViewModel
                 },
                 localCharacterWidthAndRowHeight);
 
+            lock (_trackingOfUniqueIdentifiersLock)
+            {
+                if (SeenModelRenderStateKeys.Count > _clearTrackingOfUniqueIdentifiersWhenCountIs)
+                    SeenModelRenderStateKeys.Clear();
+
+                SeenModelRenderStateKeys.Add(model.RenderStateKey);
+            }
+
             TextEditorService.ViewModel.With(
                 ViewModelKey,
                 previousViewModel => previousViewModel with
                 {
-                    ModelRenderStateKey = model.RenderStateKey,
                     VirtualizationResult = virtualizationResult,
-                    RenderStateKey = RenderStateKey.NewRenderStateKey()
                 });
         });
     }
@@ -447,24 +472,8 @@ public record TextEditorViewModel
                 return inViewModel with
                 {
                     FirstPresentationLayer = outPresentationLayer,
-                    RenderStateKey = RenderStateKey.NewRenderStateKey()
                 };
             });
-    }
-
-    public bool ShouldRemeasure(TextEditorOptions? options)
-    {
-        var shouldRemeasure = false;
-
-        lock (_validateRenderLock)
-        {
-            if (options is not null)
-            {
-                shouldRemeasure = OptionsRenderStateKey != options.RenderStateKey;
-            }
-        }
-
-        return shouldRemeasure;
     }
 
     public bool ShouldCalculateVirtualizationResult(TextEditorModel? model)
@@ -491,16 +500,7 @@ public record TextEditorViewModel
         if (renderBatch.ViewModel is null)
             return;
 
-        if (renderBatch.Options is not null && renderBatch.ViewModel.ShouldRemeasure(renderBatch.Options))
-        {
-            await renderBatch.ViewModel.RemeasureAsync(
-                renderBatch.Options,
-                measureCharacterWidthAndRowHeightElementId,
-                countOfTestCharacters,
-                cancellationToken);
-
-            return;
-        }
+        
         else if (renderBatch.ViewModel.ShouldCalculateVirtualizationResult(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
@@ -510,9 +510,9 @@ public record TextEditorViewModel
 
             return;
         }
-        else if (renderBatch.ViewModel.ShouldUpdateSemanticPresentationModel)
+        else if (renderBatch.ViewModel.IsDisplayedLinks)
         {
-            renderBatch.ViewModel.ShouldUpdateSemanticPresentationModel = false;
+            renderBatch.ViewModel.IsDisplayedLinks = false;
 
             if (renderBatch.ViewModel is not null && renderBatch.Model?.SemanticModel is not null)
                 renderBatch.ViewModel.UpdateSemanticPresentationModel();

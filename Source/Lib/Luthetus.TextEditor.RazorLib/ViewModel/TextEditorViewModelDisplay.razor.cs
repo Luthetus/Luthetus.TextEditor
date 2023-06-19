@@ -23,6 +23,8 @@ using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
+using Microsoft.AspNetCore.Components.RenderTree;
+using System.Threading;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -83,15 +85,12 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     public bool IncludeContextMenuHelperComponent { get; set; } = true;
 
     private readonly Guid _textEditorHtmlElementId = Guid.NewGuid();
-
-    private readonly object _viewModelKeyParameterHasChangedLock = new();
-    private readonly object _activeOptionsRenderStateKeyHasChangedLock = new();
-
     private readonly IThrottle _throttleApplySyntaxHighlighting = new Throttle(TimeSpan.FromMilliseconds(500));
     private readonly SemaphoreSlim _generalOnStateChangedEventHandlerSemaphoreSlim = new(1, 1);
+    private readonly TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
+    /// <summary>Using this lock in order to avoid the Dispose implementation decrementing when it shouldn't</summary>
+    private readonly object _toRenderViewModelDataLock = new();
 
-    private TextEditorViewModelKey _activeViewModelKey = TextEditorViewModelKey.Empty;
-    private RenderStateKey _activeViewModelRenderStateKey = RenderStateKey.Empty;
     /// <summary>This accounts for one who might hold down Left Mouse Button from outside the TextEditorDisplay's content div then move their mouse over the content div while holding the Left Mouse Button down.</summary>
     private bool _thinksLeftMouseButtonIsDown;
     private bool _thinksTouchIsOccurring;
@@ -100,14 +99,13 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private BodySection? _bodySectionComponent;
     private MeasureCharacterWidthAndRowHeight? _measureCharacterWidthAndRowHeightComponent;
     private Task _mouseStoppedMovingTask = Task.CompletedTask;
-    private TimeSpan _mouseStoppedMovingDelay = TimeSpan.FromMilliseconds(400);
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
-    private bool _viewModelKeyParameterHasChanged;
-    private RenderStateKey _activeOptionsRenderStateKey = RenderStateKey.Empty;
-    private bool _activeOptionsRenderStateKeyHasChanged;
     private int _renderCount = 1;
+    private ToRenderViewModelData? _toRenderViewModelData;
+    private RenderStateKey _currentlyRenderedOptionsRenderStateKey = RenderStateKey.Empty;
+    private RenderStateKey _previouslyRenderedOptionsRenderStateKey = RenderStateKey.Empty;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -116,18 +114,27 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnParametersSetAsync()
     {
-        var currentViewModel = GetViewModel();
+        var nextViewModel = GetViewModel();
 
-        if (currentViewModel is not null &&
-            currentViewModel.ViewModelKey != _activeViewModelKey)
+        if (nextViewModel is not null)
         {
-            _activeViewModelKey = currentViewModel.ViewModelKey;
-            currentViewModel.PrimaryCursor.ShouldRevealCursor = true;
-
-            lock (_viewModelKeyParameterHasChangedLock)
+            lock (_toRenderViewModelDataLock)
             {
-                _viewModelKeyParameterHasChanged = true;
+                if (_toRenderViewModelData is not null &&
+                    _toRenderViewModelData.ViewModelKey != nextViewModel.ViewModelKey)
+                {
+                    _toRenderViewModelData.DisplayTracker.DecrementLinks(ModelsCollectionWrap);
+
+                    
+                }
+
+                _toRenderViewModelData = new(nextViewModel.ViewModelKey, nextViewModel.DisplayTracker);
+                _toRenderViewModelData.DisplayTracker.IncrementLinks(ModelsCollectionWrap);
+
+                
             }
+
+            nextViewModel.PrimaryCursor.ShouldRevealCursor = true;
         }
 
         await base.OnParametersSetAsync();
@@ -135,7 +142,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override void OnInitialized()
     {
-        ModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged += GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged += GeneralOnStateChangedEventHandler;
 
@@ -157,27 +163,16 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 "luthetusTextEditor.preventDefaultOnWheelEvents",
                 ContentElementId);
         }
-
-        // (2023-06-18) Looking into freezing issues
-        if (renderBatch.ViewModel is not null)
+        
+        if (_renderedOptionsRenderStateKey != renderBatch.ViewModel.OptionsRenderStateKey)
         {
-            var backgroundTask = new BackgroundTask(
-                async cancellationToken =>
-                {
-                    await TextEditorViewModel.ValidateRender(
-                        renderBatch,
-                        MeasureCharacterWidthAndRowHeightElementId,
-                        _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
-                        cancellationToken);
-                },
-                "TextEditor OnAfterRender",
-                "TODO: Describe this task",
-                false,
-                _ => Task.CompletedTask,
-                Dispatcher,
-                CancellationToken.None);
+            await renderBatch.ViewModel.RemeasureAsync(
+                renderBatch.Options,
+                measureCharacterWidthAndRowHeightElementId,
+            countOfTestCharacters,
+                cancellationToken);
 
-            TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+            return;
         }
 
         if (renderBatch.ViewModel is not null && renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
@@ -965,12 +960,48 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
         TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
     }
+    
+    private void Aaa(TextEditorViewModelKey viewModelKey)
+    {
+        var viewModel = TextEditorService.ViewModel
+            .FindOrDefault(viewModelKey);
+
+        var model = TextEditorService.ViewModel
+            .FindBackingModelOrDefault(TextEditorViewModelKey);
+
+        var backgroundTask = new BackgroundTask(
+            async cancellationToken =>
+            {
+                await TextEditorViewModel.ValidateRender(
+                    renderBatch,
+                    MeasureCharacterWidthAndRowHeightElementId,
+                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
+                    cancellationToken);
+            },
+            "TextEditor OnAfterRender",
+            "TODO: Describe this task",
+            false,
+            _ => Task.CompletedTask,
+            Dispatcher,
+            CancellationToken.None);
+
+        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+    }
 
     public void Dispose()
     {
         ModelsCollectionWrap.StateChanged -= GeneralOnStateChangedEventHandler;
         ViewModelsCollectionWrap.StateChanged -= GeneralOnStateChangedEventHandler;
         GlobalOptionsWrap.StateChanged -= GeneralOnStateChangedEventHandler;
+
+        lock (_toRenderViewModelDataLock)
+        {
+            if (_toRenderViewModelData is not null)
+            {
+                _toRenderViewModelData.DisplayTracker.DecrementLinks();
+                _toRenderViewModelData = null;
+            }
+        }
 
         _mouseStoppedMovingCancellationTokenSource.Cancel();
     }

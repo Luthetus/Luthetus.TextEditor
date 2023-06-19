@@ -19,6 +19,9 @@
             GetViewModel(),
             GetOptions());
 
+    _previouslyRenderedOptionsRenderStateKey = _currentlyRenderedOptionsRenderStateKey;
+    _currentlyRenderedOptionsRenderStateKey = renderBatch.Options?.RenderStateKey ?? Common.RazorLib.Misc.RenderStateKey.Empty;
+
     string fontFamily;
 
     if (string.IsNullOrWhiteSpace(renderBatch.Options?.CommonOptions?.FontFamily))
