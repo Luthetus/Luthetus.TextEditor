@@ -9,6 +9,10 @@
 @using Luthetus.TextEditor.RazorLib.ViewModel
 @using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents
 
+<div>
+    _renderCount:&nbsp;@_renderCount
+</div>
+
 @{
     var renderBatch = new TextEditorRenderBatch(
             GetModel(),
