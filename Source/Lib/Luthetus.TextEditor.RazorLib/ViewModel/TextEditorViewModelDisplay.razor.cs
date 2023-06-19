@@ -104,8 +104,8 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private bool _userMouseIsInside;
     private int _renderCount = 1;
     private ToRenderViewModelData? _toRenderViewModelData;
-    private RenderStateKey _currentlyRenderedOptionsRenderStateKey = RenderStateKey.Empty;
-    private RenderStateKey _previouslyRenderedOptionsRenderStateKey = RenderStateKey.Empty;
+    private TextEditorRenderBatch? _currentRenderBatch;
+    private TextEditorRenderBatch? _previousRenderBatch;
 
     private TextEditorCursorDisplay? TextEditorCursorDisplay => _bodySectionComponent?.TextEditorCursorDisplayComponent;
     private string MeasureCharacterWidthAndRowHeightElementId => $"luth_te_measure-character-width-and-row-height_{_textEditorHtmlElementId}";
@@ -130,8 +130,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
                 _toRenderViewModelData = new(nextViewModel.ViewModelKey, nextViewModel.DisplayTracker);
                 _toRenderViewModelData.DisplayTracker.IncrementLinks(ModelsCollectionWrap);
-
-                
             }
 
             nextViewModel.PrimaryCursor.ShouldRevealCursor = true;
@@ -150,12 +148,12 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _renderCount++;
+        // TODO: I'm unsure if another render could occur while this 'OnAfterRenderAsync' is being invoked.
+        // Therefore I'm storing the previous and current RenderBatch(s) locally.
+        var localRefPreviousRenderBatch = _previousRenderBatch;
+        var localRefCurrentRenderBatch = _currentRenderBatch;
 
-        var renderBatch = new TextEditorRenderBatch(
-            GetModel(),
-            GetViewModel(),
-            GetOptions());
+        _renderCount++;
 
         if (firstRender)
         {
@@ -163,21 +161,29 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                 "luthetusTextEditor.preventDefaultOnWheelEvents",
                 ContentElementId);
         }
-        
-        if (_renderedOptionsRenderStateKey != renderBatch.ViewModel.OptionsRenderStateKey)
-        {
-            await renderBatch.ViewModel.RemeasureAsync(
-                renderBatch.Options,
-                measureCharacterWidthAndRowHeightElementId,
-            countOfTestCharacters,
-                cancellationToken);
 
-            return;
+        if (localRefCurrentRenderBatch?.ViewModel is not null &&
+            localRefCurrentRenderBatch?.Options is not null)
+        {
+            var previousOptionsRenderStateKey = localRefPreviousRenderBatch?.Options?.RenderStateKey ?? RenderStateKey.Empty;
+            var currentOptionsRenderStateKey = localRefCurrentRenderBatch.Options.RenderStateKey;
+
+            if (previousOptionsRenderStateKey != currentOptionsRenderStateKey)
+            {
+                await localRefCurrentRenderBatch.ViewModel.RemeasureAsync(
+                    localRefCurrentRenderBatch.Options,
+                    MeasureCharacterWidthAndRowHeightElementId,
+                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
+                    CancellationToken.None);
+
+               return;
+            }
         }
 
-        if (renderBatch.ViewModel is not null && renderBatch.ViewModel.ShouldSetFocusAfterNextRender)
+        if (localRefCurrentRenderBatch?.ViewModel is not null &&
+            localRefCurrentRenderBatch.ViewModel.ShouldSetFocusAfterNextRender)
         {
-            renderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
+            localRefCurrentRenderBatch.ViewModel.ShouldSetFocusAfterNextRender = false;
             await FocusTextEditorAsync();
         }
 

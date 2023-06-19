@@ -19,8 +19,8 @@
             GetViewModel(),
             GetOptions());
 
-    _previouslyRenderedOptionsRenderStateKey = _currentlyRenderedOptionsRenderStateKey;
-    _currentlyRenderedOptionsRenderStateKey = renderBatch.Options?.RenderStateKey ?? Common.RazorLib.Misc.RenderStateKey.Empty;
+    _previousRenderBatch = _currentRenderBatch;
+    _currentRenderBatch = renderBatch;
 
     string fontFamily;
 

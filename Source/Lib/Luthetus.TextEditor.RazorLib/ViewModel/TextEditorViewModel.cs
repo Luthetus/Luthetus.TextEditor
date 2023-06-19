@@ -29,6 +29,10 @@ public record TextEditorViewModel
         TextEditorService = textEditorService;
         VirtualizationResult = virtualizationResult;
         DisplayCommandBar = displayCommandBar;
+
+        DisplayTracker = new(
+            () => textEditorService.ViewModel.FindOrDefault(viewModelKey),
+            () => textEditorService.ViewModel.FindBackingModelOrDefault(viewModelKey));
     }
 
     private const int _clearTrackingOfUniqueIdentifiersWhenCountIs = 250;
@@ -43,6 +47,7 @@ public record TextEditorViewModel
     public IThrottle ThrottleCalculateVirtualizationResult { get; } = new Throttle(IThrottle.DefaultThrottleTimeSpan);
 
     public TextEditorCursor PrimaryCursor { get; } = new(true);
+    public DisplayTracker DisplayTracker { get; }
 
     public TextEditorViewModelKey ViewModelKey { get; init; }
     public TextEditorModelKey ModelKey { get; init; }
@@ -64,7 +69,6 @@ public record TextEditorViewModel
     public string CommandBarValue { get; set; } = string.Empty;
     public bool ShouldSetFocusAfterNextRender { get; set; }
 
-    public DisplayTracker DisplayTracker { get; set; } = new();
 
     public string BodyElementId => $"luth_te_text-editor-content_{ViewModelKey.Guid}";
     public string PrimaryCursorContentId => $"luth_te_text-editor-content_{ViewModelKey.Guid}_primary-cursor";
