@@ -10,10 +10,6 @@ using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Semantics;
-using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
-using Luthetus.TextEditor.RazorLib.HostedServiceCase;
-using Microsoft.AspNetCore.Components.RenderTree;
-using System.Reflection;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
