@@ -521,7 +521,7 @@ public record TextEditorViewModel
 
             return;
         }
-        else if (!renderBatch.ViewModel.SeenInvalidOptions && renderBatch.ViewModel.IsDirty(renderBatch.Model))
+        else if (!renderBatch.ViewModel.SeenInvalidModel && renderBatch.ViewModel.IsDirty(renderBatch.Model))
         {
             await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
                 renderBatch.Model,
