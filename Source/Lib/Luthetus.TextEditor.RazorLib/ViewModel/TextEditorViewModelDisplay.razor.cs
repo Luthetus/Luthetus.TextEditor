@@ -124,8 +124,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     _toRenderViewModelData.ViewModelKey != nextViewModel.ViewModelKey)
                 {
                     _toRenderViewModelData.DisplayTracker.DecrementLinks(ModelsCollectionWrap);
-
-                    
                 }
 
                 _toRenderViewModelData = new(nextViewModel.ViewModelKey, nextViewModel.DisplayTracker);
@@ -165,18 +163,30 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         if (localRefCurrentRenderBatch?.ViewModel is not null &&
             localRefCurrentRenderBatch?.Options is not null)
         {
+            var pendingNeedForBecameDisplayedCalculations = false;
+
+            if (_toRenderViewModelData is not null)
+            {
+                pendingNeedForBecameDisplayedCalculations = _toRenderViewModelData.DisplayTracker
+                    .ConsumePendingNeedForBecameDisplayedCalculations();
+            }
+
+            if (pendingNeedForBecameDisplayedCalculations)
+                _ = Task.Run(localRefCurrentRenderBatch.ViewModel.UpdateSemanticPresentationModel);
+
             var previousOptionsRenderStateKey = localRefPreviousRenderBatch?.Options?.RenderStateKey ?? RenderStateKey.Empty;
             var currentOptionsRenderStateKey = localRefCurrentRenderBatch.Options.RenderStateKey;
 
-            if (previousOptionsRenderStateKey != currentOptionsRenderStateKey)
+            if (previousOptionsRenderStateKey != currentOptionsRenderStateKey ||
+                pendingNeedForBecameDisplayedCalculations)
             {
-                await localRefCurrentRenderBatch.ViewModel.RemeasureAsync(
-                    localRefCurrentRenderBatch.Options,
+                QueueRemeasureBackgroundTask(
+                    localRefCurrentRenderBatch,
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
                     CancellationToken.None);
 
-               return;
+                return;
             }
         }
 
@@ -967,25 +977,26 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
     }
     
-    private void Aaa(TextEditorViewModelKey viewModelKey)
+    private void QueueRemeasureBackgroundTask(
+        TextEditorRenderBatch localRefCurrentRenderBatch,
+        string localMeasureCharacterWidthAndRowHeightElementId,
+        int localMeasureCharacterWidthAndRowHeightComponent,
+        CancellationToken cancellationToken)
     {
-        var viewModel = TextEditorService.ViewModel
-            .FindOrDefault(viewModelKey);
-
-        var model = TextEditorService.ViewModel
-            .FindBackingModelOrDefault(TextEditorViewModelKey);
+        if (localRefCurrentRenderBatch.ViewModel is null || localRefCurrentRenderBatch.Options is null)
+            return;
 
         var backgroundTask = new BackgroundTask(
             async cancellationToken =>
             {
-                await TextEditorViewModel.ValidateRender(
-                    renderBatch,
-                    MeasureCharacterWidthAndRowHeightElementId,
-                    _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
-                    cancellationToken);
+                await localRefCurrentRenderBatch.ViewModel.RemeasureAsync(
+                    localRefCurrentRenderBatch.Options,
+                    localMeasureCharacterWidthAndRowHeightElementId,
+                    localMeasureCharacterWidthAndRowHeightComponent,
+                    CancellationToken.None);
             },
-            "TextEditor OnAfterRender",
-            "TODO: Describe this task",
+            "TextEditor Remeasure",
+            "Re-measure for a ViewModel",
             false,
             _ => Task.CompletedTask,
             Dispatcher,
@@ -1004,7 +1015,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         {
             if (_toRenderViewModelData is not null)
             {
-                _toRenderViewModelData.DisplayTracker.DecrementLinks();
+                _toRenderViewModelData.DisplayTracker.DecrementLinks(ModelsCollectionWrap);
                 _toRenderViewModelData = null;
             }
         }

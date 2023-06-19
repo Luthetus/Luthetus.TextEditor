@@ -70,7 +70,7 @@ public class DisplayTracker
         }
     }
 
-    public void DecrementLinks(IState<TextEditorModelsCollection> modelsCollectionWrap, TextEditorViewModel viewModel)
+    public void DecrementLinks(IState<TextEditorModelsCollection> modelsCollectionWrap)
     {
         lock (_linksLock)
         {
@@ -83,6 +83,17 @@ public class DisplayTracker
 
                 modelsCollectionWrap.StateChanged -= ModelsCollectionWrap_StateChanged;
             }
+        }
+    }
+
+    public bool ConsumePendingNeedForBecameDisplayedCalculations()
+    {
+        lock (_linksLock)
+        {
+            var localPendingNeedForBecameDisplayedCalculations = PendingNeedForBecameDisplayedCalculations;
+            PendingNeedForBecameDisplayedCalculations = false;
+
+            return localPendingNeedForBecameDisplayedCalculations;
         }
     }
 

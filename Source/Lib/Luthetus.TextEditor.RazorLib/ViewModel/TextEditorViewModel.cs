@@ -479,49 +479,4 @@ public record TextEditorViewModel
                 };
             });
     }
-
-    public bool ShouldCalculateVirtualizationResult(TextEditorModel? model)
-    {
-        var shouldCalculateVirtualizationResult = false;
-
-        lock (_validateRenderLock)
-        {
-            if (model is not null)
-            {
-                shouldCalculateVirtualizationResult = ModelRenderStateKey != model.RenderStateKey;
-            }
-        }
-
-        return shouldCalculateVirtualizationResult;
-    }
-    
-    public static async Task ValidateRender(
-        TextEditorRenderBatch renderBatch,
-        string measureCharacterWidthAndRowHeightElementId,
-        int countOfTestCharacters,
-        CancellationToken cancellationToken)
-    {
-        if (renderBatch.ViewModel is null)
-            return;
-
-        
-        else if (renderBatch.ViewModel.ShouldCalculateVirtualizationResult(renderBatch.Model))
-        {
-            await renderBatch.ViewModel.CalculateVirtualizationResultAsync(
-                renderBatch.Model,
-                null,
-                cancellationToken);
-
-            return;
-        }
-        else if (renderBatch.ViewModel.IsDisplayedLinks)
-        {
-            renderBatch.ViewModel.IsDisplayedLinks = false;
-
-            if (renderBatch.ViewModel is not null && renderBatch.Model?.SemanticModel is not null)
-                renderBatch.ViewModel.UpdateSemanticPresentationModel();
-
-            return;
-        }
-    }
 }
