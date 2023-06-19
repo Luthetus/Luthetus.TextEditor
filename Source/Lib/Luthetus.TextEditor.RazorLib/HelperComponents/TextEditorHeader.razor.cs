@@ -263,8 +263,6 @@ public partial class TextEditorHeader : TextEditorView
         };
 
         DialogService.RegisterDialogRecord(dialogRecord);
-
-        ChangeLastPresentationLayer();
     }
     
     private void RunFileOnClick()
@@ -359,51 +357,5 @@ public partial class TextEditorHeader : TextEditorView
         }
 
         return !textEditor.CanRedoEdit();
-    }
-
-    private void ChangeLastPresentationLayer()
-    {
-        var viewModel = MutableReferenceToViewModel;
-
-        if (viewModel is null)
-            return;
-
-        TextEditorService.ViewModel.With(
-            viewModel.ViewModelKey,
-            inViewModel =>
-            {
-                var outPresentationLayer = inViewModel.FirstPresentationLayer;
-
-                var inPresentationModel = outPresentationLayer
-                    .FirstOrDefault(x =>
-                        x.TextEditorPresentationKey == SemanticFacts.PresentationKey);
-
-                if (inPresentationModel is null)
-                {
-                    inPresentationModel = SemanticFacts.EmptyPresentationModel;
-
-                    outPresentationLayer = outPresentationLayer.Add(
-                        inPresentationModel);
-                }
-
-                var model = TextEditorService.ViewModel
-                    .FindBackingModelOrDefault(viewModel.ViewModelKey);
-
-                var outPresentationModel = inPresentationModel with
-                {
-                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
-                        ?? ImmutableList<TextEditorTextSpan>.Empty
-                };
-
-                outPresentationLayer = outPresentationLayer.Replace(
-                    inPresentationModel,
-                    outPresentationModel);
-
-                return inViewModel with
-                {
-                    FirstPresentationLayer = outPresentationLayer,
-                    RenderStateKey = RenderStateKey.NewRenderStateKey()
-                };
-            });
     }
 }

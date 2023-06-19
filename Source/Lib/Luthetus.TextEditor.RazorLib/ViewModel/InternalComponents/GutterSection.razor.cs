@@ -22,14 +22,10 @@ public partial class GutterSection : ComponentBase
     {
         var viewModel = TextEditorViewModel;
 
-        if (TextEditorViewModel.RenderStateKey != _previousRenderStateKey)
-        {
-            _previousRenderStateKey = TextEditorViewModel.RenderStateKey;
-
-            TextEditorService.ViewModel.SetGutterScrollTopAsync(
-                viewModel.GutterElementId,
-                viewModel.VirtualizationResult.ElementMeasurementsInPixels.ScrollTop);
-        }
+        // TODO: Does 'SetGutterScrollTopAsync' need to be throttled?
+        TextEditorService.ViewModel.SetGutterScrollTopAsync(
+            viewModel.GutterElementId,
+            viewModel.VirtualizationResult.ElementMeasurementsInPixels.ScrollTop);
 
         return base.OnAfterRenderAsync(firstRender);
     }

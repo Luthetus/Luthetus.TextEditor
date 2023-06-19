@@ -141,7 +141,6 @@ public static class TextEditorCommandDefaultFacts
                     commandParameter.ViewModel.ViewModelKey,
                     previousViewModel => previousViewModel with
                     {
-                        RenderStateKey = RenderStateKey.NewRenderStateKey()
                     });
             }
 
@@ -167,7 +166,6 @@ public static class TextEditorCommandDefaultFacts
                 commandParameter.ViewModel.ViewModelKey,
                 previousViewModel => previousViewModel with
                 {
-                    RenderStateKey = RenderStateKey.NewRenderStateKey()
                 });
 
             return Task.CompletedTask;
