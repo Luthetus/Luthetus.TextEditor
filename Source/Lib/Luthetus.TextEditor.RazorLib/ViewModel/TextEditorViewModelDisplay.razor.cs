@@ -100,7 +100,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
-    private int _renderCount = 1;
     private ToRenderViewModelData? _toRenderViewModelData;
     private TextEditorRenderBatch? _currentRenderBatch;
     private TextEditorRenderBatch? _previousRenderBatch;
@@ -148,8 +147,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         // Therefore I'm storing the previous and current RenderBatch(s) locally.
         var localRefPreviousRenderBatch = _previousRenderBatch;
         var localRefCurrentRenderBatch = _currentRenderBatch;
-
-        _renderCount++;
 
         if (firstRender)
         {

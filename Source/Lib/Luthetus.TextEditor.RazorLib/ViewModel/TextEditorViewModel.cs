@@ -211,6 +211,7 @@ public record TextEditorViewModel
     public async Task CalculateVirtualizationResultAsync(
         TextEditorModel? model,
         ElementMeasurementsInPixels? bodyMeasurementsInPixels,
+
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -225,11 +226,13 @@ public record TextEditorViewModel
             if (model is null)
                 return;
 
-            lock (_trackingOfUniqueIdentifiersLock)
-            {
-                if (SeenModelRenderStateKeys.Contains(model.RenderStateKey))
-                    return;
-            }
+            // TODO: Should this '_trackingOfUniqueIdentifiersLock' logic when in regards to the TextEditorModel be removed? The issue is that when scrolling the TextEditorModel would show up in the HashSet and therefore the calculation of the virtualization result would not occur.
+            //
+            //lock (_trackingOfUniqueIdentifiersLock)
+            //{
+            //    if (SeenModelRenderStateKeys.Contains(model.RenderStateKey))
+            //        return;
+            //}
 
             var localCharacterWidthAndRowHeight = VirtualizationResult.CharacterWidthAndRowHeight;
 
