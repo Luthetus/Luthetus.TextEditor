@@ -23,8 +23,6 @@ using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
-using Microsoft.AspNetCore.Components.RenderTree;
-using System.Threading;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -102,7 +100,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private CancellationTokenSource _mouseStoppedMovingCancellationTokenSource = new();
     private (string message, RelativeCoordinates relativeCoordinates)? _mouseStoppedEventMostRecentResult;
     private bool _userMouseIsInside;
-    private int _renderCount = 1;
     private ToRenderViewModelData? _toRenderViewModelData;
     private TextEditorRenderBatch? _currentRenderBatch;
     private TextEditorRenderBatch? _previousRenderBatch;
@@ -151,8 +148,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         var localRefPreviousRenderBatch = _previousRenderBatch;
         var localRefCurrentRenderBatch = _currentRenderBatch;
 
-        _renderCount++;
-
         if (firstRender)
         {
             await JsRuntime.InvokeVoidAsync(
@@ -171,9 +166,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     .ConsumePendingNeedForBecameDisplayedCalculations();
             }
 
-            if (pendingNeedForBecameDisplayedCalculations)
-                _ = Task.Run(localRefCurrentRenderBatch.ViewModel.UpdateSemanticPresentationModel);
-
             var previousOptionsRenderStateKey = localRefPreviousRenderBatch?.Options?.RenderStateKey ?? RenderStateKey.Empty;
             var currentOptionsRenderStateKey = localRefCurrentRenderBatch.Options.RenderStateKey;
 
@@ -185,8 +177,12 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                     MeasureCharacterWidthAndRowHeightElementId,
                     _measureCharacterWidthAndRowHeightComponent?.CountOfTestCharacters ?? 0,
                     CancellationToken.None);
+            }
 
-                return;
+            if (pendingNeedForBecameDisplayedCalculations)
+            {
+                QueueCalculateVirtualizationResultBackgroundTask(localRefCurrentRenderBatch);
+                QueueUpdateSemanticPresentationModelBackgroundTask(localRefCurrentRenderBatch);
             }
         }
 
@@ -951,32 +947,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         }
     }
     
-    private void QueueBackgroundTaskUpdateSemanticPresentationModel(TextEditorViewModelKey backgroundTaskViewModelKey)
-    {
-        var viewModel = TextEditorService.ViewModel
-            .FindOrDefault(backgroundTaskViewModelKey);
-
-        var model = TextEditorService.ViewModel
-            .FindBackingModelOrDefault(TextEditorViewModelKey);
-
-        var backgroundTask = new BackgroundTask(
-            cancellationToken =>
-            {
-                if (viewModel is not null && model?.SemanticModel is not null)
-                    viewModel.UpdateSemanticPresentationModel();
-
-                return Task.CompletedTask;
-            },
-            "TextEditor UpdateSemanticPresentationModel",
-            "TODO: Describe this task",
-            false,
-            _ => Task.CompletedTask,
-            Dispatcher,
-            CancellationToken.None);
-
-        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
-    }
-    
     private void QueueRemeasureBackgroundTask(
         TextEditorRenderBatch localRefCurrentRenderBatch,
         string localMeasureCharacterWidthAndRowHeightElementId,
@@ -989,14 +959,80 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
         var backgroundTask = new BackgroundTask(
             async cancellationToken =>
             {
-                await localRefCurrentRenderBatch.ViewModel.RemeasureAsync(
-                    localRefCurrentRenderBatch.Options,
-                    localMeasureCharacterWidthAndRowHeightElementId,
-                    localMeasureCharacterWidthAndRowHeightComponent,
-                    CancellationToken.None);
+                // Get the most recent instantiation of the ViewModel with the given key.
+                var viewModel = TextEditorService.ViewModel
+                    .FindOrDefault(localRefCurrentRenderBatch.ViewModel.ViewModelKey);
+
+                var options = GetOptions();
+
+                if (viewModel is not null && options is not null)
+                {
+                    await viewModel.RemeasureAsync(
+                        options,
+                        localMeasureCharacterWidthAndRowHeightElementId,
+                        localMeasureCharacterWidthAndRowHeightComponent,
+                        CancellationToken.None);
+                }
             },
             "TextEditor Remeasure",
             "Re-measure for a ViewModel",
+            false,
+            _ => Task.CompletedTask,
+            Dispatcher,
+            CancellationToken.None);
+
+        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+    }
+    
+    private void QueueCalculateVirtualizationResultBackgroundTask(
+        TextEditorRenderBatch localRefCurrentRenderBatch)
+    {
+        if (localRefCurrentRenderBatch.ViewModel is null || localRefCurrentRenderBatch.Options is null)
+            return;
+
+        var backgroundTask = new BackgroundTask(
+            async cancellationToken =>
+            {
+                // Get the most recent instantiation of the ViewModel with the given key.
+                var viewModel = TextEditorService.ViewModel
+                    .FindOrDefault(localRefCurrentRenderBatch.ViewModel.ViewModelKey);
+                
+                var model = TextEditorService.ViewModel
+                    .FindBackingModelOrDefault(localRefCurrentRenderBatch.ViewModel.ViewModelKey);
+
+                if (viewModel is not null && model is not null)
+                {
+                    await localRefCurrentRenderBatch.ViewModel.CalculateVirtualizationResultAsync(
+                        model,
+                        null,
+                        CancellationToken.None);
+                }
+            },
+            "TextEditor CalculateVirtualizationResult",
+            "CalculateVirtualizationResult for a ViewModel",
+            false,
+            _ => Task.CompletedTask,
+            Dispatcher,
+            CancellationToken.None);
+
+        TextEditorBackgroundTaskQueue.QueueBackgroundWorkItem(backgroundTask);
+    }
+
+    private void QueueUpdateSemanticPresentationModelBackgroundTask(
+        TextEditorRenderBatch localRefCurrentRenderBatch)
+    {
+        if (localRefCurrentRenderBatch.ViewModel is null || localRefCurrentRenderBatch.Options is null)
+            return;
+
+        var backgroundTask = new BackgroundTask(
+            cancellationToken =>
+            {
+                localRefCurrentRenderBatch.ViewModel.UpdateSemanticPresentationModel();
+
+                return Task.CompletedTask;
+            },
+            "TextEditor UpdateSemanticPresentationModel",
+            "UpdateSemanticPresentationModel for a ViewModel",
             false,
             _ => Task.CompletedTask,
             Dispatcher,

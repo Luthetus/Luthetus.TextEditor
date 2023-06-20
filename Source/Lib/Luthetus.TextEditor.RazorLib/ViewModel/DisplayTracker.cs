@@ -1,11 +1,6 @@
 ﻿using Fluxor;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -19,6 +14,8 @@ namespace Luthetus.TextEditor.RazorLib.ViewModel;
 public class DisplayTracker
 {
     private readonly object _linksLock = new();
+
+    private CancellationTokenSource _calculateVirtualizationResultCancellationTokenSource = new();
 
     public DisplayTracker(
         Func<TextEditorViewModel?> getViewModelFunc,
@@ -105,9 +102,12 @@ public class DisplayTracker
         if (viewModel is null || model is null)
             return;
 
+        _calculateVirtualizationResultCancellationTokenSource.Cancel();
+        _calculateVirtualizationResultCancellationTokenSource = new();
+
         await viewModel.CalculateVirtualizationResultAsync(
             model,
             null,
-            CancellationToken.None);
+            _calculateVirtualizationResultCancellationTokenSource.Token);
     }
 }

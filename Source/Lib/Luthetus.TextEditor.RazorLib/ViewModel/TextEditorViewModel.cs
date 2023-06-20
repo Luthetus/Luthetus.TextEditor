@@ -10,7 +10,6 @@ using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Semantics;
-using Microsoft.Extensions.Options;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -212,9 +211,14 @@ public record TextEditorViewModel
     public async Task CalculateVirtualizationResultAsync(
         TextEditorModel? model,
         ElementMeasurementsInPixels? bodyMeasurementsInPixels,
+
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
+            return;
+        
+        // Return because the UI still needs to be measured.
+        if (!SeenOptionsRenderStateKeys.Any())
             return;
 
         await ThrottleCalculateVirtualizationResult.FireAsync(async () =>
@@ -222,11 +226,13 @@ public record TextEditorViewModel
             if (model is null)
                 return;
 
-            lock (_trackingOfUniqueIdentifiersLock)
-            {
-                if (SeenModelRenderStateKeys.Contains(model.RenderStateKey))
-                    return;
-            }
+            // TODO: Should this '_trackingOfUniqueIdentifiersLock' logic when in regards to the TextEditorModel be removed? The issue is that when scrolling the TextEditorModel would show up in the HashSet and therefore the calculation of the virtualization result would not occur.
+            //
+            //lock (_trackingOfUniqueIdentifiersLock)
+            //{
+            //    if (SeenModelRenderStateKeys.Contains(model.RenderStateKey))
+            //        return;
+            //}
 
             var localCharacterWidthAndRowHeight = VirtualizationResult.CharacterWidthAndRowHeight;
 
