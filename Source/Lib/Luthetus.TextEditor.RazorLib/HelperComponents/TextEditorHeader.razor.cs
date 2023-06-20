@@ -1,15 +1,12 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.Common.RazorLib.Clipboard;
 using Luthetus.Common.RazorLib.Dialog;
-using Luthetus.Common.RazorLib.Misc;
 using Luthetus.Common.RazorLib.WatchWindow;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Commands;
 using Luthetus.TextEditor.RazorLib.Commands.Default;
 using Luthetus.TextEditor.RazorLib.Cursor;
-using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Row;
-using Luthetus.TextEditor.RazorLib.Semantics;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;

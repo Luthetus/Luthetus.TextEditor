@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Luthetus.TextEditor.RazorLib.ViewModel;
+﻿namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
 /// <summary>
 /// The name of this class, '<see cref="ToRenderViewModelData"/>', is a bit awkwardly worded.

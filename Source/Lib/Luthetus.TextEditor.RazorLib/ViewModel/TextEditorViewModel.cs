@@ -10,7 +10,6 @@ using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Semantics;
-using Microsoft.Extensions.Options;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
