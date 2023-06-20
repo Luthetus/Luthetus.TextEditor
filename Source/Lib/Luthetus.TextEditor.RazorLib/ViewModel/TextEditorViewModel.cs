@@ -215,6 +215,10 @@ public record TextEditorViewModel
     {
         if (cancellationToken.IsCancellationRequested)
             return;
+        
+        // Return because the UI still needs to be measured.
+        if (!SeenOptionsRenderStateKeys.Any())
+            return;
 
         await ThrottleCalculateVirtualizationResult.FireAsync(async () =>
         {
