@@ -29,14 +29,10 @@ public static class ServiceCollectionExtensions
             .AddScoped<IThemeRecordsCollectionService, ThemeRecordsCollectionService>()
             .AddScoped<ITextEditorService, TextEditorService>();
 
-        if (textEditorOptions.InitializeFluxor)
-        {
-            services
-                .AddFluxor(options => options
-                    .ScanAssemblies(
-                        typeof(ServiceCollectionExtensions).Assembly,
-                        typeof(Luthetus.Common.RazorLib.ServiceCollectionExtensions).Assembly));
-        }
+        services
+            .AddFluxor(options => options
+                .ScanAssemblies(
+                    typeof(ServiceCollectionExtensions).Assembly));
 
         return services;
     }

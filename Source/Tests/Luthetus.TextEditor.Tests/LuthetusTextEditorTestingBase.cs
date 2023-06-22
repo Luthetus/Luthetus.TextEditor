@@ -39,15 +39,9 @@ public class LuthetusTextEditorTestingBase
 
         services.AddScoped<IJSRuntime>(_ => new DoNothingJsRuntime());
 
-        var shouldInitializeFluxor = false;
-
         services.AddLuthetusTextEditor(inTextEditorOptions =>
         {
-            var luthetusCommonOptions =
-                (inTextEditorOptions.LuthetusCommonOptions ?? new()) with
-                {
-                    InitializeFluxor = shouldInitializeFluxor
-                };
+            var luthetusCommonOptions = inTextEditorOptions.LuthetusCommonOptions ?? new();
 
             var luthetusCommonFactories = luthetusCommonOptions.LuthetusCommonFactories with
             {
@@ -62,7 +56,6 @@ public class LuthetusTextEditorTestingBase
 
             return inTextEditorOptions with
             {
-                InitializeFluxor = shouldInitializeFluxor,
                 CustomThemeRecords = LuthetusTextEditorCustomThemeFacts.AllCustomThemes,
                 InitialThemeKey = LuthetusTextEditorCustomThemeFacts.DarkTheme.ThemeKey,
                 LuthetusCommonOptions = luthetusCommonOptions
