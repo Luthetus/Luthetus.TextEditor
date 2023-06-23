@@ -640,7 +640,7 @@
         dark themed so the Text Editor has its own theme
     */
     --luth_te_primary-font-color: rgb(215, 215, 215);
-    --luth_te_text-editor-cursor-foreground-color: rgb(220, 220, 220);
+    --luth_te_text-editor-cursor-foreground-color: rgb(217, 217, 217);
     --luth_te_text-selection-background-color: #1E557D;
     --luth_te_diff-longest-common-subsequence-background-color: #7e0077;
     --luth_te_diff-insertion-background-color: green;
