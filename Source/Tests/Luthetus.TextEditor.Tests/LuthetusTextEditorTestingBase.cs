@@ -6,6 +6,7 @@ using Luthetus.TextEditor.RazorLib.ViewModel;
 using Fluxor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using Luthetus.Common.RazorLib;
 
 namespace Luthetus.TextEditor.Tests;
 
@@ -64,8 +65,8 @@ public class LuthetusTextEditorTestingBase
 
         services.AddFluxor(options => options
             .ScanAssemblies(
-                typeof(Luthetus.Common.RazorLib.ServiceCollectionExtensions).Assembly,
-                typeof(Luthetus.TextEditor.RazorLib.ServiceCollectionExtensions).Assembly));
+                typeof(LuthetusCommonOptions).Assembly,
+                typeof(LuthetusTextEditorOptions).Assembly));
 
         ServiceProvider = services.BuildServiceProvider();
 

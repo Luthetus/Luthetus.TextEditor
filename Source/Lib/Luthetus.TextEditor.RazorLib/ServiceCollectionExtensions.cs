@@ -29,11 +29,6 @@ public static class ServiceCollectionExtensions
             .AddScoped<IThemeRecordsCollectionService, ThemeRecordsCollectionService>()
             .AddScoped<ITextEditorService, TextEditorService>();
 
-        services
-            .AddFluxor(options => options
-                .ScanAssemblies(
-                    typeof(ServiceCollectionExtensions).Assembly));
-
         return services;
     }
 }
