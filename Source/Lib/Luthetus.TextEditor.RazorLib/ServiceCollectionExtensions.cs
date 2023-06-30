@@ -1,4 +1,3 @@
-using Fluxor;
 using Luthetus.Common.RazorLib;
 using Luthetus.Common.RazorLib.Theme;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,15 +27,6 @@ public static class ServiceCollectionExtensions
             .AddScoped(serviceProvider => textEditorOptions.AutocompleteIndexerFactory.Invoke(serviceProvider))
             .AddScoped<IThemeRecordsCollectionService, ThemeRecordsCollectionService>()
             .AddScoped<ITextEditorService, TextEditorService>();
-
-        if (textEditorOptions.InitializeFluxor)
-        {
-            services
-                .AddFluxor(options => options
-                    .ScanAssemblies(
-                        typeof(ServiceCollectionExtensions).Assembly,
-                        typeof(Luthetus.Common.RazorLib.ServiceCollectionExtensions).Assembly));
-        }
 
         return services;
     }
