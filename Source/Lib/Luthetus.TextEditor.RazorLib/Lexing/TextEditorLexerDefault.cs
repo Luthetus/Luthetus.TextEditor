@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace Luthetus.TextEditor.RazorLib.Lexing;
 
-public class TextEditorLexerDefault : ITextEditorLexer
+public class TextEditorLexerDefault
 {
     public TextEditorLexerDefault(ResourceUri resourceUri)
     {

@@ -7,7 +7,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.TypeScript.SyntaxActors;
 
-public class TextEditorTypeScriptLexer : ITextEditorLexer
+public class TextEditorTypeScriptLexer
 {
     public static readonly GenericPreprocessorDefinition TypeScriptPreprocessorDefinition = new(
         "#",

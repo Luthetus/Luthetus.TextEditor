@@ -4,7 +4,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Css.SyntaxActors;
 
-public class TextEditorCssLexer : ITextEditorLexer
+public class TextEditorCssLexer
 {
     public TextEditorCssLexer(ResourceUri resourceUri)
     {

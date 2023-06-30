@@ -6,7 +6,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Razor.SyntaxActors;
 
-public class TextEditorRazorLexer : ITextEditorLexer
+public class TextEditorRazorLexer
 {
     public TextEditorRazorLexer(ResourceUri resourceUri)
     {

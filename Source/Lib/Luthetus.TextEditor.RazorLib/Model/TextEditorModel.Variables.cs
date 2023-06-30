@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Luthetus.Common.RazorLib.Misc;
 using Luthetus.TextEditor.RazorLib.Character;
+using Luthetus.TextEditor.RazorLib.CompilerServiceCase;
 using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Editing;
 using Luthetus.TextEditor.RazorLib.HelperComponents;
@@ -8,7 +9,6 @@ using Luthetus.TextEditor.RazorLib.Keymap;
 using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Options;
 using Luthetus.TextEditor.RazorLib.Row;
-using Luthetus.TextEditor.RazorLib.Semantics;
 using Luthetus.TextEditor.RazorLib.ViewModel;
 
 namespace Luthetus.TextEditor.RazorLib.Model;
@@ -38,18 +38,17 @@ public partial class TextEditorModel
     /// <summary>If there is a mixture of<br />-Carriage Return<br />-Linefeed<br />-CRLF<br />Then <see cref="OnlyRowEndingKind" /> will be null.<br /><br />If there are no line endingsthen <see cref="OnlyRowEndingKind" /> will be null.</summary>
     public RowEndingKind? OnlyRowEndingKind { get; private set; }
     public RowEndingKind UsingRowEndingKind { get; private set; }
-    public ITextEditorLexer Lexer { get; private set; }
     public ResourceUri ResourceUri { get; private set; }
     public DateTime ResourceLastWriteTime { get; private set; }
     /// <summary><see cref="FileExtension"/> is displayed as is within the<see cref="TextEditorFooter"/>.<br/><br/>The <see cref="TextEditorFooter"/> is only displayed if<see cref="TextEditorViewModelDisplay.IncludeFooterHelperComponent"/> is set to true.</summary>
     public string FileExtension { get; private set; }
+    public ICompilerService CompilerService { get; private set; }
     public IDecorationMapper DecorationMapper { get; private set; }
     public int EditBlockIndex { get; private set; }
     public (int rowIndex, int rowLength) MostCharactersOnASingleRowTuple { get; private set; }
 
     public TextEditorModelKey ModelKey { get; } = TextEditorModelKey.NewTextEditorModelKey();
     public RenderStateKey RenderStateKey { get; } = RenderStateKey.NewRenderStateKey();
-    public ISemanticModel? SemanticModel { get; }
     public ITextEditorKeymap TextEditorKeymap { get; }
     public TextEditorSaveFileHelper TextEditorSaveFileHelper { get; } = new();
     public TextEditorOptions? TextEditorOptions { get; }

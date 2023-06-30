@@ -36,8 +36,7 @@ public partial class TextEditorHeader : TextEditorView
             TextEditorCursorSnapshot.TakeSnapshots(textEditorViewModel.PrimaryCursor),
             ClipboardService,
             TextEditorService,
-            textEditorViewModel,
-            null);
+            textEditorViewModel);
     }
 
     private void SelectRowEndingKindOnChange(ChangeEventArgs changeEventArgs)
@@ -233,9 +232,6 @@ public partial class TextEditorHeader : TextEditorView
 
         if (model is null)
             return;
-
-        if (model.SemanticModel is not null)
-            model.SemanticModel.Parse(model);
 
         var watchWindowObjectWrap = new WatchWindowObjectWrap(
             model,
