@@ -19,5 +19,5 @@ public class XmlResource
     public TextEditorModelKey ModelKey { get; }
     public ResourceUri ResourceUri { get; }
     public TextEditorXmlCompilerService TextEditorXmlCompilerService { get; }
-    public ImmutableArray<TextEditorTextSpan>? LexResult { get; internal set; }
+    public ImmutableArray<TextEditorTextSpan>? SyntacticTextSpans { get; internal set; }
 }

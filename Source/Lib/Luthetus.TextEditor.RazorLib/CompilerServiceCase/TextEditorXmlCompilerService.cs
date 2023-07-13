@@ -41,7 +41,7 @@ public class TextEditorXmlCompilerService : ICompilerService
             if (!_xmlResourceMap.ContainsKey(model.ModelKey))
                 return ImmutableArray<TextEditorTextSpan>.Empty;
 
-            return _xmlResourceMap[model.ModelKey].LexResult ??
+            return _xmlResourceMap[model.ModelKey].SyntacticTextSpans ??
                 ImmutableArray<TextEditorTextSpan>.Empty;
         }
     }
@@ -85,7 +85,7 @@ public class TextEditorXmlCompilerService : ICompilerService
                         return;
 
                     _xmlResourceMap[model.ModelKey]
-                        .LexResult = lexResult;
+                        .SyntacticTextSpans = lexResult;
                 }
 
                 await model.ApplySyntaxHighlightingAsync();
