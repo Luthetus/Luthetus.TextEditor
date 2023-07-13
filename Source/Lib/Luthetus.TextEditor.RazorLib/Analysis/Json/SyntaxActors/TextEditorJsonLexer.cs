@@ -4,7 +4,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;
 
-public class TextEditorJsonLexer : ITextEditorLexer
+public class TextEditorJsonLexer
 {
     public TextEditorJsonLexer(ResourceUri resourceUri)
     {

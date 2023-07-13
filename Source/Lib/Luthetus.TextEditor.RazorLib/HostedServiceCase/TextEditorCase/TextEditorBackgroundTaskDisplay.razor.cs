@@ -1,7 +1,7 @@
 ﻿using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 using Microsoft.AspNetCore.Components;
 
-namespace Luthetus.TextEditor.RazorLib.HostedServiceCase;
+namespace Luthetus.TextEditor.RazorLib.HostedServiceCase.TextEditorCase;
 
 public partial class TextEditorBackgroundTaskDisplay : ComponentBase
 {

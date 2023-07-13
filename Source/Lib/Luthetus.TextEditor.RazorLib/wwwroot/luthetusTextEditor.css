@@ -655,11 +655,11 @@
     --luth_te_newline-background-color: #424242;
     --luth_te_method-foreground-color: rgb(80, 206, 100);
     --luth_te_type-foreground-color: rgb(87, 176, 221);
-    --luth_te_variable-foreground-color: rgb(170, 165, 215);
+    --luth_te_variable-foreground-color: rgb(200, 200, 130);
     --luth_te_string-literal-foreground-color: rgb(214, 157, 133);
     --luth_te_string-literal-escape-character-foreground-color: rgb(255, 214, 143);
     --luth_te_keyword-foreground-color: rgb(218, 111, 114);
-    --luth_te_keyword-control-foreground-color: rgb(230, 110, 180);
+    --luth_te_keyword-control-foreground-color: rgb(218, 125, 208);
     --luth_te_comment-foreground-color: rgb(150, 150, 150);
     --luth_te_tag-name-foreground-color: var(--luth_te_keyword-foreground-color);
     --luth_te_injected-language-fragment-color: rgb(165, 150, 210);

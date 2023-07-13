@@ -1,9 +1,9 @@
 ﻿using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 using System.Collections.Concurrent;
 
-namespace Luthetus.TextEditor.RazorLib.HostedServiceCase;
+namespace Luthetus.TextEditor.RazorLib.HostedServiceCase.CompilerServiceCase;
 
-public class TextEditorBackgroundTaskQueue : ITextEditorBackgroundTaskQueue
+public class CompilerServiceBackgroundTaskQueue : ICompilerServiceBackgroundTaskQueue
 {
     private readonly ConcurrentQueue<IBackgroundTask> _backgroundTasks = new();
     private readonly SemaphoreSlim _workItemsQueueSemaphoreSlim = new(0);

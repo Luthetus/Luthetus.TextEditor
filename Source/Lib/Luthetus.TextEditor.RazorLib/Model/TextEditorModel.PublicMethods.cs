@@ -10,6 +10,7 @@ using Luthetus.TextEditor.RazorLib.Editing;
 using Luthetus.TextEditor.RazorLib.Row;
 using Luthetus.TextEditor.RazorLib.Store;
 using Microsoft.AspNetCore.Components.Web;
+using Luthetus.TextEditor.RazorLib.CompilerServiceCase;
 
 namespace Luthetus.TextEditor.RazorLib.Model;
 
@@ -371,23 +372,8 @@ public partial class TextEditorModel
 
     public async Task ApplySyntaxHighlightingAsync()
     {
-        var textEditorTextSpans = await Lexer.Lex(
-            GetAllText(),
-            RenderStateKey);
-
-        if (SemanticModel is not null)
-        {
-            SemanticModel.Parse(this);
-
-            if (SemanticModel.SemanticResult is not null)
-            {
-                textEditorTextSpans = textEditorTextSpans
-                    .AddRange(SemanticModel.SemanticResult.SymbolMessageTextSpanTuples
-                        .Select(x => x.textSpan));
-            }
-        }
-
-        ApplyDecorationRange(textEditorTextSpans);
+        var syntacticTestSpans = CompilerService.GetSyntacticTextSpansFor(this);
+        ApplyDecorationRange(syntacticTestSpans);
     }
 
     public string GetAllText()
@@ -630,14 +616,14 @@ public partial class TextEditorModel
     {
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
 
-        // TODO: Invoke an event to reapply the CSS classes?
+        // TODO: Invoke an event?
     }
 
-    public void SetLexer(ITextEditorLexer? lexer)
+    public void SetCompilerService(ICompilerService compilerService)
     {
-        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
+        CompilerService = compilerService;
 
-        // TODO: Invoke an event to reapply the CSS classes?
+        // TODO: Invoke an event?
     }
     
     public TextEditorModel SetResourceData(

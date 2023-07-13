@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 
-namespace Luthetus.TextEditor.RazorLib.HostedServiceCase;
+namespace Luthetus.TextEditor.RazorLib.HostedServiceCase.TextEditorCase;
 
 public class TextEditorQueuedHostedService : BackgroundService
 {

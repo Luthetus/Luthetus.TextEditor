@@ -3,7 +3,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 using Luthetus.TextEditor.RazorLib.Character;
 using Luthetus.TextEditor.RazorLib.Decoration;
 using Luthetus.TextEditor.RazorLib.Keymap;
-using Luthetus.TextEditor.RazorLib.Semantics;
+using Luthetus.TextEditor.RazorLib.CompilerServiceCase;
 
 namespace Luthetus.TextEditor.RazorLib.Model;
 
@@ -15,18 +15,16 @@ public partial class TextEditorModel
         DateTime resourceLastWriteTime,
         string fileExtension,
         string content,
-        ITextEditorLexer? lexer,
+        ICompilerService? compilerService,
         IDecorationMapper? decorationMapper,
-        ISemanticModel? semanticModel,
         ITextEditorKeymap? textEditorKeymap,
         TextEditorSaveFileHelper textEditorSaveFileHelper)
     {
         ResourceUri = resourceUri;
         ResourceLastWriteTime = resourceLastWriteTime;
         FileExtension = fileExtension;
-        Lexer = lexer ?? new TextEditorLexerDefault(ResourceUri);
+        CompilerService = compilerService ?? new TextEditorCompilerServiceDefault();
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
-        SemanticModel = semanticModel ?? new SemanticModelDefault();
         TextEditorKeymap = textEditorKeymap ?? new TextEditorKeymapDefault();
         TextEditorSaveFileHelper = textEditorSaveFileHelper;
         
@@ -38,9 +36,8 @@ public partial class TextEditorModel
         DateTime resourceLastWriteTime,
         string fileExtension,
         string content,
-        ITextEditorLexer? lexer,
+        ICompilerService? compilerService,
         IDecorationMapper? decorationMapper,
-        ISemanticModel? semanticModel,
         ITextEditorKeymap? textEditorKeymap,
         TextEditorSaveFileHelper textEditorSaveFileHelper,
         TextEditorModelKey modelKey)
@@ -49,9 +46,8 @@ public partial class TextEditorModel
             resourceLastWriteTime,
             fileExtension,
             content,
-            lexer,
+            compilerService,
             decorationMapper,
-            semanticModel,
             textEditorKeymap,
             textEditorSaveFileHelper)
     {
@@ -73,13 +69,12 @@ public partial class TextEditorModel
 
         OnlyRowEndingKind = original.OnlyRowEndingKind;
         UsingRowEndingKind = original.UsingRowEndingKind;
-        Lexer = original.Lexer;
+        CompilerService = original.CompilerService;
         DecorationMapper = original.DecorationMapper;
         TextEditorKeymap = original.TextEditorKeymap;
         TextEditorSaveFileHelper = original.TextEditorSaveFileHelper;
         EditBlockIndex = original.EditBlockIndex;
         MostCharactersOnASingleRowTuple = original.MostCharactersOnASingleRowTuple;
         TextEditorOptions = original.TextEditorOptions;
-        SemanticModel = original.SemanticModel;
     }
 }

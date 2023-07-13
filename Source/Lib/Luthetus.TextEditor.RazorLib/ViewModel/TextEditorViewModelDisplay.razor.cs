@@ -15,14 +15,13 @@ using Luthetus.TextEditor.RazorLib.Commands.Default;
 using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.HelperComponents;
 using Luthetus.TextEditor.RazorLib.Options;
-using Luthetus.TextEditor.RazorLib.Semantics;
 using Luthetus.TextEditor.RazorLib.ViewModel.InternalComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.Reactive;
-using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
+using Luthetus.TextEditor.RazorLib.HostedServiceCase.TextEditorCase;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -46,9 +45,6 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private IClipboardService ClipboardService { get; set; } = null!;
     [Inject]
     private ITextEditorBackgroundTaskQueue TextEditorBackgroundTaskQueue { get; set; } = null!;
-
-    [CascadingParameter(Name="HandleGotoDefinitionWithinDifferentFileAction")]
-    public Action<TextEditorSymbolDefinition>? HandleGotoDefinitionWithinDifferentFileAction { get; set; }
 
     [Parameter, EditorRequired]
     public TextEditorViewModelKey TextEditorViewModelKey { get; set; } = null!;
@@ -291,8 +287,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
                         cursorSnapshots,
                         ClipboardService,
                         TextEditorService,
-                        viewModel,
-                        HandleGotoDefinitionWithinDifferentFileAction));
+                        viewModel));
             }
             else
             {
@@ -732,8 +727,10 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
 
                     await textEditor.ApplySyntaxHighlightingAsync();
 
-                    if (viewModel is not null && model.SemanticModel is not null)
-                        _ = Task.Run(viewModel.UpdateSemanticPresentationModel);
+                    if (viewModel is not null && model.CompilerService is not null)
+                    {
+                        // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
+                    }
                 }
             });
         }
@@ -742,69 +739,7 @@ public partial class TextEditorViewModelDisplay : ComponentBase, IDisposable
     private async Task HandleMouseStoppedMovingEventAsync(
         MouseEventArgs mouseEventArgs)
     {
-        var model = GetModel();
-        var viewModel = GetViewModel();
-
-        if (model is null || viewModel is null)
-            return;
-
-        // Lazily calculate row and column index a second time. Otherwise one has to calculate it every mouse moved event.
-        var rowAndColumnIndex = await CalculateRowAndColumnIndex(mouseEventArgs);
-
-        // TODO: (2023-05-28) This shouldn't be re-calcuated in the best case scenario. That is to say, the previous line invokes 'CalculateRowAndColumnIndex(...)' which also invokes this logic
-        var relativeCoordinatesOnClick = await JsRuntime
-            .InvokeAsync<RelativeCoordinates>(
-                "luthetusTextEditor.getRelativePosition",
-                viewModel.BodyElementId,
-                mouseEventArgs.ClientX,
-                mouseEventArgs.ClientY);
-
-        var cursorPositionIndex = model.GetCursorPositionIndex(
-            new TextEditorCursor(rowAndColumnIndex, false));
-
-        var foundMatch = false;
-
-        if (model.SemanticModel is not null && 
-            model.SemanticModel.SemanticResult is not null)
-        {
-            foreach (var symbolMessageTextSpanTuple in model.SemanticModel.SemanticResult.SymbolMessageTextSpanTuples)
-            {
-                if (cursorPositionIndex >= symbolMessageTextSpanTuple.textSpan.StartingIndexInclusive &&
-                    cursorPositionIndex < symbolMessageTextSpanTuple.textSpan.EndingIndexExclusive)
-                {
-                    foundMatch = true;
-
-                    _mouseStoppedEventMostRecentResult = (
-                        symbolMessageTextSpanTuple.message,
-                        relativeCoordinatesOnClick);
-                }
-            }
-
-            foreach (var diagnosticTextSpanTuple in model.SemanticModel.SemanticResult.DiagnosticTextSpanTuples)
-            {
-                if (cursorPositionIndex >= diagnosticTextSpanTuple.textSpan.StartingIndexInclusive &&
-                    cursorPositionIndex < diagnosticTextSpanTuple.textSpan.EndingIndexExclusive)
-                {
-                    foundMatch = true;
-
-                    _mouseStoppedEventMostRecentResult = (
-                        diagnosticTextSpanTuple.diagnostic.Message,
-                        relativeCoordinatesOnClick);
-                }
-            }
-        }
-     
-        if (!foundMatch)
-        {
-            if (_mouseStoppedEventMostRecentResult is null)
-                return; // Avoid the re-render if nothing changed
-
-            _mouseStoppedEventMostRecentResult = null;
-        }
-
-        // TODO: Measure the overlay and reposition if it would go offscreen.
-
-        await InvokeAsync(StateHasChanged);
+        // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
     }
 
     private bool IsSyntaxHighlightingInvoker(KeyboardEventArgs keyboardEventArgs)

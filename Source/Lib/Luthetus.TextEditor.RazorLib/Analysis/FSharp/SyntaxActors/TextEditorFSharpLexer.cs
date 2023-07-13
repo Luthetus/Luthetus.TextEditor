@@ -7,7 +7,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.FSharp.SyntaxActors;
 
-public class TextEditorFSharpLexer : ITextEditorLexer
+public class TextEditorFSharpLexer
 {
     public static readonly GenericPreprocessorDefinition FSharpPreprocessorDefinition = new(
         "#",

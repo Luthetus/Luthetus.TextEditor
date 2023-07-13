@@ -3,7 +3,7 @@ using Luthetus.Common.RazorLib.Notification;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
 using Luthetus.Common.RazorLib.ComponentRenderers;
 
-namespace Luthetus.TextEditor.RazorLib.HostedServiceCase;
+namespace Luthetus.TextEditor.RazorLib.HostedServiceCase.TextEditorCase;
 
 public class TextEditorBackgroundTaskMonitor : ITextEditorBackgroundTaskMonitor
 {

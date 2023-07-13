@@ -747,41 +747,7 @@ public static class TextEditorCommandDefaultFacts
     public static readonly TextEditorCommand GoToDefinition = new(
         commandParameter =>
         {
-            if (commandParameter.Model.SemanticModel is null)
-                return Task.CompletedTask;
-
-            var positionIndex = commandParameter.Model
-                .GetCursorPositionIndex(
-                    commandParameter.PrimaryCursorSnapshot.ImmutableCursor);
-
-            var textSpanOfWordAtPositionIndex = commandParameter.Model
-                .GetWordAt(positionIndex);
-
-            if (textSpanOfWordAtPositionIndex is null)
-                return Task.CompletedTask;
-
-            var symbolDefinition = commandParameter.Model.SemanticModel
-                .GoToDefinition(
-                    commandParameter.Model,
-                    textSpanOfWordAtPositionIndex);
-
-            if (symbolDefinition is not null)
-            {
-                if (symbolDefinition.ResourceUri == commandParameter.Model.ResourceUri)
-                {
-                    var rowInformation = commandParameter.Model
-                        .FindRowInformation(symbolDefinition.PositionIndex);
-
-                    commandParameter.PrimaryCursorSnapshot.UserCursor.IndexCoordinates =
-                        (rowInformation.rowIndex,
-                            symbolDefinition.PositionIndex - rowInformation.rowStartPositionIndex);
-                }
-                else
-                {
-                    commandParameter.HandleGotoDefinitionWithinDifferentFileAction?.Invoke(symbolDefinition);
-                }
-            }
-
+            // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
             return Task.CompletedTask;
         },
         false,

@@ -8,7 +8,7 @@ using Luthetus.TextEditor.RazorLib.Lexing;
 
 namespace Luthetus.TextEditor.RazorLib.Analysis.C.SyntaxActors;
 
-public class TextEditorCLexer : ITextEditorLexer
+public class TextEditorCLexer
 {
     public static readonly GenericPreprocessorDefinition CPreprocessorDefinition = new(
         "#",

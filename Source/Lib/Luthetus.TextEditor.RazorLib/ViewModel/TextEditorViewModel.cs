@@ -8,8 +8,6 @@ using Luthetus.TextEditor.RazorLib.Cursor;
 using Luthetus.TextEditor.RazorLib.Measurement;
 using Luthetus.TextEditor.RazorLib.Virtualization;
 using Luthetus.Common.RazorLib.Reactive;
-using Luthetus.TextEditor.RazorLib.Lexing;
-using Luthetus.TextEditor.RazorLib.Semantics;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
@@ -448,41 +446,6 @@ public record TextEditorViewModel
 
     public void UpdateSemanticPresentationModel()
     {
-        TextEditorService.ViewModel.With(
-            ViewModelKey,
-            inViewModel =>
-            {
-                var outPresentationLayer = inViewModel.FirstPresentationLayer;
-
-                var inPresentationModel = outPresentationLayer
-                    .FirstOrDefault(x =>
-                        x.TextEditorPresentationKey == SemanticFacts.PresentationKey);
-
-                if (inPresentationModel is null)
-                {
-                    inPresentationModel = SemanticFacts.EmptyPresentationModel;
-
-                    outPresentationLayer = outPresentationLayer.Add(
-                        inPresentationModel);
-                }
-
-                var model = TextEditorService.ViewModel
-                    .FindBackingModelOrDefault(ViewModelKey);
-
-                var outPresentationModel = inPresentationModel with
-                {
-                    TextEditorTextSpans = model?.SemanticModel?.SemanticResult?.DiagnosticTextSpanTuples.Select(x => x.textSpan).ToImmutableList()
-                        ?? ImmutableList<TextEditorTextSpan>.Empty
-                };
-
-                outPresentationLayer = outPresentationLayer.Replace(
-                    inPresentationModel,
-                    outPresentationModel);
-
-                return inViewModel with
-                {
-                    FirstPresentationLayer = outPresentationLayer,
-                };
-            });
+        // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
     }
 }

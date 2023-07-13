@@ -85,7 +85,6 @@ public class LuthetusTextEditorTestingBase
             null,
             null,
             null,
-            null,
             new(),
             TextEditorModelKey);
 

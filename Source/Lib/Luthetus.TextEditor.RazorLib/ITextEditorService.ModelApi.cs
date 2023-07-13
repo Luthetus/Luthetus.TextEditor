@@ -1,16 +1,4 @@
 ﻿using Fluxor;
-using Luthetus.TextEditor.RazorLib.Analysis.CSharp.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.Css.Decoration;
-using Luthetus.TextEditor.RazorLib.Analysis.Css.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.FSharp.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.GenericLexer.Decoration;
-using Luthetus.TextEditor.RazorLib.Analysis.Html.Decoration;
-using Luthetus.TextEditor.RazorLib.Analysis.Html.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.JavaScript.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.Json.Decoration;
-using Luthetus.TextEditor.RazorLib.Analysis.Json.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.Razor.SyntaxActors;
-using Luthetus.TextEditor.RazorLib.Analysis.TypeScript.SyntaxActors;
 using Luthetus.TextEditor.RazorLib.Model;
 using Luthetus.TextEditor.RazorLib.Store.Model;
 using Luthetus.TextEditor.RazorLib.Decoration;
@@ -120,53 +108,17 @@ public partial interface ITextEditorService
             string fileExtension,
             string initialContent)
         {
-            ITextEditorLexer? lexer = null;
             IDecorationMapper? decorationMapper = null;
 
-            switch (wellKnownModelKind)
-            {
-                case WellKnownModelKind.CSharp:
-                    lexer = new TextEditorCSharpLexer(resourceUri);
-                    decorationMapper = new GenericDecorationMapper();
-                    break;
-                case WellKnownModelKind.Html:
-                    lexer = new TextEditorHtmlLexer(resourceUri);
-                    decorationMapper = new TextEditorHtmlDecorationMapper();
-                    break;
-                case WellKnownModelKind.Css:
-                    lexer = new TextEditorCssLexer(resourceUri);
-                    decorationMapper = new TextEditorCssDecorationMapper();
-                    break;
-                case WellKnownModelKind.Json:
-                    lexer = new TextEditorJsonLexer(resourceUri);
-                    decorationMapper = new TextEditorJsonDecorationMapper();
-                    break;
-                case WellKnownModelKind.FSharp:
-                    lexer = new TextEditorFSharpLexer(resourceUri);
-                    decorationMapper = new GenericDecorationMapper();
-                    break;
-                case WellKnownModelKind.Razor:
-                    lexer = new TextEditorRazorLexer(resourceUri);
-                    decorationMapper = new TextEditorHtmlDecorationMapper();
-                    break;
-                case WellKnownModelKind.JavaScript:
-                    lexer = new TextEditorJavaScriptLexer(resourceUri);
-                    decorationMapper = new GenericDecorationMapper();
-                    break;
-                case WellKnownModelKind.TypeScript:
-                    lexer = new TextEditorTypeScriptLexer(resourceUri);
-                    decorationMapper = new GenericDecorationMapper();
-                    break;
-            }
+            // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
 
             var textEditorModel = new TextEditorModel(
                 resourceUri,
                 resourceLastWriteTime,
                 fileExtension,
                 initialContent,
-                lexer,
-                decorationMapper,
                 null,
+                decorationMapper,
                 null,
                 new(),
                 textEditorModelKey);
