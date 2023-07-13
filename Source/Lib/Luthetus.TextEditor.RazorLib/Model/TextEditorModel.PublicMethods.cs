@@ -372,7 +372,8 @@ public partial class TextEditorModel
 
     public async Task ApplySyntaxHighlightingAsync()
     {
-        // TODO: (2023-06-29) I'm rewritting the TextEditor 'ISemanticModel.cs' to be 'ICompilerService.cs'. This method broke in the process and is not high priority to fix yet.
+        var syntacticTestSpans = CompilerService.GetSyntacticTextSpansFor(this);
+        ApplyDecorationRange(syntacticTestSpans);
     }
 
     public string GetAllText()

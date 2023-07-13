@@ -8,31 +8,31 @@ public class TextEditorCompilerServiceDefault : ICompilerService
 {
     public void RegisterModel(TextEditorModel textEditorModel)
     {
-        throw new NotImplementedException();
+        // Do nothing
     }
 
     public ImmutableArray<TextEditorTextSpan> GetSyntacticTextSpansFor(TextEditorModel textEditorModel)
     {
-        throw new NotImplementedException();
+        return ImmutableArray<TextEditorTextSpan>.Empty;
     }
 
     public ImmutableArray<ITextEditorSymbol> GetSymbolsFor(TextEditorModel textEditorModel)
     {
-        throw new NotImplementedException();
+        return ImmutableArray<ITextEditorSymbol>.Empty;
     }
 
     public ImmutableArray<TextEditorTextSpan> GetDiagnosticTextSpansFor(TextEditorModel textEditorModel)
     {
-        throw new NotImplementedException();
+        return ImmutableArray<TextEditorTextSpan>.Empty;
     }
 
     public void ModelWasModified(TextEditorModel textEditorModel, ImmutableArray<TextEditorTextSpan> editTextSpans)
     {
-        throw new NotImplementedException();
+        // Do nothing
     }
 
     public void DisposeModel(TextEditorModel textEditorModel)
     {
-        throw new NotImplementedException();
+        // Do nothing
     }
 }

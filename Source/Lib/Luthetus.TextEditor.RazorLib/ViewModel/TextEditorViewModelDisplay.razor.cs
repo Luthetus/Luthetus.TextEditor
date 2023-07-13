@@ -20,8 +20,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Luthetus.Common.RazorLib.Reactive;
-using Luthetus.TextEditor.RazorLib.HostedServiceCase;
 using Luthetus.Common.RazorLib.BackgroundTaskCase.BaseTypes;
+using Luthetus.TextEditor.RazorLib.HostedServiceCase.TextEditorCase;
 
 namespace Luthetus.TextEditor.RazorLib.ViewModel;
 
