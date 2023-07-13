@@ -23,7 +23,7 @@ public partial class TextEditorModel
         ResourceUri = resourceUri;
         ResourceLastWriteTime = resourceLastWriteTime;
         FileExtension = fileExtension;
-        CompilerService = compilerService ?? new TextEditorCompilerServiceDefault();
+        CompilerService = compilerService ?? new TextEditorDefaultCompilerService();
         DecorationMapper = decorationMapper ?? new TextEditorDecorationMapperDefault();
         TextEditorKeymap = textEditorKeymap ?? new TextEditorKeymapDefault();
         TextEditorSaveFileHelper = textEditorSaveFileHelper;

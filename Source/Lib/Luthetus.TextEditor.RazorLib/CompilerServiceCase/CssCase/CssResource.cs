@@ -2,22 +2,22 @@
 using Luthetus.TextEditor.RazorLib.Model;
 using System.Collections.Immutable;
 
-namespace Luthetus.TextEditor.RazorLib.CompilerServiceCase;
+namespace Luthetus.TextEditor.RazorLib.CompilerServiceCase.CssCase;
 
-public class XmlResource
+public class CssResource
 {
-    public XmlResource(
+    public CssResource(
         TextEditorModelKey modelKey,
         ResourceUri resourceUri,
-        TextEditorXmlCompilerService textEditorXmlCompilerService)
+        TextEditorCssCompilerService textEditorCssCompilerService)
     {
         ModelKey = modelKey;
         ResourceUri = resourceUri;
-        TextEditorXmlCompilerService = textEditorXmlCompilerService;
+        TextEditorCssCompilerService = textEditorCssCompilerService;
     }
 
     public TextEditorModelKey ModelKey { get; }
     public ResourceUri ResourceUri { get; }
-    public TextEditorXmlCompilerService TextEditorXmlCompilerService { get; }
+    public TextEditorCssCompilerService TextEditorCssCompilerService { get; }
     public ImmutableArray<TextEditorTextSpan>? SyntacticTextSpans { get; internal set; }
 }
